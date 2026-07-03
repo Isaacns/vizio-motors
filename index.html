@@ -206,13 +206,13 @@ footer b{color:var(--gold-4)}
       <nav class="nav">
         <a data-m="estoque"><span class="ic">📦</span>Estoque</a>
         <a onclick="abrirFin()"><span class="ic">💳</span>Financeiro</a>
-        <a data-m="stub" data-t="Nota Fiscal"><span class="ic">🧾</span>Nota Fiscal</a>
+        <a onclick="abrirNFe()"><span class="ic">🧾</span>Nota Fiscal</a>
       </nav>
       <div class="navgrp">Inteligência</div>
       <nav class="nav">
-        <a data-m="stub" data-t="Dashboard Executivo"><span class="ic">📊</span>Dashboard</a>
+        <a onclick="abrirDash()"><span class="ic">📊</span>Dashboard</a>
         <a data-m="stub" data-t="Motor Torque (IA)"><span class="ic">⚡</span>Motor Torque</a>
-        <a data-m="stub" data-t="CRM & Recuperação"><span class="ic">💛</span>CRM & Receita</a>
+        <a onclick="abrirCRM()"><span class="ic">💛</span>CRM & Receita</a>
       </nav>
       <div class="navgrp">Sistema</div>
       <nav class="nav">
@@ -242,6 +242,9 @@ footer b{color:var(--gold-4)}
 <script src="dados.js"></script>
 <script src="app.js"></script>
 <script src="financeiro.js"></script>
+<script src="crm.js"></script>
+<script src="dashboard.js"></script>
+<script src="nfe.js"></script>
 <script src="supabase-mode.js"></script>
 </body>
 </html>
