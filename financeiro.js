@@ -134,11 +134,11 @@ function drawFinChart(k){
     type:'bar',
     data:{labels:['Recebido','A receber','Pago','A pagar'],
       datasets:[{data:[k.recPago,k.aReceber,k.desPago,k.aPagar],
-        backgroundColor:['#4ecb8f','rgba(78,203,143,.4)','#e5644e','rgba(229,100,78,.4)'],
-        borderRadius:8,borderSkipped:false}]},
-    options:{plugins:{legend:{display:false}},
-      scales:{y:{ticks:{color:'#9a927f',callback:v=>'R$ '+(v/1000)+'k'},grid:{color:'rgba(255,255,255,.05)'}},
-              x:{ticks:{color:'#c9c0aa'},grid:{display:false}}}}
+        backgroundColor:['#54d1a6','rgba(84,209,166,.35)','#e77b7b','rgba(231,123,123,.35)'],
+        borderRadius:6,borderSkipped:false,maxBarThickness:44}]},
+    options:{responsive:true,maintainAspectRatio:true,aspectRatio:3,plugins:{legend:{display:false}},
+      scales:{y:{ticks:{color:'#79838f',font:{family:'Inter',size:10},callback:v=>'R$ '+(v/1000)+'k'},grid:{color:'rgba(255,255,255,.045)',drawBorder:false},border:{display:false}},
+              x:{ticks:{color:'#79838f',font:{family:'Inter',size:10}},grid:{display:false},border:{display:false}}}}
   });
 }
 

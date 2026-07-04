@@ -7,7 +7,7 @@
    ============================================================ */
 let _dashCharts=[];
 function dashDestroy(){ _dashCharts.forEach(c=>{try{c.destroy();}catch(e){}}); _dashCharts=[]; }
-const PALETTE=['#f6d16a','#5aa0ff','#4ecb8f','#f0894e','#b78bff','#39c5c5','#e5647e','#c6a44a'];
+const PALETTE=['#5b8cff','#7fa3ff','#a9c1ff','#6ee2c0','#e6b566','#b7a6ff','#7fbfd6','#8894a6'];
 
 function abrirDash(){
   document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
@@ -63,18 +63,20 @@ function renderDash(){
 function drawDash(d){
   if(typeof Chart==="undefined")return;
   dashDestroy();
-  const grid='rgba(255,255,255,.05)', tick='#9a927f';
+  const grid='rgba(255,255,255,.045)', tick='#79838f';
   const el=id=>{const e=document.getElementById(id);return e&&e.getContext?e.getContext('2d'):null;};
-  const baseOpts=(money)=>({plugins:{legend:{display:false}},
-    scales:{y:{ticks:{color:tick,callback:v=>money?'R$ '+(v/1000)+'k':v},grid:{color:grid}},x:{ticks:{color:tick,font:{size:10}},grid:{display:false}}}});
+  const baseOpts=(money)=>({responsive:true,maintainAspectRatio:true,aspectRatio:3.4,
+    plugins:{legend:{display:false}},
+    scales:{y:{ticks:{color:tick,font:{family:'Inter',size:10},callback:v=>money?'R$ '+(v/1000)+'k':v},grid:{color:grid,drawBorder:false},border:{display:false}},
+      x:{ticks:{color:tick,font:{family:'Inter',size:10}},grid:{display:false},border:{display:false}}}});
   function bar(id,pairs,money,color){const c=el(id);if(!c)return;
     _dashCharts.push(new Chart(c,{type:'bar',data:{labels:pairs.map(p=>p[0]),
-      datasets:[{data:pairs.map(p=>p[1]),backgroundColor:color||pairs.map((p,i)=>PALETTE[i%PALETTE.length]),borderRadius:7,borderSkipped:false}]},options:baseOpts(money)}));}
+      datasets:[{data:pairs.map(p=>p[1]),backgroundColor:color||pairs.map((p,i)=>PALETTE[i%PALETTE.length]),borderRadius:6,borderSkipped:false,maxBarThickness:26}]},options:baseOpts(money)}));}
   bar('c_recserv',agg(d.recServ).slice(0,7),true);
   const cs=el('c_status');
   if(cs)_dashCharts.push(new Chart(cs,{type:'doughnut',
-    data:{labels:STATUS_FLOW,datasets:[{data:d.porStatus,backgroundColor:['#5aa0ff','#f0b23c','#f0894e','#f6d16a','#c6a44a','#b78bff','#39c5c5','#4ecb8f','#2fa373'],borderWidth:0}]},
-    options:{plugins:{legend:{position:'right',labels:{color:tick,font:{size:10},boxWidth:12}}}}}));
+    data:{labels:STATUS_FLOW,datasets:[{data:d.porStatus,backgroundColor:['#5b8cff','#7fa3ff','#a9c1ff','#6ee2c0','#e6b566','#b7a6ff','#7fbfd6','#8894a6','#54d1a6'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,cutout:'72%',plugins:{legend:{position:'right',labels:{color:tick,font:{family:'Inter',size:10},boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'}}}}}));
   bar('c_mec',agg(d.mec),true,PALETTE);
   bar('c_serv',agg(d.servCount).slice(0,7),false,'#5aa0ff');
   bar('c_peca',agg(d.pecaCount).slice(0,7),false,'#4ecb8f');
