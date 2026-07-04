@@ -27,7 +27,6 @@ function applyTheme(b){
   rs.setProperty('--gold-3',shade(acc,-6));
   rs.setProperty('--gold-4',shade(acc,-30));
   rs.setProperty('--gold-5',shade(acc,-48));
-  rs.setProperty('--line',hexRgba(acc,0.16));
   window.BRAND_LOGO=b.logo||b.logo_url||VIZIO_BRAND.logo;
   window.BRAND_NAME=b.nome||b.nome_exibicao||VIZIO_BRAND.nome;
   ['emblemLogin','emblemSide','emblemP'].forEach(function(id){
@@ -101,3 +100,19 @@ async function salvarMarca(){
 }
 window.salvarMarca=salvarMarca;
 window.salvarOficinaMarca=function(cfg){ if(cfg&&cfg.oficina)applyTheme({nome:cfg.oficina,accent:window.getComputedStyle?getComputedStyle(document.documentElement).getPropertyValue('--gold-2').trim():'#5aa0ff',logo:window.BRAND_LOGO}); };
+
+/* ---------- tema claro/escuro (VIZIO dark ↔ VIZIO light) ---------- */
+function _themeGlyph(lit){ var t=document.getElementById('themeToggle'); if(t)t.textContent=lit?'☀':'◐'; }
+function toggleTheme(){
+  var lit=document.documentElement.classList.toggle('theme-light');
+  try{ localStorage.setItem('vm_theme', lit?'light':'dark'); }catch(e){}
+  _themeGlyph(lit);
+  // re-renderiza a view atual p/ atualizar cores dos gráficos
+  var t=(document.getElementById('pageTitle')||{}).textContent;
+  if(t==='Dashboard Executivo'&&typeof renderDash==='function')renderDash();
+  else if(t==='Financeiro'&&typeof renderFinanceiro==='function')renderFinanceiro();
+}
+window.toggleTheme=toggleTheme;
+(function initTheme(){ try{ var lit=localStorage.getItem('vm_theme')==='light';
+  if(lit)document.documentElement.classList.add('theme-light'); _themeGlyph(lit);
+}catch(e){} })();

@@ -43,7 +43,7 @@
 
   async function sbLogin(){
     const pass=(document.getElementById('pass')||{}).value||"";
-    const email=window.SB_EMAIL||((document.getElementById('user')||{}).value||"admin")+"@r3.local";
+    const email=window.SB_EMAIL||((document.getElementById('user')||{}).value||"admin")+"@vizio.local";
     const {error}=await SB.auth.signInWithPassword({email,password:pass});
     if(error){ toast("Login Supabase falhou: "+error.message); throw error; }
   }

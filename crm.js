@@ -63,7 +63,7 @@ function renderCRM(){
   ];
   const badge=s=>`<span class="badge ${s[1]==='ok'?'s7':(s[1]==='warn'?'s1':'s0')}" style="${s[1]==='bad'?'background:rgba(229,100,78,.15);color:var(--bad)':''}">${s[0]}</span>`;
   const acoes=(c,msg)=>`<a class="b b-sm" style="text-decoration:none" target="_blank" href="${waLink(c.tel,msg)}">WhatsApp</a>
-     <a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="${mailLink(c.email,'R3 Centro Automotivo',msg)}">E-mail</a>`;
+     <a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="${mailLink(c.email,(window.BRAND_NAME||'Vizio Motors'),msg)}">E-mail</a>`;
 
   document.getElementById('view').innerHTML=`
    <div class="kpis">${kpis.map(k=>`<div class="kpi" style="cursor:pointer" onclick="crmDrill('${k[4]}')" title="Ver detalhes"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div><div class="dt ${k[2]}">${k[3]}</div></div>`).join('')}</div>
@@ -75,20 +75,20 @@ function renderCRM(){
       <tbody>${D.map(d=>`<tr><td><b>${d.c.nome}</b><br><span style="color:var(--muted);font-size:11px">${d.c.tel||''}</span></td>
         <td>${badge(d.oleo)}</td><td>${badge(d.rev)}</td><td>${d.visitas}</td>
         <td style="color:var(--gold-2)">${money(d.gasto)}</td>
-        <td>${acoes(d.c, `Olá ${d.c.nome.split(' ')[0]}! Aqui é a R3 Centro Automotivo. Notamos que seu Renault Master pode estar precisando de revisão/troca de óleo. Quer agendar? 🔧`)}</td></tr>`).join('')}</tbody></table>
+        <td>${acoes(d.c, `Olá ${d.c.nome.split(' ')[0]}! Aqui é a ${window.BRAND_NAME||'nossa oficina'}. Notamos que seu veículo pode estar precisando de revisão/troca de óleo. Quer agendar? 🔧`)}</td></tr>`).join('')}</tbody></table>
    </div>
 
    <div class="grid2">
      <div class="panel"><h3>🎂 Aniversariantes do mês</h3>
        ${aniver.length?aniver.map(c=>`<div class="veh"><div class="info"><div class="t">${c.nome}</div>
          <div class="s">${fmtFull(c.nasc)} · ${c.tel||''}</div></div>
-         <a class="b b-sm" style="text-decoration:none" target="_blank" href="${waLink(c.tel,`Feliz aniversário, ${c.nome.split(' ')[0]}! 🎉 A R3 Centro Automotivo deseja tudo de bom. Passe aqui e ganhe uma revisão de cortesia no seu Master!`)}">Parabenizar</a></div>`).join('')
+         <a class="b b-sm" style="text-decoration:none" target="_blank" href="${waLink(c.tel,`Feliz aniversário, ${c.nome.split(' ')[0]}! 🎉 A ${window.BRAND_NAME||'nossa oficina'} deseja tudo de bom. Passe aqui e ganhe uma revisão de cortesia no seu veículo!`)}">Parabenizar</a></div>`).join('')
          :'<div style="color:var(--muted);font-size:13px">Ninguém faz aniversário este mês.</div>'}
      </div>
      <div class="panel"><h3>😴 Clientes inativos</h3>
        ${inativos.length?inativos.map(d=>`<div class="veh"><div class="info"><div class="t">${d.c.nome}</div>
          <div class="s">Sem visita há ~${d.ultMes} meses · ${d.visitas} OS no histórico</div></div>
-         <a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="${waLink(d.c.tel,`Olá ${d.c.nome.split(' ')[0]}! Sentimos sua falta na R3. Que tal um check-up no seu Master? Temos condição especial de retorno. 🚐`)}">Reativar</a></div>`).join('')
+         <a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="${waLink(d.c.tel,`Olá ${d.c.nome.split(' ')[0]}! Sentimos sua falta. Que tal um check-up no seu veículo? Temos condição especial de retorno. 🚐`)}">Reativar</a></div>`).join('')
          :'<div style="color:var(--muted);font-size:13px">Nenhum cliente inativo. 👏</div>'}
      </div>
    </div>
@@ -107,10 +107,10 @@ function gerarCampanha(tipo){
   let alvos, titulo, msg;
   if(tipo==='oleo'){ alvos=D.filter(d=>d.oleo[0]==="Vencida");
     titulo="Recuperação — Troca de óleo vencida";
-    msg="Seu Master está com a troca de óleo vencida. Agende na R3 e ganhe 10% na próxima revisão!"; }
+    msg="Seu veículo está com a troca de óleo vencida. Agende conosco e ganhe 10% na próxima revisão!"; }
   else { alvos=D.filter(d=>d.rev[0]==="Vencida");
     titulo="Recuperação — Revisão vencida";
-    msg="Faz tempo que seu Master não passa por revisão. Garanta a segurança da sua frota — agende com a R3!"; }
+    msg="Faz tempo que seu veículo não passa por revisão. Garanta a segurança da sua frota — agende conosco!"; }
   if(!alvos.length){ toast("Nenhum cliente neste segmento agora."); return; }
   crmList().push({id:uid('CP'),titulo,alvos:alvos.length,msg,data:today(),tipo});
   toast(`Campanha criada para ${alvos.length} cliente(s) ✓`);
@@ -128,25 +128,25 @@ function crmDrill(tipo){
     titulo="🎂 Aniversariantes do mês";
     const L=WORK.clientes.filter(c=>c.nasc && new Date(c.nasc).getMonth()===mesAtual);
     head="<tr><th>Cliente</th><th>Nascimento</th><th>Telefone</th><th>Ação</th></tr>";
-    rows=L.map(c=>`<tr><td><b>${c.nome}</b></td><td>${fmtFull(c.nasc)}</td><td style="color:var(--muted)">${c.tel||''}</td><td>${wa(c,`Feliz aniversário, ${fn(c.nome)}! 🎉 A R3 Centro Automotivo deseja tudo de bom. Passe aqui e ganhe uma revisão de cortesia no seu Master!`)}</td></tr>`).join('');
+    rows=L.map(c=>`<tr><td><b>${c.nome}</b></td><td>${fmtFull(c.nasc)}</td><td style="color:var(--muted)">${c.tel||''}</td><td>${wa(c,`Feliz aniversário, ${fn(c.nome)}! 🎉 A ${window.BRAND_NAME||'nossa oficina'} deseja tudo de bom. Passe aqui e ganhe uma revisão de cortesia no seu veículo!`)}</td></tr>`).join('');
     vazio="Ninguém faz aniversário este mês.";
   } else if(tipo==='oleo'){
     titulo="🛢️ Óleo vencido";
     const L=D.filter(d=>d.oleo[0]==="Vencida");
     head="<tr><th>Cliente</th><th>Última troca</th><th>Telefone</th><th>Ação</th></tr>";
-    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td style="color:var(--bad)">há ~${d.mO} meses</td><td style="color:var(--muted)">${d.c.tel||''}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Seu Master está com a troca de óleo vencida. Quer agendar na R3? 🔧`)}</td></tr>`).join('');
+    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td style="color:var(--bad)">há ~${d.mO} meses</td><td style="color:var(--muted)">${d.c.tel||''}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Seu veículo está com a troca de óleo vencida. Quer agendar? 🔧`)}</td></tr>`).join('');
     vazio="Nenhum óleo vencido. 👏";
   } else if(tipo==='revisao'){
     titulo="🔧 Revisão vencida";
     const L=D.filter(d=>d.rev[0]==="Vencida");
     head="<tr><th>Cliente</th><th>Última revisão</th><th>Telefone</th><th>Ação</th></tr>";
-    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td style="color:var(--bad)">há ~${d.mR} meses</td><td style="color:var(--muted)">${d.c.tel||''}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Seu Master está com a revisão vencida. Vamos agendar na R3? 🚐`)}</td></tr>`).join('');
+    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td style="color:var(--bad)">há ~${d.mR} meses</td><td style="color:var(--muted)">${d.c.tel||''}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Seu veículo está com a revisão vencida. Vamos agendar? 🚐`)}</td></tr>`).join('');
     vazio="Nenhuma revisão vencida. 👏";
   } else if(tipo==='inativos'){
     titulo="😴 Clientes inativos";
     const L=D.filter(d=>d.inativo);
     head="<tr><th>Cliente</th><th>Sem visita</th><th style='text-align:center'>OS</th><th>Ação</th></tr>";
-    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td>há ~${d.ultMes} meses</td><td style="text-align:center">${d.visitas}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Sentimos sua falta na R3. Que tal um check-up no seu Master? Temos condição especial de retorno. 🚐`)}</td></tr>`).join('');
+    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td>há ~${d.ultMes} meses</td><td style="text-align:center">${d.visitas}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Sentimos sua falta. Que tal um check-up no seu veículo? Temos condição especial de retorno. 🚐`)}</td></tr>`).join('');
     vazio="Nenhum cliente inativo. 👏";
   } else if(tipo==='nps'){
     titulo="⭐ NPS — composição";

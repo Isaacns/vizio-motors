@@ -1,5 +1,5 @@
 /* ============================================================
-   Vizio Motors — app.js (lógica do sistema · piloto R3)
+   Vizio Motors — app.js (lógica do sistema)
    Depende de dados.js (DADOS, STATUS_FLOW). Estado em memória
    (cópia de sessão). No go-live, persistência via Supabase.
    ============================================================ */
@@ -178,7 +178,7 @@ function novaOS(){
     <label>Observações</label><textarea id="f_obs" placeholder="Relato do cliente…"></textarea>`,
    ()=>{const o={id:uid('OS'),numero:nextNum(),clienteId:document.getElementById('f_cli').value,
      veiculoId:document.getElementById('f_vei').value,entrada:today(),previsao:document.getElementById('f_prev').value||'',
-     responsavel:document.getElementById('f_resp').value,statusIdx:0,aprovado:false,token:'r3-'+Date.now().toString(36)+Math.random().toString(36).slice(2,12),
+     responsavel:document.getElementById('f_resp').value,statusIdx:0,aprovado:false,token:'vm-'+Date.now().toString(36)+Math.random().toString(36).slice(2,12),
      checklist:[{item:'Pneus',ok:false},{item:'Nível de óleo',ok:false},{item:'Freios',ok:false},{item:'Bateria',ok:false}],
      itens:[],obs:document.getElementById('f_obs').value};
      WORK.os.push(o);closeModal();openOS(o.id);});
@@ -200,7 +200,7 @@ function printOS(id){const o=byId(WORK.os,id),c=cli(o.clienteId),v=veh(o.veiculo
   const linhas=(o.itens||[]).map(i=>{const r=i.tipo==='servico'?svc(i.refId):prt(i.refId);
     return `<tr><td>${(r.nome||'').replace(/</g,'')}</td><td class="ct">${i.qtd}</td><td class="rt">${money(i.valor)}</td></tr>`;}).join('');
   const chk=(o.checklist||[]).map(x=>`<span style="display:inline-block;margin:2px 8px 2px 0">${x.ok?'☑':'☐'} ${x.item}</span>`).join('');
-  const nome=(document.getElementById('brandName')?document.getElementById('brandName').textContent:'R3 Centro Automotivo');
+  const nome=(window.BRAND_NAME)||(document.getElementById('brandName')?document.getElementById('brandName').textContent:'Vizio Motors');
   const w=window.open('','_blank');
   w.document.write(`<html><head><meta charset="utf-8"><title>OS ${o.numero}</title><style>
    body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:32px;max-width:740px;margin:auto}
@@ -293,7 +293,7 @@ function formVeic(v){v=v||{};const ed=!!v.id;
     <label>Cliente</label><select id="f_cli">${WORK.clientes.map(c=>`<option value="${c.id}" ${c.id===v.clienteId?'selected':''}>${c.nome}</option>`).join('')}</select>
     <div class="frow"><div><label>Placa</label><input id="f_placa" value="${v.placa||''}"></div>
     <div><label>Ano</label><input id="f_ano" type="number" value="${v.ano||''}"></div></div>
-    <label>Modelo</label><input id="f_modelo" value="${v.modelo||'Renault Master'}">
+    <label>Modelo</label><input id="f_modelo" value="${v.modelo||''}" placeholder="Ex.: Fiat Toro 2.0">
     <div class="frow"><div><label>KM</label><input id="f_km" type="number" value="${v.km||0}"></div>
     <div><label>Cor</label><input id="f_cor" value="${v.cor||''}"></div></div>
     <label>Combustível</label><select id="f_comb"><option ${v.combustivel==='Diesel'?'selected':''}>Diesel</option><option ${v.combustivel==='Flex'?'selected':''}>Flex</option><option ${v.combustivel==='Gasolina'?'selected':''}>Gasolina</option></select>`,
@@ -382,7 +382,7 @@ function renderPortal(token){
   const v=veh(o.veiculoId);const pct=Math.round(o.statusIdx/8*100);
   P.innerHTML=`<div class="pcard">
     <div class="phead"><div class="emblem" id="emblemP" style="width:76px;margin:0 auto"></div>
-      <div class="pbrand">R3 CENTRO AUTOMOTIVO</div>
+      <div class="pbrand">${(window.BRAND_NAME||'Vizio Motors').toUpperCase()}</div>
       <div style="color:var(--muted);font-size:12px;letter-spacing:1px">ACOMPANHAMENTO DO SEU VEÍCULO</div></div>
     <div class="card-glass pbig">
       <div style="color:var(--muted);font-size:12px">OS #${o.numero} · ${v.modelo||''}</div>
@@ -398,7 +398,7 @@ function renderPortal(token){
         <div class="pl">${s}${i===o.statusIdx?'<small>etapa atual</small>':''}</div></div>`).join('')}
     </div>
     <div class="card-glass" style="padding:16px 18px;margin-top:16px">
-      <div class="info-line"><span class="k">Responsável</span><span>${o.responsavel||'Equipe R3'}</span></div>
+      <div class="info-line"><span class="k">Responsável</span><span>${o.responsavel||'Equipe'}</span></div>
       ${o.aprovado?`<div class="info-line"><span class="k">Valor aprovado</span><span style="color:var(--gold-2);font-weight:600">${money(osTotal(o))}</span></div>`:''}
       <div class="info-line" style="border:none"><span class="k">Observações</span><span style="max-width:60%;text-align:right">${o.obs||'—'}</span></div>
       <button class="btn" style="margin-top:14px" onclick="this.textContent='🔔 Você será avisado quando ficar pronto!';this.disabled=true">🔔 Receber notificação quando finalizar</button>

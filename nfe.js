@@ -74,7 +74,7 @@ function cancelarNF(id){ confirmar("Cancelar esta NF-e? (ação registrada)",()=
 function verDANFE(id){ const n=byId(nfList(),id); const o=byId(WORK.os,n.osId)||{}; const v=veh(o.veiculoId)||{};
   const itens=(o.itens||[]).map(i=>{const r=i.tipo==='servico'?svc(i.refId):prt(i.refId);return `<div class="itemrow"><div class="g">${r.nome||'—'} ${i.qtd>1?'× '+i.qtd:''}</div><div class="money">${money(i.valor)}</div></div>`;}).join('');
   modal("DANFE — NF-e nº "+n.numero,"Documento Auxiliar (simulado)",`
-    <div class="info-line"><span class="k">Emitente</span><span>R3 Centro Automotivo</span></div>
+    <div class="info-line"><span class="k">Emitente</span><span>${window.BRAND_NAME||'Vizio Motors'}</span></div>
     <div class="info-line"><span class="k">Cliente</span><span>${n.cliente}</span></div>
     <div class="info-line"><span class="k">Veículo</span><span>${v.placa||''} ${v.modelo||''}</span></div>
     <div class="info-line"><span class="k">Emissão</span><span>${fmtFull(n.data)}</span></div>
@@ -91,7 +91,7 @@ function baixarXML(id){ const n=byId(nfList(),id); const o=byId(WORK.os,n.osId)|
   const xml=`<?xml version="1.0" encoding="UTF-8"?>
 <NFe><infNFe versao="4.00" Id="NFe${n.chave}">
   <ide><nNF>${n.numero}</nNF><serie>${n.serie}</serie><dhEmi>${n.data}</dhEmi></ide>
-  <emit><xNome>R3 Centro Automotivo</xNome></emit>
+  <emit><xNome>${window.BRAND_NAME||'Vizio Motors'}</xNome></emit>
   <dest><xNome>${n.cliente}</xNome></dest>
 ${itensXml}
   <total><ICMSTot><vNF>${(n.valor||0).toFixed(2)}</vNF></ICMSTot></total>

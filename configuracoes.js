@@ -11,7 +11,7 @@ const CHANGELOG = [
   ["0.4.0","CRM & Recuperação, Dashboard executivo e NF-e"],
   ["0.3.0","Financeiro (fluxo, receber/pagar, DRE)"],
   ["0.2.0","Ordem de Serviço, Clientes & Veículos, Agenda e Portal do Cliente"],
-  ["0.1.0","Fundação, identidade R3 e movimento vivo"]
+  ["0.1.0","Fundação, identidade VIZIO e movimento vivo"]
 ];
 const PERFIS_INFO = [
   ["Administrador","Acesso total ao sistema e às configurações."],
@@ -32,7 +32,7 @@ function abrirConfig(){
 }
 
 function renderConfig(){
-  const cfg=(WORK._cfg)||{oficina:'R3 Centro Automotivo',especialidade:'Renault Master'};
+  const cfg=(WORK._cfg)||{oficina:'Oficina Demonstração',especialidade:'Multimarcas'};
   const live=!!window.VIZIO_LIVE;
   document.getElementById('view').innerHTML=`
    <div class="grid2">
@@ -75,7 +75,7 @@ function renderConfig(){
 }
 
 function editarOficina(){
-  const cfg=(WORK._cfg)||(WORK._cfg={oficina:'R3 Centro Automotivo',especialidade:'Renault Master'});
+  const cfg=(WORK._cfg)||(WORK._cfg={oficina:'Oficina Demonstração',especialidade:'Multimarcas'});
   modal("Editar dados da oficina","",`
     <label>Nome da oficina</label><input id="of_nome" value="${cfg.oficina||''}">
     <label>Especialidade</label><input id="of_esp" value="${cfg.especialidade||''}">`,
