@@ -34,7 +34,7 @@ function abrirPonto(){
 function corpTab(t){ _corpTab=t; renderCorp(); }
 
 function renderCorp(){
-  const tabs=[["ponto","⏱ Ponto"],["bem","😊 Bem-estar"],["alav","📈 Alavancagem"]];
+  const tabs=[["ponto","⏱ Ponto"],["alav","📈 Alavancagem"]];
   const nav=`<div style="display:flex;gap:8px;margin-bottom:16px">${tabs.map(t=>`
     <button class="b ${_corpTab===t[0]?'':'b-ghost'} b-sm" onclick="corpTab('${t[0]}')">${t[1]}</button>`).join('')}</div>`;
   let body="";
