@@ -9,11 +9,19 @@ const GEAR=(()=>{const n=12,rt=250,rr=214,tf=.36,rf=.62,s=2*Math.PI/n,P=(r,a)=>[
  return "M"+p.map(q=>q[0].toFixed(1)+" "+q[1].toFixed(1)).join(" L")+" Z";})();
 const MED=327,MOFF=(600-MED)/2;
 function emblemSVG(){return `<svg viewBox="0 0 600 600" width="100%" height="100%" style="max-width:110px" xmlns="http://www.w3.org/2000/svg">
-<defs><linearGradient id="mtl" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#606167"/><stop offset=".45" stop-color="#3c3d40"/><stop offset="1" stop-color="#202123"/></linearGradient>
-<radialGradient id="dsc" cx="50%" cy="40%" r="66%"><stop offset="0" stop-color="#2a2926"/><stop offset="1" stop-color="#151412"/></radialGradient></defs>
-<path class="gear" d="${GEAR}" fill="url(#mtl)" stroke="#131418" stroke-width="4"/>
-<circle cx="300" cy="300" r="162" fill="url(#dsc)" stroke="#131418" stroke-width="4"/>
-<image x="${MOFF}" y="${MOFF}" width="${MED}" height="${MED}" href="medallion.png"/></svg>`}
+<defs>
+ <linearGradient id="vt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#5aa0ff"/></linearGradient>
+ <linearGradient id="vl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#1c4fc8"/></linearGradient>
+ <linearGradient id="vr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c50c8"/><stop offset="1" stop-color="#12357f"/></linearGradient>
+ <filter id="vgl" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#2563eb" flood-opacity="0.4"/></filter>
+</defs>
+<g filter="url(#vgl)">
+ <polygon points="300,180 448,264 300,348 152,264" fill="url(#vt)"/>
+ <polygon points="152,264 300,348 300,512 152,428" fill="url(#vl)"/>
+ <polygon points="448,264 300,348 300,512 448,428" fill="url(#vr)"/>
+ <polygon points="300,180 448,264 300,348 152,264" fill="none" stroke="#cfe0ff" stroke-opacity=".55" stroke-width="3"/>
+ <line x1="300" y1="348" x2="300" y2="512" stroke="#cfe0ff" stroke-opacity=".25" stroke-width="2"/>
+</g></svg>`}
 
 /* ===== estado ===== */
 let WORK = JSON.parse(JSON.stringify(DADOS));

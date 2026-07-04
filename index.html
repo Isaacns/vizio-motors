@@ -9,9 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --gold-1:#fdeeb0;--gold-2:#f6d16a;--gold-3:#e7ab30;--gold-4:#c6841b;--gold-5:#8a5a12;
-  --ink:#131311;--panel:#1b1a17;--panel-2:#211f1b;--line:rgba(246,209,106,.14);
-  --txt:#f3ead6;--muted:#9a927f;--glass:rgba(34,31,25,.55);
+  --gold-1:#cfe0ff;--gold-2:#5aa0ff;--gold-3:#2563eb;--gold-4:#1c4fc8;--gold-5:#14357a;
+  --ink:#0f1622;--panel:#16202f;--panel-2:#1b2637;--line:rgba(90,160,255,.16);
+  --txt:#e8eef7;--muted:#8aa0c0;--glass:rgba(20,30,46,.5);
   --font:'Inter',system-ui,sans-serif;--display:'Rajdhani',var(--font);
   --ok:#4ecb8f;--warn:#f0b23c;--bad:#e5644e;--info:#5aa0ff;
 }
@@ -21,17 +21,17 @@ body{font-family:var(--font);color:var(--txt);background:var(--ink);overflow-x:h
 a{color:inherit}
 /* ===== MOVIMENTO VIVO ===== */
 #bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:
-  radial-gradient(1200px 700px at 78% -10%,#262218 0%,transparent 60%),
-  radial-gradient(900px 600px at 10% 110%,#201d15 0%,transparent 55%),var(--ink)}
+  radial-gradient(1200px 700px at 78% -10%,#16223a 0%,transparent 60%),
+  radial-gradient(900px 600px at 10% 110%,#101a2e 0%,transparent 55%),var(--ink)}
 .orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;will-change:transform}
-.orb.o1{width:420px;height:420px;left:-80px;top:-60px;background:radial-gradient(circle at 30% 30%,rgba(231,171,48,.55),transparent 70%);animation:f1 18s ease-in-out infinite}
-.orb.o2{width:520px;height:520px;right:-120px;bottom:-140px;background:radial-gradient(circle at 40% 40%,rgba(198,132,27,.45),transparent 70%);animation:f2 24s ease-in-out infinite}
-.orb.o3{width:300px;height:300px;left:45%;top:55%;background:radial-gradient(circle at 50% 50%,rgba(253,238,176,.25),transparent 70%);animation:f3 20s ease-in-out infinite}
+.orb.o1{width:420px;height:420px;left:-80px;top:-60px;background:radial-gradient(circle at 30% 30%,rgba(37,99,235,.55),transparent 70%);animation:f1 18s ease-in-out infinite}
+.orb.o2{width:520px;height:520px;right:-120px;bottom:-140px;background:radial-gradient(circle at 40% 40%,rgba(28,80,200,.45),transparent 70%);animation:f2 24s ease-in-out infinite}
+.orb.o3{width:300px;height:300px;left:45%;top:55%;background:radial-gradient(circle at 50% 50%,rgba(147,197,253,.25),transparent 70%);animation:f3 20s ease-in-out infinite}
 @keyframes f1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,40px)}}
 @keyframes f2{0%,100%{transform:translate(0,0)}50%{transform:translate(-70px,-50px)}}
 @keyframes f3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,30px) scale(1.1)}}
-#cursor-glow{position:fixed;width:340px;height:340px;border-radius:50%;pointer-events:none;z-index:1;transform:translate(-50%,-50%);transition:opacity .4s;opacity:0;background:radial-gradient(circle,rgba(246,209,106,.10),transparent 65%)}
-.spark{position:absolute;bottom:-20px;border-radius:50%;background:rgba(246,209,106,.5);animation:rise linear infinite}
+#cursor-glow{position:fixed;width:340px;height:340px;border-radius:50%;pointer-events:none;z-index:1;transform:translate(-50%,-50%);transition:opacity .4s;opacity:0;background:radial-gradient(circle,rgba(90,160,255,.10),transparent 65%)}
+.spark{position:absolute;bottom:-20px;border-radius:50%;background:rgba(90,160,255,.5);animation:rise linear infinite}
 @keyframes rise{to{transform:translateY(-105vh);opacity:0}}
 /* ===== LOGO viva ===== */
 .emblem{display:inline-block;line-height:0;animation:breathe 4.5s ease-in-out infinite;filter:drop-shadow(0 6px 18px rgba(0,0,0,.5))}
@@ -41,7 +41,7 @@ a{color:inherit}
 /* ===== LOGIN ===== */
 .wrap{position:relative;z-index:2;min-height:100%}
 #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.card-glass{background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.card-glass{background:var(--glass);backdrop-filter:blur(26px) saturate(1.25);-webkit-backdrop-filter:blur(26px) saturate(1.25);border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07)}
 .login-card{width:100%;max-width:400px;padding:38px 34px;text-align:center}
 .brand-name{font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:1px;margin:14px 0 2px;background:linear-gradient(180deg,var(--gold-1),var(--gold-3) 55%,var(--gold-4));-webkit-background-clip:text;background-clip:text;color:transparent}
 .brand-sub{color:var(--muted);font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-bottom:22px}
@@ -50,10 +50,10 @@ a{color:inherit}
 label{display:block;text-align:left;font-size:12px;color:var(--muted);margin:14px 0 6px;letter-spacing:.3px}
 input,select,textarea{width:100%;padding:11px 13px;border-radius:11px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--txt);font-size:14px;font-family:var(--font);outline:none;transition:.2s}
 textarea{resize:vertical;min-height:66px}
-input:focus,select:focus,textarea:focus{border-color:var(--gold-3);box-shadow:0 0 0 3px rgba(231,171,48,.12)}
-.btn{width:100%;margin-top:22px;padding:13px;border:none;border-radius:12px;cursor:pointer;font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:.5px;color:#241a06;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));transition:.2s}
-.btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(231,171,48,.3);animation:pB 1.6s infinite}
-@keyframes pB{0%,100%{box-shadow:0 10px 26px rgba(231,171,48,.28)}50%{box-shadow:0 10px 34px rgba(231,171,48,.5)}}
+input:focus,select:focus,textarea:focus{border-color:var(--gold-3);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.btn{width:100%;margin-top:22px;padding:13px;border:none;border-radius:12px;cursor:pointer;font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:.5px;color:#ffffff;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));transition:.2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(37,99,235,.3);animation:pB 1.6s infinite}
+@keyframes pB{0%,100%{box-shadow:0 10px 26px rgba(37,99,235,.28)}50%{box-shadow:0 10px 34px rgba(37,99,235,.5)}}
 .hint{margin-top:16px;font-size:11.5px;color:var(--muted)}
 /* ===== APP ===== */
 #app{display:none;min-height:100vh}
@@ -65,32 +65,32 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold-3);box-shadow:0 
 .navgrp{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#6d6552;margin:16px 10px 6px}
 .nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;margin-bottom:2px;transition:.15s;cursor:pointer}
 .nav a .ic{width:18px;text-align:center;font-size:15px}
-.nav a:hover{background:rgba(246,209,106,.06);color:var(--txt)}
-.nav a.active{background:linear-gradient(90deg,rgba(231,171,48,.16),transparent);color:var(--gold-2);box-shadow:inset 2px 0 0 var(--gold-3)}
+.nav a:hover{background:rgba(90,160,255,.06);color:var(--txt)}
+.nav a.active{background:linear-gradient(90deg,rgba(37,99,235,.16),transparent);color:var(--gold-2);box-shadow:inset 2px 0 0 var(--gold-3)}
 .main{padding:22px 26px 40px;min-width:0}
 .topbar{display:flex;align-items:center;gap:16px;margin-bottom:22px}
 .topbar h1{font-family:var(--display);font-weight:600;font-size:22px;margin:0;letter-spacing:.4px}
 .topbar .sp{flex:1}
 .search{background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:11px;padding:9px 14px;color:var(--txt);font-size:13px;width:220px;outline:none}
-.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));display:flex;align-items:center;justify-content:center;color:#241a06;font-weight:700;font-family:var(--display)}
+.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));display:flex;align-items:center;justify-content:center;color:#ffffff;font-weight:700;font-family:var(--display)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
-.kpi{padding:18px;border-radius:16px;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(12px);position:relative;overflow:hidden;transition:.2s}
-.kpi:hover{transform:translateY(-3px);border-color:rgba(246,209,106,.32)}
+.kpi{padding:18px;border-radius:16px;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(18px) saturate(1.15);-webkit-backdrop-filter:blur(18px) saturate(1.15);position:relative;overflow:hidden;transition:.2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.kpi:hover{transform:translateY(-3px);border-color:rgba(90,160,255,.32)}
 .kpi .lbl{font-size:11.5px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
 .kpi .val{font-family:var(--display);font-weight:700;font-size:28px;margin-top:6px;background:linear-gradient(180deg,#fff,var(--gold-2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .kpi .dt{font-size:12px;margin-top:4px}
 .kpi .dt.up{color:var(--ok)}.kpi .dt.down{color:var(--bad)}
-.kpi::after{content:"";position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(231,171,48,.16),transparent 70%)}
+.kpi::after{content:"";position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.16),transparent 70%)}
 .grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
-.panel{padding:18px;border-radius:16px;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(12px);margin-bottom:16px}
+.panel{padding:18px;border-radius:16px;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(18px) saturate(1.15);-webkit-backdrop-filter:blur(18px) saturate(1.15);margin-bottom:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
 .panel h3{font-family:var(--display);font-weight:600;font-size:16px;margin:0 0 14px;letter-spacing:.4px;display:flex;align-items:center;gap:8px}
 .panel .head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .panel .head h3{margin:0}
 .panel .head .sp{flex:1}
-.b{border:none;border-radius:10px;cursor:pointer;font-family:var(--display);font-weight:600;font-size:13.5px;letter-spacing:.4px;padding:9px 15px;color:#241a06;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));transition:.18s}
-.b:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(231,171,48,.28)}
+.b{border:none;border-radius:10px;cursor:pointer;font-family:var(--display);font-weight:600;font-size:13.5px;letter-spacing:.4px;padding:9px 15px;color:#ffffff;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));transition:.18s}
+.b:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(37,99,235,.28)}
 .b-ghost{background:transparent;color:var(--gold-2);border:1px solid var(--line)}
-.b-ghost:hover{background:rgba(246,209,106,.08);box-shadow:none}
+.b-ghost:hover{background:rgba(90,160,255,.08);box-shadow:none}
 .b-sm{padding:6px 11px;font-size:12px}
 .b-danger{background:transparent;color:var(--bad);border:1px solid rgba(229,100,78,.4)}
 .b-danger:hover{background:rgba(229,100,78,.1)}
@@ -98,18 +98,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold-3);box-shadow:0 
 .tbl th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.6px;padding:10px 12px;border-bottom:1px solid var(--line)}
 .tbl td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.05)}
 .tbl tr{transition:.12s;cursor:pointer}
-.tbl tbody tr:hover{background:rgba(246,209,106,.05)}
+.tbl tbody tr:hover{background:rgba(90,160,255,.05)}
 .plate{font-family:var(--display);font-weight:700;font-size:13px;background:#0d0d0c;border:1px solid var(--line);padding:5px 9px;border-radius:7px;letter-spacing:1px;color:var(--gold-2);display:inline-block}
 .badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;display:inline-block}
 .badge.s0{background:rgba(90,160,255,.15);color:var(--info)}
 .badge.s1,.badge.s2{background:rgba(240,178,60,.15);color:var(--warn)}
-.badge.s3,.badge.s4,.badge.s5,.badge.s6{background:rgba(231,171,48,.16);color:var(--gold-2)}
+.badge.s3,.badge.s4,.badge.s5,.badge.s6{background:rgba(37,99,235,.16);color:var(--gold-2)}
 .badge.s7,.badge.s8{background:rgba(78,203,143,.15);color:var(--ok)}
 .bar{height:7px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:7px}
 .bar>i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold-4),var(--gold-2));animation:fb 1.2s ease}
 @keyframes fb{from{width:0}}
 .veh{display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;background:rgba(0,0,0,.2);margin-bottom:10px;transition:.15s;cursor:pointer}
-.veh:hover{background:rgba(246,209,106,.05)}
+.veh:hover{background:rgba(90,160,255,.05)}
 .veh .info{flex:1;min-width:0}
 .veh .info .t{font-size:13.5px;font-weight:600}
 .veh .info .s{font-size:11.5px;color:var(--muted)}
@@ -129,8 +129,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold-3);box-shadow:0 
 .step .dot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:15px;height:15px;border-radius:50%;background:#2a281f;border:2px solid #3a372d}
 .step.done{color:var(--gold-2)}
 .step.done .dot{background:var(--gold-3);border-color:var(--gold-2)}
-.step.cur .dot{background:var(--gold-2);border-color:var(--gold-1);box-shadow:0 0 0 4px rgba(231,171,48,.2);animation:pd 1.5s infinite}
-@keyframes pd{0%,100%{box-shadow:0 0 0 4px rgba(231,171,48,.2)}50%{box-shadow:0 0 0 8px rgba(231,171,48,.05)}}
+.step.cur .dot{background:var(--gold-2);border-color:var(--gold-1);box-shadow:0 0 0 4px rgba(37,99,235,.2);animation:pd 1.5s infinite}
+@keyframes pd{0%,100%{box-shadow:0 0 0 4px rgba(37,99,235,.2)}50%{box-shadow:0 0 0 8px rgba(37,99,235,.05)}}
 .chk{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;background:rgba(0,0,0,.18);margin-bottom:6px;cursor:pointer;font-size:13px}
 .chk .box{width:18px;height:18px;border-radius:5px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--ok)}
 .chk.on .box{background:rgba(78,203,143,.15);border-color:var(--ok)}
@@ -151,9 +151,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold-3);box-shadow:0 
 .pbar>i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,var(--gold-4),var(--gold-2));transition:width .8s}
 .pstep{display:flex;align-items:center;gap:12px;padding:11px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 .pstep .pd{width:22px;height:22px;border-radius:50%;flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-size:12px;background:#2a281f;border:1px solid #3a372d;color:var(--muted)}
-.pstep.done .pd{background:var(--gold-3);color:#241a06;border-color:var(--gold-2)}
-.pstep.cur{background:rgba(231,171,48,.06);border-radius:10px}
-.pstep.cur .pd{background:var(--gold-2);color:#241a06;animation:pd 1.5s infinite}
+.pstep.done .pd{background:var(--gold-3);color:#ffffff;border-color:var(--gold-2)}
+.pstep.cur{background:rgba(37,99,235,.06);border-radius:10px}
+.pstep.cur .pd{background:var(--gold-2);color:#ffffff;animation:pd 1.5s infinite}
 .pstep .pl{font-size:13.5px}
 .pstep.done .pl,.pstep.cur .pl{color:var(--txt)}
 .pstep .pl small{display:block;color:var(--muted);font-size:11px}
@@ -178,8 +178,8 @@ footer b{color:var(--gold-4)}
   <section id="login">
     <div class="card-glass login-card">
       <div class="emblem" id="emblemLogin"></div>
-      <div class="brand-name">R3 CENTRO AUTOMOTIVO</div>
-      <div class="brand-sub">Especialista em Renault Master</div>
+      <div class="brand-name">VIZIO MOTORS</div>
+      <div class="brand-sub">ERP inteligente para oficinas</div>
       <div id="loginForm">
         <form onsubmit="entrar(event)">
           <label>Usuário</label><input id="user" value="admin" autocomplete="off">
@@ -205,7 +205,7 @@ footer b{color:var(--gold-4)}
    <div class="layout">
     <aside class="side" id="side">
       <div class="logo-row"><div class="emblem" id="emblemSide" style="width:44px"></div>
-        <div><div class="nm">Vizio Motors</div><div class="sb">R3 · BY VIZIO</div></div></div>
+        <div><div class="nm">Vizio Motors</div><div class="sb">by INPERSON</div></div></div>
       <div class="navgrp">Operação</div>
       <nav class="nav" id="nav">
         <a class="active" data-m="home"><span class="ic">◈</span>Início</a>
