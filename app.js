@@ -246,7 +246,8 @@ function renderClientes(q){q=(q||'').toLowerCase();
        return `<tr><td onclick="openCli('${c.id}')"><b>${c.nome}</b></td><td onclick="openCli('${c.id}')">${c.tel||''}<br><span style="color:var(--muted);font-size:12px">${c.email||''}</span></td>
        <td onclick="openCli('${c.id}')">${vs.map(v=>`<span class="plate" style="margin:1px">${v.placa}</span>`).join(' ')||'—'}</td>
        <td onclick="openCli('${c.id}')">${nos}</td>
-       <td style="text-align:right"><button class="b b-ghost b-sm" onclick="editCli('${c.id}')">Editar</button></td></tr>`;}).join('')}</tbody></table></div>`;
+       <td style="text-align:right;white-space:nowrap"><a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="https://wa.me/55${(c.tel||'').replace(/\D/g,'')}?text=${encodeURIComponent('Olá '+(c.nome||'').split(' ')[0]+'! Aqui é da oficina.')}">💬</a>
+       <button class="b b-ghost b-sm" onclick="editCli('${c.id}')">Editar</button></td></tr>`;}).join('')}</tbody></table></div>`;
 }
 function openCli(id){const c=byId(WORK.clientes,id);const vs=WORK.veiculos.filter(v=>v.clienteId===id);
   const oss=WORK.os.filter(o=>o.clienteId===id).sort((a,b)=>b.numero-a.numero);
@@ -269,7 +270,8 @@ function openCli(id){const c=byId(WORK.clientes,id);const vs=WORK.veiculos.filte
        <div class="info-line"><span class="k">E-mail</span><span>${c.email||'—'}</span></div>
        <div class="info-line"><span class="k">Aniversário</span><span>${c.nasc?fmtFull(c.nasc):'—'}</span></div>
        <div class="info-line"><span class="k">Observações</span><span style="max-width:180px;text-align:right">${c.obs||'—'}</span></div>
-       <div style="margin-top:14px"><button class="b b-sm" onclick="editCli('${id}')">Editar cliente</button></div>
+       <div style="margin-top:14px;display:flex;gap:8px"><button class="b b-sm" onclick="editCli('${id}')">Editar cliente</button>
+         <a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="https://wa.me/55${(c.tel||'').replace(/\D/g,'')}?text=${encodeURIComponent('Olá '+(c.nome||'').split(' ')[0]+'! Aqui é da oficina.')}">💬 WhatsApp</a></div>
      </div>
    </div>`;
 }
@@ -328,7 +330,7 @@ function renderAgenda(){
    <div class="panel"><div class="head"><h3>🗓 Agenda</h3><div class="sp"></div><button class="b" onclick="novoAg()">+ Agendamento</button></div>
      ${Object.keys(dias).map(d=>`<div style="margin-bottom:18px"><div style="font-family:var(--display);color:var(--gold-2);font-size:15px;margin-bottom:8px">${fmtFull(d)}</div>
        ${dias[d].map(a=>{const v=veh(a.veiculoId);return `<div class="veh"><div class="plate">${a.hora}</div>
-         <div class="info"><div class="t">${a.tipo} · ${cli(a.clienteId).nome||''}</div><div class="s">${v.placa||''} ${v.modelo||''} — ${a.obs||''}</div></div></div>`;}).join('')}</div>`).join('')}
+         <div class="info"><div class="t">${a.tipo} · ${cli(a.clienteId).nome||''}</div><div class="s">${v.placa||''} ${v.modelo||''} — ${a.obs||''}</div></div>${agBadge(a)}</div>`;}).join('')}</div>`).join('')}
    </div>`;
 }
 function novoAg(){modal("Novo agendamento","",`
@@ -345,6 +347,13 @@ function novoAg(){modal("Novo agendamento","",`
 }
 function agVeic(){const c=document.getElementById('a_cli').value,sel=document.getElementById('a_vei');
   const vs=WORK.veiculos.filter(v=>v.clienteId===c);sel.innerHTML=vs.map(v=>`<option value="${v.id}">${v.placa} — ${v.modelo}</option>`).join('');}
+
+/* ===== alertas de agenda (5/10/15 min antes) ===== */
+function agMins(a){try{const t=new Date((a.data||'')+'T'+(a.hora||'00:00')+':00');return (t-Date.now())/60000;}catch(e){return 99999;}}
+function agBadge(a){const m=agMins(a); if(m>=0&&m<=15){return `<div class="stage" style="color:var(--warn)">⏰ em ${Math.max(0,Math.round(m))} min</div>`;} return '';}
+const _agAlerted={};
+function checkAgendaAlerts(){(WORK.agenda||[]).forEach(a=>{const m=agMins(a);[15,10,5].forEach(th=>{const key=a.id+'-'+th;
+  if(m>0&&m<=th&&m>th-2&&!_agAlerted[key]){_agAlerted[key]=1;toast('⏰ '+(cli(a.clienteId).nome||'Cliente')+' — agendamento em ~'+th+' min');}});});}
 
 function renderStub(t){document.getElementById('view').innerHTML=`
    <div class="panel" style="text-align:center;padding:60px 24px"><div style="font-family:var(--display);font-size:22px;color:var(--gold-2);margin-bottom:8px">${t||''}</div>
@@ -418,4 +427,5 @@ document.getElementById('emblemLogin').innerHTML=emblemSVG();
 document.getElementById('emblemLogin').firstElementChild.style.maxWidth='120px';
 (function boot(){const h=location.hash;
   if(h.indexOf('#p=')===0){renderPortal(h.slice(3));}
+  setInterval(checkAgendaAlerts,30000);
 })();
