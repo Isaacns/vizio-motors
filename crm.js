@@ -54,19 +54,19 @@ function renderCRM(){
   const nps=72;
 
   const kpis=[
-    ['Aniversariantes (mês)',aniver.length,'up','oportunidade de contato'],
-    ['Óleo vencido',oleoVenc.length,oleoVenc.length?'down':'up','recuperação de receita'],
-    ['Revisão vencida',revVenc.length,revVenc.length?'down':'up','recuperação de receita'],
-    ['Clientes inativos',inativos.length,inativos.length?'down':'up','+ de '+INATIVO_MESES+' meses'],
-    ['NPS',nps,'up','satisfação'],
-    ['Base de clientes',WORK.clientes.length,'up','ativos cadastrados'],
+    ['Aniversariantes (mês)',aniver.length,'up','oportunidade de contato','aniver'],
+    ['Óleo vencido',oleoVenc.length,oleoVenc.length?'down':'up','recuperação de receita','oleo'],
+    ['Revisão vencida',revVenc.length,revVenc.length?'down':'up','recuperação de receita','revisao'],
+    ['Clientes inativos',inativos.length,inativos.length?'down':'up','+ de '+INATIVO_MESES+' meses','inativos'],
+    ['NPS',nps,'up','satisfação','nps'],
+    ['Base de clientes',WORK.clientes.length,'up','ativos cadastrados','base'],
   ];
   const badge=s=>`<span class="badge ${s[1]==='ok'?'s7':(s[1]==='warn'?'s1':'s0')}" style="${s[1]==='bad'?'background:rgba(229,100,78,.15);color:var(--bad)':''}">${s[0]}</span>`;
   const acoes=(c,msg)=>`<a class="b b-sm" style="text-decoration:none" target="_blank" href="${waLink(c.tel,msg)}">WhatsApp</a>
      <a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="${mailLink(c.email,'R3 Centro Automotivo',msg)}">E-mail</a>`;
 
   document.getElementById('view').innerHTML=`
-   <div class="kpis">${kpis.map(k=>`<div class="kpi"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div><div class="dt ${k[2]}">${k[3]}</div></div>`).join('')}</div>
+   <div class="kpis">${kpis.map(k=>`<div class="kpi" style="cursor:pointer" onclick="crmDrill('${k[4]}')" title="Ver detalhes"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div><div class="dt ${k[2]}">${k[3]}</div></div>`).join('')}</div>
 
    <div class="panel"><div class="head"><h3>💛 Recuperação de Receita</h3><div class="sp"></div>
       <button class="b b-sm" onclick="gerarCampanha('oleo')">Campanha: óleo vencido</button>
@@ -116,3 +116,55 @@ function gerarCampanha(tipo){
   toast(`Campanha criada para ${alvos.length} cliente(s) ✓`);
   renderCRM();
 }
+
+/* drill-down dos KPIs do CRM (indicador clicável → detalhe acionável) */
+function crmDrill(tipo){
+  const D=crmDados();
+  const mesAtual=new Date(today()).getMonth();
+  const wa=(c,msg)=>`<a class="b b-sm" style="text-decoration:none;white-space:nowrap" target="_blank" href="${waLink(c.tel,msg)}">WhatsApp</a>`;
+  const fn=nome=>(nome||'').split(' ')[0];
+  let titulo="", sub="Detalhe do indicador", head="", rows="", vazio="Sem itens neste segmento.";
+  if(tipo==='aniver'){
+    titulo="🎂 Aniversariantes do mês";
+    const L=WORK.clientes.filter(c=>c.nasc && new Date(c.nasc).getMonth()===mesAtual);
+    head="<tr><th>Cliente</th><th>Nascimento</th><th>Telefone</th><th>Ação</th></tr>";
+    rows=L.map(c=>`<tr><td><b>${c.nome}</b></td><td>${fmtFull(c.nasc)}</td><td style="color:var(--muted)">${c.tel||''}</td><td>${wa(c,`Feliz aniversário, ${fn(c.nome)}! 🎉 A R3 Centro Automotivo deseja tudo de bom. Passe aqui e ganhe uma revisão de cortesia no seu Master!`)}</td></tr>`).join('');
+    vazio="Ninguém faz aniversário este mês.";
+  } else if(tipo==='oleo'){
+    titulo="🛢️ Óleo vencido";
+    const L=D.filter(d=>d.oleo[0]==="Vencida");
+    head="<tr><th>Cliente</th><th>Última troca</th><th>Telefone</th><th>Ação</th></tr>";
+    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td style="color:var(--bad)">há ~${d.mO} meses</td><td style="color:var(--muted)">${d.c.tel||''}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Seu Master está com a troca de óleo vencida. Quer agendar na R3? 🔧`)}</td></tr>`).join('');
+    vazio="Nenhum óleo vencido. 👏";
+  } else if(tipo==='revisao'){
+    titulo="🔧 Revisão vencida";
+    const L=D.filter(d=>d.rev[0]==="Vencida");
+    head="<tr><th>Cliente</th><th>Última revisão</th><th>Telefone</th><th>Ação</th></tr>";
+    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td style="color:var(--bad)">há ~${d.mR} meses</td><td style="color:var(--muted)">${d.c.tel||''}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Seu Master está com a revisão vencida. Vamos agendar na R3? 🚐`)}</td></tr>`).join('');
+    vazio="Nenhuma revisão vencida. 👏";
+  } else if(tipo==='inativos'){
+    titulo="😴 Clientes inativos";
+    const L=D.filter(d=>d.inativo);
+    head="<tr><th>Cliente</th><th>Sem visita</th><th style='text-align:center'>OS</th><th>Ação</th></tr>";
+    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td>há ~${d.ultMes} meses</td><td style="text-align:center">${d.visitas}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Sentimos sua falta na R3. Que tal um check-up no seu Master? Temos condição especial de retorno. 🚐`)}</td></tr>`).join('');
+    vazio="Nenhum cliente inativo. 👏";
+  } else if(tipo==='nps'){
+    titulo="⭐ NPS — composição";
+    sub="Índice de satisfação (base demo)";
+    const seg=[["Promotores (9–10)",78,"var(--ok)"],["Neutros (7–8)",16,"var(--warn)"],["Detratores (0–6)",6,"var(--bad)"]];
+    head="<tr><th>Faixa</th><th style='text-align:right'>% da base</th></tr>";
+    rows=seg.map(s=>`<tr><td><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${s[2]};margin-right:8px"></span>${s[0]}</td><td style="text-align:right;font-weight:600">${s[1]}%</td></tr>`).join('')
+      +`<tr><td style="border-top:1px solid var(--line)"><b>NPS = %Promotores − %Detratores</b></td><td style="text-align:right;border-top:1px solid var(--line);color:var(--gold-2);font-weight:700">72</td></tr>`;
+  } else { // base
+    titulo="👥 Base de clientes";
+    sub="Ordenada por gasto acumulado";
+    head="<tr><th>Cliente</th><th>Telefone</th><th style='text-align:center'>Visitas</th><th style='text-align:right'>Gasto total</th></tr>";
+    rows=D.slice().sort((a,b)=>b.gasto-a.gasto).map(d=>`<tr><td><b>${d.c.nome}</b></td><td style="color:var(--muted)">${d.c.tel||''}</td><td style="text-align:center">${d.visitas}</td><td style="text-align:right;color:var(--gold-2);font-weight:600">${money(d.gasto)}</td></tr>`).join('');
+    vazio="Nenhum cliente cadastrado.";
+  }
+  const colspan=(head.match(/<th/g)||[]).length||2;
+  if(!rows)rows=`<tr><td colspan="${colspan}" style="color:var(--muted)">${vazio}</td></tr>`;
+  modal(titulo,sub,`<div style="max-height:52vh;overflow:auto"><table class="tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>`, ()=>closeModal());
+  const b=document.getElementById('mSave'); if(b)b.textContent="Fechar";
+}
+window.crmDrill=crmDrill;
