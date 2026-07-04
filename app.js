@@ -182,7 +182,7 @@ function novaOS(){
     <label>Observações</label><textarea id="f_obs" placeholder="Relato do cliente…"></textarea>`,
    ()=>{const o={id:uid('OS'),numero:nextNum(),clienteId:document.getElementById('f_cli').value,
      veiculoId:document.getElementById('f_vei').value,entrada:today(),previsao:document.getElementById('f_prev').value||'',
-     responsavel:document.getElementById('f_resp').value,statusIdx:0,aprovado:false,token:'r3-'+nextNum(),
+     responsavel:document.getElementById('f_resp').value,statusIdx:0,aprovado:false,token:'r3-'+Date.now().toString(36)+Math.random().toString(36).slice(2,12),
      checklist:[{item:'Pneus',ok:false},{item:'Nível de óleo',ok:false},{item:'Freios',ok:false},{item:'Bateria',ok:false}],
      itens:[],obs:document.getElementById('f_obs').value};
      WORK.os.push(o);closeModal();openOS(o.id);});
