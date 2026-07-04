@@ -34,13 +34,12 @@ function abrirPonto(){
 function corpTab(t){ _corpTab=t; renderCorp(); }
 
 function renderCorp(){
-  const tabs=[["ponto","⏱ Ponto"],["alav","📈 Alavancagem"]];
+  const tabs=[["ponto","⏱ Ponto"],["prod","📈 Produtividade"]];
   const nav=`<div style="display:flex;gap:8px;margin-bottom:16px">${tabs.map(t=>`
     <button class="b ${_corpTab===t[0]?'':'b-ghost'} b-sm" onclick="corpTab('${t[0]}')">${t[1]}</button>`).join('')}</div>`;
   let body="";
-  if(_corpTab==="ponto")body=viewPonto();
-  else if(_corpTab==="bem")body=viewBem();
-  else body=viewAlav();
+  if(_corpTab==="prod")body=viewProd();
+  else body=viewPonto();
   document.getElementById('view').innerHTML=nav+body;
 }
 
@@ -94,6 +93,19 @@ function importarPontoInfo(){
     <span style="color:var(--muted)">No piloto, o parser é preparado (padrão SheetJS do VIZIO). Suba o arquivo e o sistema vincula cada registro ao colaborador correspondente.</span></div>
     <label style="margin-top:12px">Arquivo (.xls/.xlsx)</label><input type="file" accept=".xls,.xlsx">`,
    ()=>{toast("Parser de ponto será conectado ao arquivo real");closeModal();});
+}
+
+/* ---------- PRODUTIVIDADE ---------- */
+function viewProd(){
+  const os=WORK.os;
+  const prod={}; os.forEach(o=>{const m=(o.responsavel||'—').split(' ')[0];
+    prod[m]=prod[m]||{os:0,receita:0,tempo:0}; prod[m].os++; prod[m].receita+=osTotal(o);
+    (o.itens||[]).forEach(i=>{if(i.tipo==='servico')prod[m].tempo+=(svc(i.refId).tempoMin||0)*i.qtd;});});
+  const rank=Object.entries(prod).sort((a,b)=>b[1].receita-a[1].receita);
+  return `<div class="panel"><h3>🏅 Produtividade por mecânico</h3>
+    <table class="tbl"><thead><tr><th>Mecânico</th><th>OS</th><th>Receita</th><th>Tempo produtivo</th><th>Receita/OS</th></tr></thead>
+    <tbody>${rank.map(([m,d])=>`<tr><td><b>${m}</b></td><td>${d.os}</td><td style="color:var(--gold-2)">${money(d.receita)}</td><td>${(d.tempo/60).toFixed(1)}h</td><td>${money(d.receita/d.os)}</td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted)">Sem dados.</td></tr>'}</tbody></table>
+  </div>`;
 }
 
 /* ---------- BEM-ESTAR ---------- */
