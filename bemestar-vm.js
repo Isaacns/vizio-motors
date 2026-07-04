@@ -13,14 +13,14 @@ var TIPOS={
     "Hora do gole! Dê uma golada na sua água para manter o foco.",
     "Seu cérebro precisa de combustível. Que tal um copo de água agora?",
     "Hidratação em dia, mente leve! Beba um pouco de água. 💧"]},
-  movimento:{nome:"Movimento & Postura",emoji:"🪑",cor:"#4ecb8f",intervalo:120,msgs:[
-    "Hora de esticar as pernas! Levante-se e caminhe um pouco.",
+  movimento:{nome:"Movimento & Postura",emoji:"🪑",cor:"#c99a6a",intervalo:120,msgs:[
+    "Hora de esticar as pernas! Levante-se e dê uma curta caminhada.",
     "Vamos alinhar a postura? Gire os ombros para trás e relaxe o pescoço.",
     "Pausa de 1 minuto: entrelace os dedos e empurre as mãos para o teto."]},
   visual:{nome:"Descanso Visual (20-20-20)",emoji:"👁️",cor:"#b78bff",intervalo:40,msgs:[
     "Descanse os olhos! Olhe para algo distante por 20 segundos.",
     "Pisque algumas vezes e mude o foco da tela por um instante."]},
-  mental:{nome:"Bem-estar Mental",emoji:"🧠",cor:"#f0894e",intervalo:90,msgs:[
+  mental:{nome:"Bem-estar Mental",emoji:"🧠",cor:"#ec4899",intervalo:90,msgs:[
     "Inspire fundo… segure… e expire devagar. Sinta o alívio.",
     "Pausa mental: pense em três coisas pelas quais você é grato hoje.",
     "Feche os olhos por 30 segundos e apenas escute os sons ao seu redor."]}
@@ -49,7 +49,7 @@ function injectCSS(){
   ".bemPop.out{animation:bemPopOut .3s ease forwards}"+
   "@keyframes bemPopIn{from{opacity:0;transform:translateX(-50%) scale(.8) translateY(12px)}to{opacity:1;transform:translateX(-50%) scale(1)}}"+
   "@keyframes bemPopOut{to{opacity:0;transform:translateX(-50%) scale(.92)}}"+
-  ".bemSw{position:relative;display:inline-block;width:46px;height:26px;flex:none}.bemSw input{display:none}.bemSw span{position:absolute;inset:0;background:#454239;border-radius:999px;transition:.2s;cursor:pointer}.bemSw span:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.bemSw input:checked+span{background:var(--gold-3)}.bemSw input:checked+span:before{transform:translateX(20px)}";
+  ".bemSw{position:relative;display:inline-block;width:46px;height:26px;flex:none}.bemSw input{display:none}.bemSw span{position:absolute;inset:0;background:#454239;border-radius:999px;transition:.2s;cursor:pointer}.bemSw span:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.bemSw input:checked+span{background:#22c55e}.bemSw input:checked+span:before{transform:translateX(20px)}";
   var s=document.createElement("style");s.id="bem-css";s.textContent=c;document.head.appendChild(s);
 }
 var REC=["Boa! Seu corpo agradece. 🎉","Mandou bem! Pequenas pausas, grandes resultados. 💪","Isso! Você está cuidando de você. 🌟","Feito! Mente renovada para seguir. ☕"];
@@ -90,11 +90,11 @@ function renderBemEstar(){
     '</div>';}).join("");
   document.getElementById('view').innerHTML=
     '<div class="panel" style="display:flex;align-items:center;gap:16px">'+
-      '<div style="width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,var(--gold-3),var(--gold-2));display:flex;align-items:center;justify-content:center;font-size:1.8rem">🌿</div>'+
-      '<div style="flex:1"><h3 style="margin:0">Bem-estar & Pausas</h3><div style="font-size:13px;color:var(--muted)">Lembretes amigáveis para você cuidar de si durante o trabalho. Não interrompem o que está fazendo — aparecem discretamente no canto da tela.</div></div>'+
+      '<div style="width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#f97316,#fb923c);display:flex;align-items:center;justify-content:center;font-size:1.7rem;box-shadow:0 8px 20px rgba(249,115,22,.28)">🌱</div>'+
+      '<div style="flex:1"><h3 style="margin:0">Bem-estar & Pausas</h3><div style="font-size:13px;color:var(--muted)">Lembretes amigáveis para você cuidar de si durante o trabalho. Não interrompem o que você está fazendo — aparecem discretamente no canto da tela.</div></div>'+
       '<label class="bemSw" style="transform:scale(1.15)"><input type="checkbox" '+(p.master?"checked":"")+' onchange="BEM.master(this.checked)"><span></span></label>'+
     '</div>'+
-    '<div class="panel"><h3>Tipos de lembrete & frequência</h3>'+linhas+
+    '<div class="panel"><div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Tipos de lembrete &amp; frequência</div>'+linhas+
       '<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="b b-sm" onclick="BEM.testar()">🔔 Testar um lembrete agora</button>'+
       '<span style="font-size:.8rem;color:var(--muted)">Suas preferências ficam salvas neste aparelho.</span></div></div>';
 }

@@ -61,6 +61,7 @@ function renderConfig(){
        <div class="info-line"><span class="k">Registro de acesso</span><span style="color:var(--ok)">Ativo</span></div>
        <div class="info-line"><span class="k">Logout por inatividade</span><span>30 min</span></div>
        <div class="info-line" style="border:none"><span class="k">Tokens do portal</span><span style="color:var(--ok)">Aleatórios</span></div>
+       <div style="margin-top:12px"><button class="b b-sm" onclick="trocarSenha()">Alterar minha senha</button></div>
      </div>
      <div class="panel"><h3>🧩 Controle de versão</h3>
        <div style="margin-bottom:8px">Versão atual: <b style="color:var(--gold-2)">v${APP_VERSION}</b></div>
@@ -74,6 +75,24 @@ function renderConfig(){
    </div>`;
 }
 
+function trocarSenha(){
+  modal("Alterar minha senha","A nova senha vale para o seu login (Supabase Auth)",`
+    <label>Nova senha</label><input id="ns1" type="password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
+    <label>Confirmar nova senha</label><input id="ns2" type="password" placeholder="repita a nova senha" autocomplete="new-password">
+    <div style="font-size:11.5px;color:var(--muted);margin-top:8px">Use uma senha forte e única. Após salvar, ela substitui a anterior imediatamente.</div>`,
+   async ()=>{
+     const a=(document.getElementById('ns1')||{}).value||"", b=(document.getElementById('ns2')||{}).value||"";
+     if(a.length<8){ toast('A senha precisa de ao menos 8 caracteres'); return; }
+     if(a!==b){ toast('As senhas não coincidem'); return; }
+     const SB=window.__SB;
+     if(!SB){ toast('Disponível apenas no modo online (Supabase)'); return; }
+     try{ const r=await SB.auth.updateUser({password:a});
+       if(r.error){ toast('Erro: '+r.error.message); return; }
+       closeModal(); toast('Senha alterada com sucesso ✓');
+     }catch(e){ toast('Falha ao alterar a senha: '+e.message); }
+   });
+}
+window.trocarSenha=trocarSenha;
 function editarOficina(){
   const cfg=(WORK._cfg)||(WORK._cfg={oficina:'Oficina Demonstração',especialidade:'Multimarcas'});
   modal("Editar dados da oficina","",`
