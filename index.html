@@ -180,12 +180,23 @@ footer b{color:var(--gold-4)}
       <div class="emblem" id="emblemLogin"></div>
       <div class="brand-name">R3 CENTRO AUTOMOTIVO</div>
       <div class="brand-sub">Especialista em Renault Master</div>
-      <form onsubmit="entrar(event)">
-        <label>Usuário</label><input id="user" value="admin" autocomplete="off">
-        <label>Senha</label><input id="pass" type="password" value="r3">
-        <button class="btn" type="submit">ENTRAR</button>
-      </form>
-      <div class="hint">Piloto · login de demonstração (admin / r3)</div>
+      <div id="loginForm">
+        <form onsubmit="entrar(event)">
+          <label>Usuário</label><input id="user" value="admin" autocomplete="off">
+          <label>Senha</label><input id="pass" type="password" value="r3">
+          <button class="btn" type="submit">ENTRAR</button>
+        </form>
+        <div class="hint">Piloto · login de demonstração (admin / r3)</div>
+      </div>
+      <div id="signup" style="display:none;text-align:left">
+        <label>Nome da oficina</label><input id="su_nome" placeholder="Ex.: Auto Center Silva">
+        <label>Especialidade (opcional)</label><input id="su_esp" placeholder="Ex.: Diesel / Vans">
+        <label>E-mail</label><input id="su_email" type="email" placeholder="voce@oficina.com">
+        <label>Senha</label><input id="su_pass" type="password" placeholder="crie uma senha">
+        <button class="btn" type="button" onclick="criarOficina()">CRIAR MINHA OFICINA</button>
+        <div class="hint"><a onclick="document.getElementById('signup').style.display='none';document.getElementById('loginForm').style.display='block'" style="color:var(--gold-2);cursor:pointer">← Voltar ao login</a></div>
+      </div>
+      <div class="hint" id="signupToggle" style="display:none">Ainda não tem conta? <a onclick="document.getElementById('loginForm').style.display='none';document.getElementById('signup').style.display='block'" style="color:var(--gold-2);cursor:pointer">Criar minha oficina grátis</a></div>
       <div class="seal">powered by <b>Vizio Motors</b> — um produto INPERSON</div>
     </div>
   </section>

@@ -2,8 +2,8 @@
    Vizio Motors — supabase-mode.js
    Liga o front (WORK) ao Supabase quando há config em config.js.
    SEM config -> modo demonstração (nada é alterado).
-   Realtime (app ao vivo) + auto-refresh do portal.
-   Carregar DEPOIS dos módulos (app, financeiro, crm, dashboard, nfe, corporativo, estoque-pred).
+   Realtime + auto-refresh do portal + cadastro self-service (multi-oficina).
+   Carregar por último (após todos os módulos).
    ============================================================ */
 (function(){
   const LIVE = !!(window.SB_URL && window.SB_KEY && window.SB_ORG && window.supabase);
@@ -11,7 +11,7 @@
   if(!LIVE){ console.log("Vizio Motors: modo DEMONSTRAÇÃO (sem Supabase configurado)."); return; }
 
   const SB  = window.supabase.createClient(window.SB_URL, window.SB_KEY);
-  const ORG = window.SB_ORG;
+  let   ORG = window.SB_ORG;                 // resolvida por usuário após login
   window.__SB = SB;
 
   const MAP = {
@@ -47,6 +47,20 @@
     const {error}=await SB.auth.signInWithPassword({email,password:pass});
     if(error){ toast("Login Supabase falhou: "+error.message); throw error; }
   }
+
+  /* resolve a oficina (org) do usuário logado; provisiona se houver cadastro pendente */
+  async function resolveOrg(){
+    try{
+      const {data}=await SB.from('mt_members').select('org_id').limit(1);
+      if(data && data.length){ ORG=data[0].org_id; return; }
+      const pend=localStorage.getItem('vm_pending_oficina');
+      if(pend){ const o=JSON.parse(pend);
+        const {data:nid,error}=await SB.rpc('mt_onboard',{p_nome:o.nome,p_esp:o.esp});
+        if(!error && nid){ ORG=nid; localStorage.removeItem('vm_pending_oficina'); toast('Oficina criada ✓'); return; } }
+    }catch(e){ console.warn('resolveOrg',e); }
+    ORG = window.SB_ORG;  // fallback (piloto)
+  }
+
   async function fetchAll(){
     for(const name in MAP){
       const {data,error}=await SB.from(MAP[name].tbl).select("*").eq("org_id",ORG);
@@ -66,7 +80,7 @@
     if(t==="Estoque Inteligente")return renderEstoquePred();
     const f=LISTVIEWS[CUR]; if(f)f();
   }
-  async function loadAll(){ await fetchAll(); if(typeof go==="function") go(CUR||"home"); toast("Dados carregados do Supabase ✓"); subscribeRealtime(); }
+  async function loadAll(){ await fetchAll(); if(typeof go==="function") go(CUR||"home"); toast("Dados carregados ✓"); subscribeRealtime(); }
 
   let _t=null;
   function scheduleSync(){ clearTimeout(_t); _t=setTimeout(syncAll,500); }
@@ -95,7 +109,23 @@
   const _delOS=window.delOS; window.delOS=function(id){ sbDelete("mt_os",id); return _delOS(id); };
   const _entrar=window.entrar;
   window.entrar=async function(e){ if(e&&e.preventDefault)e.preventDefault();
-    try{ await sbLogin(); _entrar({preventDefault(){}}); await loadAll(); }catch(err){} };
+    try{ await sbLogin(); await resolveOrg(); _entrar({preventDefault(){}}); await loadAll(); }catch(err){} };
+
+  /* cadastro self-service: cria conta + provisiona oficina */
+  window.criarOficina=async function(){
+    const g=id=>((document.getElementById(id)||{}).value||"").trim();
+    const nome=g('su_nome'),esp=g('su_esp'),email=g('su_email'),pass=g('su_pass');
+    if(!nome||!email||!pass){ toast('Preencha oficina, e-mail e senha'); return; }
+    if(pass.length<6){ toast('A senha precisa de ao menos 6 caracteres'); return; }
+    const {error}=await SB.auth.signUp({email,password:pass});
+    if(error){ toast('Cadastro: '+error.message); return; }
+    localStorage.setItem('vm_pending_oficina',JSON.stringify({nome,esp}));
+    const {error:e2}=await SB.auth.signInWithPassword({email,password:pass});
+    if(e2){ toast('Conta criada! Confirme seu e-mail e faça login para ativar sua oficina.'); return; }
+    await resolveOrg();
+    _entrar({preventDefault(){}});
+    await loadAll();
+  };
 
   const _renderPortal=window.renderPortal;
   let _ptimer=null;
@@ -120,6 +150,7 @@
     const h=document.querySelector('#login .hint'); if(h)h.textContent="Acesso real (Supabase) — use sua senha";
     const p=document.getElementById('pass'); if(p)p.value="";
     const u=document.getElementById('user'); if(u){u.value=window.SB_EMAIL||""; u.readOnly=true;}
+    const st=document.getElementById('signupToggle'); if(st)st.style.display="block";
   }catch(e){}
-  console.log("Vizio Motors: modo SUPABASE (LIVE) + Realtime ativo · org "+ORG);
+  console.log("Vizio Motors: modo SUPABASE (LIVE) + Realtime + self-service · org base "+ORG);
 })();
