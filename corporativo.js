@@ -43,8 +43,52 @@ function renderCorp(){
   document.getElementById('view').innerHTML=nav+body;
 }
 
-/* ---------- PONTO ---------- */
+/* ---------- PONTO (formato Inovar — importa o Excel do relógio) ---------- */
 function viewPonto(){
+  const inov=WORK.pontoInovar;
+  if(inov && (inov.resumo.length || inov.registro.length)) return viewPontoInovar(inov);
+  return viewPontoManual();
+}
+
+/* Relatório no formato Inovar, a partir do Excel importado do relógio */
+function viewPontoInovar(inov){
+  const R=inov.resumo;
+  const tAtrasoF=R.reduce((s,r)=>s+(r.atrasoFreq||0),0);
+  const tAtrasoM=R.reduce((s,r)=>s+(r.atrasoMin||0),0);
+  const tCedoF=R.reduce((s,r)=>s+(r.cedoFreq||0),0);
+  const kpis=[
+    ['Colaboradores',R.length],
+    ['Atrasos (ocorrências)',tAtrasoF+' · '+tAtrasoM+' min'],
+    ['Saídas antecipadas',tCedoF],
+    ['Período',inov.periodo||'—'],
+  ];
+  const linhaMin=v=>v?`<span style="color:var(--bad)">${v}</span>`:'<span style="color:var(--muted)">—</span>';
+  const resumoTbl=`<div class="panel"><div class="head"><h3>📋 Resumo de presença <span style="font-size:11px;color:var(--muted)">(Inovar · relógio de ponto)</span></h3><div class="sp"></div>
+      <button class="b b-ghost b-sm" onclick="importarPonto()">Reimportar</button>
+      <button class="b b-ghost b-sm" onclick="limparPontoInovar()">Limpar</button></div>
+     <div style="overflow:auto"><table class="tbl"><thead>
+       <tr><th>Nº</th><th>Nome</th><th>Departamento</th><th>Atrasos (qtd/min)</th><th>Saídas antecip. (qtd/min)</th><th>Horas extras</th><th>Dias</th></tr></thead>
+       <tbody>${R.map(r=>`<tr><td>${r.num}</td><td><b>${r.nome}</b></td><td style="color:var(--muted)">${r.depto||'—'}</td>
+         <td>${r.atrasoFreq||0} / ${linhaMin(r.atrasoMin)}</td>
+         <td>${r.cedoFreq||0} / ${linhaMin(r.cedoMin)}</td>
+         <td>${r.extra?('<span style="color:var(--ok)">'+r.extra+'</span>'):'—'}</td>
+         <td>${r.dias||'—'}</td></tr>`).join('')||'<tr><td colspan="7" style="color:var(--muted)">Sem resumo na planilha.</td></tr>'}</tbody></table></div>
+   </div>`;
+  const reg=inov.registro||[];
+  const registroBlk=reg.length?`<div class="panel"><h3>🕐 Registro de presença (batidas por dia)</h3>
+     ${reg.map(c=>{ const dias=(c.batidas||[]).filter(b=>b.horas&&b.horas.length);
+       return `<details style="margin-bottom:8px"><summary style="cursor:pointer;padding:8px 0;font-weight:600">${c.nome||('Colab. '+c.numero)} <span style="color:var(--muted);font-weight:400">· ${dias.length} dia(s) com batidas</span></summary>
+         ${dias.length?`<table class="tbl" style="margin-top:6px"><thead><tr><th style="width:70px">Dia</th><th>Batidas</th></tr></thead>
+           <tbody>${dias.map(b=>`<tr><td>${b.dia}</td><td style="font-variant-numeric:tabular-nums">${b.horas.join('  ·  ')}</td></tr>`).join('')}</tbody></table>`
+           :'<div style="color:var(--muted);font-size:12px;padding:6px 0">Sem batidas registradas.</div>'}
+       </details>`;}).join('')}
+   </div>`:'';
+  return `<div class="kpis">${kpis.map(k=>`<div class="kpi"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div></div>`).join('')}</div>
+   ${resumoTbl}${registroBlk}`;
+}
+
+/* Visão manual (fallback quando ainda não houve importação) */
+function viewPontoManual(){
   const reg=pontoList();
   const porFunc={}; reg.forEach(r=>{porFunc[r.funcionario]=(porFunc[r.funcionario]||0)+(r.horas||0);});
   const banco=FUNCS.map(f=>{const h=porFunc[f]||0; const saldo=h-JORNADA; return [f,h,saldo];});
@@ -56,9 +100,11 @@ function viewPonto(){
     ['Equipe',FUNCS.length],
   ];
   return `<div class="kpis">${kpis.map(k=>`<div class="kpi"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div></div>`).join('')}</div>
+   <div class="alert" style="margin-bottom:14px"><div class="ai">⏱</div><div class="at">
+     <b>Importe o Excel do relógio de ponto</b> para ver o relatório no formato Inovar (resumo de atrasos, saídas antecipadas, horas extras e batidas por dia).
+     <div style="margin-top:8px"><button class="b b-sm" onclick="importarPonto()">Importar Excel do relógio</button></div></div></div>
    <div class="grid2">
-     <div class="panel"><div class="head"><h3>⏱ Registros de ponto</h3><div class="sp"></div>
-        <button class="b b-ghost b-sm" onclick="importarPontoInfo()">Importar Excel</button>
+     <div class="panel"><div class="head"><h3>⏱ Registros manuais</h3><div class="sp"></div>
         <button class="b b-sm" onclick="registrarPonto()">+ Registrar</button></div>
         <table class="tbl"><thead><tr><th>Colaborador</th><th>Data</th><th>Entrada</th><th>Saída</th><th>Horas</th></tr></thead>
         <tbody>${reg.slice().reverse().map(r=>`<tr><td>${r.funcionario}</td><td>${fmtFull(r.data)}</td>
@@ -68,7 +114,7 @@ function viewPonto(){
      <div class="panel"><h3>🏦 Banco de horas (hoje)</h3>
         ${banco.map(b=>`<div class="info-line"><span class="k">${b[0]}</span>
           <span style="color:${b[2]>=0?'var(--ok)':'var(--bad)'};font-weight:600">${b[1].toFixed(1)}h (${b[2]>=0?'+':''}${b[2].toFixed(1)})</span></div>`).join('')}
-        <div style="font-size:11.5px;color:#6d6552;margin-top:12px">Jornada padrão: ${JORNADA}h/dia. Registro secreto de acesso e logout por inatividade (30 min) herdados do padrão INPERSON.</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:12px">Jornada padrão: ${JORNADA}h/dia. No formato Inovar, o cálculo vem direto das batidas do relógio.</div>
      </div>
    </div>`;
 }
@@ -86,14 +132,64 @@ function registrarPonto(){
      closeModal();renderCorp();});
 }
 function toMin(hhmm){ if(!hhmm)return 0; const p=hhmm.split(':'); return (+p[0])*60+(+p[1]); }
-function importarPontoInfo(){
-  modal("Importar do relógio de ponto","Planilha Excel (3 páginas)",`
-    <div style="font-size:13px;line-height:1.6;color:var(--txt)">O relógio exporta um Excel com 3 páginas: <b>resumo de atendimento</b>, <b>formulário de registro de presença</b> e <b>relatório de presença</b>.
-    O cálculo de horas usa a página de <b>registro de presença</b>.<br><br>
-    <span style="color:var(--muted)">No piloto, o parser é preparado (padrão SheetJS do VIZIO). Suba o arquivo e o sistema vincula cada registro ao colaborador correspondente.</span></div>
-    <label style="margin-top:12px">Arquivo (.xls/.xlsx)</label><input type="file" accept=".xls,.xlsx">`,
-   ()=>{toast("Parser de ponto será conectado ao arquivo real");closeModal();});
+
+/* ---- Importação real (SheetJS) do Excel exportado pelo relógio de ponto ---- */
+function _pnNorm(s){ return (''+s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function _pnNum(v){ const n=parseFloat((''+v).replace(',','.')); return isNaN(n)?0:n; }
+function parsePontoWB(wb){
+  const out={resumo:[],registro:[],periodo:''};
+  const rName=wb.SheetNames.find(n=>_pnNorm(n).includes('resumo'));
+  const gName=wb.SheetNames.find(n=>_pnNorm(n).includes('registro'));
+  if(rName){
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[rName],{header:1,raw:false,defval:''});
+    rows.forEach(r=>{ const j=r.join(' '); const m=j.match(/(\d{4}[\/-]\d{2}[\/-]\d{2}\s*~\s*[\d\/-]+)/); if(m&&!out.periodo)out.periodo=m[1].trim(); });
+    rows.forEach(r=>{ const num=(''+(r[0]||'')).trim().replace(/\.0$/,'');
+      if(/^\d+$/.test(num) && r[1] && _pnNorm(r[1])!=='nome'){
+        out.resumo.push({num, nome:(''+r[1]).trim(), depto:(''+(r[2]||'')).trim(),
+          atrasoFreq:_pnNum(r[5]), atrasoMin:_pnNum(r[6]),
+          cedoFreq:_pnNum(r[7]), cedoMin:_pnNum(r[8]),
+          extra:((_pnNum(r[9])+_pnNum(r[10]))||''), dias:(''+(r[11]||'')).trim() });
+      }});
+  }
+  if(gName){
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[gName],{header:1,raw:false,defval:''});
+    let cur=null;
+    rows.forEach(r=>{ const j=r.join(' ');
+      if(/NOME\s*[:：]/.test(j)){
+        let nome=''; let aft=(j.split(/NOME\s*[:：]/i)[1]||'').split(/DEPART/i)[0]; nome=aft.replace(/[|:：]/g,' ').replace(/\s+/g,' ').trim();
+        let numero=''; for(let i=0;i<r.length;i++){const v=(''+r[i]).trim().replace(/\.0$/,''); if(/^\d+$/.test(v)){numero=v;break;}}
+        cur={numero,nome,batidas:[]}; out.registro.push(cur);
+      } else if(cur){
+        r.forEach((c,idx)=>{ const times=(''+c).match(/\d{1,2}:\d{2}/g); if(times&&times.length){ cur.batidas.push({dia:idx+1,horas:times}); } });
+      }
+    });
+  }
+  return out;
 }
+function importarPonto(){
+  modal("Importar do relógio de ponto (Inovar)","Excel exportado pelo relógio (.xls/.xlsx)",`
+    <div style="font-size:13px;line-height:1.6;color:var(--txt)">Suba o arquivo do relógio. O sistema lê a página <b>Resumo de presença</b> (atrasos, saídas antecipadas, horas extras, dias) e o <b>Registro de presença</b> (batidas por dia) e monta o relatório no formato Inovar.</div>
+    <label style="margin-top:12px">Arquivo (.xls / .xlsx)</label><input id="pt_file" type="file" accept=".xls,.xlsx">`,
+   ()=>{
+     const f=document.getElementById('pt_file'); const file=f&&f.files&&f.files[0];
+     if(!file){ toast('Selecione o arquivo do relógio'); return; }
+     if(typeof XLSX==='undefined'){ toast('Leitor de Excel ainda carregando — tente novamente em instantes'); return; }
+     const rd=new FileReader();
+     rd.onload=ev=>{ try{
+       const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+       const parsed=parsePontoWB(wb);
+       if(!parsed.resumo.length && !parsed.registro.length){ toast('Não reconheci o formato do relógio nesse arquivo'); return; }
+       WORK.pontoInovar=parsed;
+       closeModal(); renderCorp();
+       toast('Ponto importado: '+parsed.resumo.length+' colaborador(es) ✓');
+     }catch(err){ toast('Erro ao ler o arquivo: '+err.message); } };
+     rd.onerror=()=>toast('Falha ao ler o arquivo');
+     rd.readAsArrayBuffer(file);
+   });
+}
+function limparPontoInovar(){ if(!window.confirmar){ WORK.pontoInovar=null; renderCorp(); return; }
+  confirmar('Limpar a importação do relógio?', ()=>{ WORK.pontoInovar=null; renderCorp(); toast('Importação removida'); }); }
+window.importarPonto=importarPonto; window.limparPontoInovar=limparPontoInovar;
 
 /* ---------- PRODUTIVIDADE ---------- */
 function viewProd(){
