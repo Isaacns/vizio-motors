@@ -43,8 +43,9 @@ function renderConfig(){
        <div class="info-line" style="border:none"><span class="k">Backend</span><span>${live?'Supabase (ao vivo)':'Demonstração'}</span></div>
        <div style="margin-top:14px"><button class="b b-sm" onclick="editarOficina()">Editar dados</button></div>
      </div>
-     <div class="panel"><h3>🎨 Identidade / White-label <span class="torque-badge">EM BREVE</span></h3>
-       <div style="font-size:13px;color:var(--muted);line-height:1.6">Como admin master, você poderá carregar a marca de cada oficina (logo, cores e nome) e o sistema veste a identidade daquele cliente — modo camaleão. Base já preparada no banco.</div>
+     <div class="panel"><h3>🦎 Identidade / White-label <span class="torque-badge" style="background:rgba(90,160,255,.14);color:var(--gold-2)">ATIVO</span></h3>
+       <div style="font-size:13px;color:var(--muted);line-height:1.6">Como admin master, carregue a marca de cada oficina (logo, cor e nome) e o sistema veste a identidade daquele cliente — modo camaleão. Padrão: VIZIO.</div>
+       <div style="margin-top:14px"><button class="b b-sm" onclick="abrirMarca()">Abrir identidade</button></div>
      </div>
    </div>
 
