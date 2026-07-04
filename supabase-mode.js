@@ -2,8 +2,8 @@
    Vizio Motors — supabase-mode.js
    Liga o front (WORK) ao Supabase quando há config em config.js.
    SEM config -> modo demonstração (nada é alterado).
-   Inclui Realtime (app ao vivo) + auto-refresh do portal.
-   Carregar DEPOIS de app.js, financeiro.js, crm.js, dashboard.js, nfe.js.
+   Realtime (app ao vivo) + auto-refresh do portal.
+   Carregar DEPOIS dos módulos (app, financeiro, crm, dashboard, nfe, corporativo, estoque-pred).
    ============================================================ */
 (function(){
   const LIVE = !!(window.SB_URL && window.SB_KEY && window.SB_ORG && window.supabase);
@@ -26,7 +26,10 @@
                 from:r=>({clienteId:r.cliente_id,veiculoId:r.veiculo_id})},
     financeiro:{tbl:"mt_financeiro",key:"financeiro",to:r=>({descricao:r.desc,os_id:r.osId||null}),
                 from:r=>({desc:r.descricao,osId:r.os_id})},
-    notas:     {tbl:"mt_nf",        key:"notas",     to:r=>({os_id:r.osId||null}), from:r=>({osId:r.os_id})}
+    notas:     {tbl:"mt_nf",        key:"notas",     to:r=>({os_id:r.osId||null}), from:r=>({osId:r.os_id})},
+    ponto:     {tbl:"mt_ponto",     key:"ponto"},
+    bemestar:  {tbl:"mt_bemestar",  key:"bemestar"},
+    metas:     {tbl:"mt_metas",     key:"metas"}
   };
   const DROP_DB   = ["org_id","created_at","updated_at","cliente_id","veiculo_id","status_idx","tempo_min","descricao","os_id"];
   const DROP_WORK = ["clienteId","veiculoId","statusIdx","tempoMin","desc","osId"];
@@ -59,6 +62,8 @@
     if(t==="CRM & Recuperação")return renderCRM();
     if(t==="Dashboard Executivo")return renderDash();
     if(t==="Nota Fiscal (NF-e)")return renderNFe();
+    if(t==="Ponto & Equipe")return renderCorp();
+    if(t==="Estoque Inteligente")return renderEstoquePred();
     const f=LISTVIEWS[CUR]; if(f)f();
   }
   async function loadAll(){ await fetchAll(); if(typeof go==="function") go(CUR||"home"); toast("Dados carregados do Supabase ✓"); subscribeRealtime(); }
@@ -75,7 +80,7 @@
   function subscribeRealtime(){
     if(_sub)return; _sub=true;
     _rt=SB.channel("mt_live_"+ORG);
-    ["mt_os","mt_financeiro","mt_clientes","mt_veiculos","mt_agenda","mt_pecas","mt_nf"].forEach(tbl=>{
+    ["mt_os","mt_financeiro","mt_clientes","mt_veiculos","mt_agenda","mt_pecas","mt_nf","mt_ponto","mt_bemestar","mt_metas"].forEach(tbl=>{
       _rt.on("postgres_changes",{event:"*",schema:"public",table:tbl,filter:"org_id=eq."+ORG}, ()=>debouncedReload());
     });
     _rt.subscribe();
@@ -86,7 +91,7 @@
   function wrap(name){ const o=window[name]; if(typeof o!=="function")return;
     window[name]=function(){ const r=o.apply(this,arguments); scheduleSync(); return r; }; }
   ["stepOS","toggleChk","toggleAprov","delItem","marcarPago","closeModal","gerarRecebiveis",
-   "gerarCampanha","emitirNF","cancelarNF"].forEach(wrap);
+   "gerarCampanha","emitirNF","cancelarNF","registrarPonto","salvarBemestar","salvarMeta"].forEach(wrap);
   const _delOS=window.delOS; window.delOS=function(id){ sbDelete("mt_os",id); return _delOS(id); };
   const _entrar=window.entrar;
   window.entrar=async function(e){ if(e&&e.preventDefault)e.preventDefault();
