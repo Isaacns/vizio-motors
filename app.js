@@ -140,6 +140,7 @@ function openOS(id){const o=byId(WORK.os,id);const v=veh(o.veiculoId),c=cli(o.cl
        <div class="info-line"><span class="k">Orçamento</span><span style="color:${o.aprovado?'var(--ok)':'var(--warn)'}">${o.aprovado?'Aprovado':'Aguardando'}</span></div>
        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
          <button class="b b-sm" onclick="toggleAprov('${o.id}')">${o.aprovado?'Marcar pendente':'Aprovar orçamento'}</button>
+         <button class="b b-ghost b-sm" onclick="printOS('${o.id}')">🖨 Imprimir</button>
          <button class="b b-ghost b-sm" onclick="editOS('${o.id}')">Editar</button>
          <button class="b b-danger b-sm" onclick="delOS('${o.id}')">Excluir</button>
        </div>
@@ -200,6 +201,38 @@ function editOS(id){const o=byId(WORK.os,id);
      o.obs=document.getElementById('f_obs').value;closeModal();openOS(id);});
 }
 function delOS(id){confirmar("Excluir esta OS?",()=>{WORK.os=WORK.os.filter(o=>o.id!==id);closeModal();go('os');});}
+function printOS(id){const o=byId(WORK.os,id),c=cli(o.clienteId),v=veh(o.veiculoId);
+  const linhas=(o.itens||[]).map(i=>{const r=i.tipo==='servico'?svc(i.refId):prt(i.refId);
+    return `<tr><td>${(r.nome||'').replace(/</g,'')}</td><td class="ct">${i.qtd}</td><td class="rt">${money(i.valor)}</td></tr>`;}).join('');
+  const chk=(o.checklist||[]).map(x=>`<span style="display:inline-block;margin:2px 8px 2px 0">${x.ok?'☑':'☐'} ${x.item}</span>`).join('');
+  const nome=(document.getElementById('brandName')?document.getElementById('brandName').textContent:'R3 Centro Automotivo');
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><meta charset="utf-8"><title>OS ${o.numero}</title><style>
+   body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:32px;max-width:740px;margin:auto}
+   .hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #111;padding-bottom:10px}
+   h1{font-size:20px;margin:0}.muted{color:#666;font-size:12px}
+   table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border-bottom:1px solid #ddd;padding:8px;font-size:13px}
+   th{text-align:left;background:#f3f3f3}.ct{text-align:center}.rt{text-align:right}
+   .tot{text-align:right;font-size:19px;font-weight:bold;margin-top:12px}
+   .box{border:1px solid #ddd;border-radius:8px;padding:12px;margin-top:14px;font-size:13px}
+   .sign{margin-top:70px;display:flex;justify-content:space-between}
+   .sign div{border-top:1px solid #111;width:44%;text-align:center;padding-top:6px;font-size:12px}
+   @media print{button{display:none}}
+  </style></head><body>
+   <div class="hd"><div><h1>${nome}</h1><div class="muted">Ordem de Serviço</div></div>
+     <div class="rt"><h1>OS #${o.numero}</h1><div class="muted">Entrada: ${fmtFull(o.entrada||'')} · Prev.: ${fmtFull(o.previsao||'')}</div></div></div>
+   <div class="box"><b>Cliente:</b> ${c.nome||''} — ${c.tel||''}<br>
+     <b>Veículo:</b> ${v.modelo||''} — Placa <b>${v.placa||''}</b><br>
+     <b>Responsável:</b> ${o.responsavel||'—'} · <b>Status:</b> ${STATUS_FLOW[o.statusIdx]} · <b>Orçamento:</b> ${o.aprovado?'Aprovado':'Pendente'}</div>
+   <table><thead><tr><th>Item (serviço/peça)</th><th class="ct">Qtd</th><th class="rt">Valor</th></tr></thead>
+     <tbody>${linhas||'<tr><td colspan="3">Sem itens</td></tr>'}</tbody></table>
+   <div class="tot">Total: ${money(osTotal(o))}</div>
+   ${chk?`<div class="box"><b>Checklist de entrada:</b><br>${chk}</div>`:''}
+   ${o.obs?`<div class="box"><b>Observações:</b> ${o.obs}</div>`:''}
+   <div class="sign"><div>Assinatura do cliente</div><div>Responsável técnico</div></div>
+   <div style="text-align:center;margin-top:24px;color:#999;font-size:11px">Emitido por Vizio Motors · ${fmtFull(today())}</div>
+   <script>window.onload=function(){window.print()}<\/script></body></html>`);
+  w.document.close();}
 
 /* ===== CLIENTES & VEÍCULOS ===== */
 function renderClientes(q){q=(q||'').toLowerCase();
