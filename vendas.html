@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vizio Motors — ERP + IA para oficinas mecânicas</title>
+<meta name="description" content="O sistema que transforma sua oficina em um centro de inteligência operacional. Ordem de serviço digital, portal do cliente em tempo real, financeiro, estoque preditivo e IA.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g1:#fdeeb0;--g2:#f6d16a;--g3:#e7ab30;--g4:#c6841b;--ink:#131311;--txt:#f3ead6;--muted:#9a927f;
+  --line:rgba(246,209,106,.14);--glass:rgba(34,31,25,.55);--font:'Inter',system-ui,sans-serif;--disp:'Rajdhani',sans-serif;--ok:#4ecb8f}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--txt);background:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.6}
+a{color:inherit;text-decoration:none}
+#bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:
+  radial-gradient(1200px 700px at 80% -10%,#262218,transparent 60%),radial-gradient(900px 600px at 5% 110%,#201d15,transparent 55%),var(--ink)}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5}
+.o1{width:460px;height:460px;left:-100px;top:-80px;background:radial-gradient(circle at 30% 30%,rgba(231,171,48,.5),transparent 70%);animation:f1 20s ease-in-out infinite}
+.o2{width:560px;height:560px;right:-140px;top:30%;background:radial-gradient(circle at 40% 40%,rgba(198,132,27,.4),transparent 70%);animation:f2 26s ease-in-out infinite}
+@keyframes f1{0%,100%{transform:translate(0,0)}50%{transform:translate(70px,50px)}}
+@keyframes f2{0%,100%{transform:translate(0,0)}50%{transform:translate(-80px,-40px)}}
+#glow{position:fixed;width:360px;height:360px;border-radius:50%;pointer-events:none;z-index:1;transform:translate(-50%,-50%);opacity:0;transition:opacity .4s;background:radial-gradient(circle,rgba(246,209,106,.10),transparent 65%)}
+.wrap{position:relative;z-index:2;max-width:1120px;margin:0 auto;padding:0 22px}
+/* nav */
+nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(12px);background:rgba(19,19,17,.7);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;gap:14px;height:64px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo svg{width:38px;height:38px}
+.logo .nm{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.5px;background:linear-gradient(180deg,var(--g1),var(--g4));-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav-links{margin-left:auto;display:flex;gap:26px;align-items:center}
+.nav-links a{font-size:14px;color:var(--muted);transition:.2s}.nav-links a:hover{color:var(--txt)}
+.btn{font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.4px;padding:11px 20px;border-radius:12px;cursor:pointer;border:none;display:inline-block;transition:.2s}
+.btn-p{color:#241a06;background:linear-gradient(180deg,var(--g2),var(--g4))}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(231,171,48,.3)}
+.btn-g{color:var(--g2);border:1px solid var(--line);background:transparent}
+.btn-g:hover{background:rgba(246,209,106,.08)}
+.gear{transform-box:fill-box;transform-origin:center;animation:spin 16s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* hero */
+.hero{padding:90px 0 70px;text-align:center}
+.tag{display:inline-block;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--g2);border:1px solid var(--line);border-radius:30px;padding:7px 16px;margin-bottom:26px}
+.hero h1{font-family:var(--disp);font-weight:700;font-size:clamp(34px,6vw,62px);line-height:1.05;letter-spacing:.5px;margin-bottom:20px}
+.hero h1 span{background:linear-gradient(180deg,var(--g1),var(--g3) 60%,var(--g4));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:clamp(16px,2.2vw,20px);color:var(--muted);max-width:640px;margin:0 auto 34px}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.hero-emblem{width:120px;height:120px;margin:0 auto 30px;animation:breathe 4.5s ease-in-out infinite;filter:drop-shadow(0 8px 24px rgba(0,0,0,.5))}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+/* sections */
+section{padding:70px 0;position:relative;z-index:2}
+.sec-tag{text-align:center;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--g3);margin-bottom:12px}
+.sec-h{font-family:var(--disp);font-weight:700;font-size:clamp(26px,4vw,40px);text-align:center;margin-bottom:16px;letter-spacing:.4px}
+.sec-sub{text-align:center;color:var(--muted);max-width:620px;margin:0 auto 46px;font-size:16px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:center}
+.card-g{background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:18px;padding:28px}
+.card-g h3{font-family:var(--disp);font-size:20px;color:var(--g2);margin-bottom:10px}
+.badd{color:var(--muted);font-size:14px}
+.pain li{list-style:none;padding:9px 0 9px 30px;position:relative;color:var(--muted)}
+.pain li:before{content:"✕";position:absolute;left:0;color:#e5644e;font-weight:700}
+.gain li{list-style:none;padding:9px 0 9px 30px;position:relative}
+.gain li:before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:700}
+/* features */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat{background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:16px;padding:24px;transition:.2s}
+.feat:hover{transform:translateY(-4px);border-color:rgba(246,209,106,.32)}
+.feat .ic{font-size:26px;margin-bottom:12px}
+.feat h4{font-family:var(--disp);font-size:17px;margin-bottom:8px;color:var(--txt)}
+.feat p{font-size:13.5px;color:var(--muted)}
+/* planos */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
+.plan{background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:20px;padding:30px 26px;display:flex;flex-direction:column}
+.plan.hot{border-color:var(--g3);box-shadow:0 20px 60px rgba(231,171,48,.14);position:relative}
+.plan.hot:before{content:"MAIS POPULAR";position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,var(--g2),var(--g4));color:#241a06;font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:1px;padding:5px 14px;border-radius:20px}
+.plan .pn{font-family:var(--disp);font-weight:700;font-size:22px;color:var(--g2)}
+.plan .pp{font-family:var(--disp);font-weight:700;font-size:38px;margin:12px 0 2px}
+.plan .pp small{font-size:15px;color:var(--muted);font-weight:400}
+.plan .pd{color:var(--muted);font-size:13.5px;margin-bottom:18px}
+.plan ul{list-style:none;flex:1;margin-bottom:22px}
+.plan li{padding:7px 0 7px 26px;position:relative;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05)}
+.plan li:before{content:"✓";position:absolute;left:0;color:var(--ok)}
+/* prova */
+.quote{max-width:760px;margin:0 auto;text-align:center}
+.quote .q{font-family:var(--disp);font-size:clamp(20px,3vw,28px);line-height:1.4;margin-bottom:18px}
+.quote .a{color:var(--muted);font-size:14px}
+/* cta final */
+.final{text-align:center;background:linear-gradient(180deg,rgba(231,171,48,.08),transparent);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+footer{padding:36px 0;text-align:center;color:#6d6552;font-size:13px;position:relative;z-index:2}
+footer b{color:var(--g4)}
+@media(max-width:820px){.grid,.plans{grid-template-columns:1fr}.split{grid-template-columns:1fr}.nav-links a:not(.btn){display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div id="bg"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div id="glow"></div>
+
+<nav><div class="wrap nav-in">
+  <div class="logo">
+    <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg"><defs>
+      <linearGradient id="mt" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#606167"/><stop offset=".45" stop-color="#3c3d40"/><stop offset="1" stop-color="#202123"/></linearGradient>
+      <linearGradient id="gd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdeeb0"/><stop offset=".5" stop-color="#e7ab30"/><stop offset="1" stop-color="#8a5a12"/></linearGradient></defs>
+      <path class="gear" id="gp" fill="url(#mt)" stroke="#131418" stroke-width="4"/>
+      <circle cx="300" cy="300" r="150" fill="#151412" stroke="#131418" stroke-width="4"/>
+      <circle cx="300" cy="300" r="140" fill="none" stroke="url(#gd)" stroke-width="10"/>
+      <text x="300" y="360" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="150" fill="url(#gd)">VM</text>
+    </svg>
+    <div class="nm">Vizio Motors</div>
+  </div>
+  <div class="nav-links">
+    <a href="#recursos">Recursos</a><a href="#planos">Planos</a>
+    <a class="btn btn-p" href="https://motors.viziostudio.com.br" target="_blank">Ver demonstração</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="hero-emblem"><svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+    <use href="#gp"/><circle cx="300" cy="300" r="150" fill="#151412" stroke="#131418" stroke-width="4"/>
+    <circle cx="300" cy="300" r="140" fill="none" stroke="url(#gd)" stroke-width="10"/>
+    <text x="300" y="362" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="155" fill="url(#gd)">VM</text></svg></div>
+  <div class="tag">ERP + Inteligência Artificial para oficinas</div>
+  <h1>Sua oficina virou<br><span>sistema inteligente.</span></h1>
+  <p>O Vizio Motors não só registra o que acontece na sua oficina — ele interpreta os dados e sugere ações: recupera receita, prevê compras de peças e mostra onde está o lucro. Tudo em uma plataforma só.</p>
+  <div class="cta-row">
+    <a class="btn btn-p" href="https://motors.viziostudio.com.br" target="_blank">Ver demonstração ao vivo →</a>
+    <a class="btn btn-g" href="#planos">Conhecer os planos</a>
+  </div>
+</div></header>
+
+<section><div class="wrap">
+  <div class="split">
+    <div class="card-g"><h3>O problema</h3>
+      <ul class="pain">
+        <li>Ordem de serviço no papel e cliente ligando "meu carro está pronto?"</li>
+        <li>Peça acaba de surpresa e o serviço para</li>
+        <li>Cliente some e ninguém percebe que a revisão venceu</li>
+        <li>Fim do mês sem saber quanto realmente sobrou</li>
+      </ul>
+    </div>
+    <div class="card-g" style="border-color:rgba(246,209,106,.3)"><h3>A solução</h3>
+      <ul class="gain">
+        <li>OS digital e <b>portal em tempo real</b> — o cliente acompanha sozinho</li>
+        <li><b>Estoque preditivo</b> avisa e sugere a compra antes de faltar</li>
+        <li><b>Recuperação de receita</b> gera a campanha automaticamente</li>
+        <li>Financeiro e <b>DRE</b> claros, com dashboard executivo vivo</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<section id="recursos"><div class="wrap">
+  <div class="sec-tag">Tudo em um só lugar</div>
+  <h2 class="sec-h">Um centro de inteligência operacional</h2>
+  <p class="sec-sub">Da entrada do veículo à decisão de negócio — com o Motor Torque (IA) transformando cada dado em oportunidade.</p>
+  <div class="grid">
+    <div class="feat"><div class="ic">🔧</div><h4>Ordem de Serviço digital</h4><p>Checklist, fotos, orçamento, aprovação e assinatura — do recebimento à entrega.</p></div>
+    <div class="feat"><div class="ic">📲</div><h4>Portal do Cliente</h4><p>Acompanhamento em tempo real, estilo rastreio de entrega. Sem login, com aviso de "carro pronto".</p></div>
+    <div class="feat"><div class="ic">💳</div><h4>Financeiro & DRE</h4><p>Fluxo de caixa, a receber/pagar, margem e resultado do mês em segundos.</p></div>
+    <div class="feat"><div class="ic">📦</div><h4>Estoque Preditivo</h4><p>Consumo, cobertura em dias, curva ABC e sugestão automática de compra.</p></div>
+    <div class="feat"><div class="ic">💛</div><h4>CRM & Recuperação</h4><p>Aniversários, clientes inativos e campanhas de revisão/óleo vencidos — no automático.</p></div>
+    <div class="feat"><div class="ic">📊</div><h4>Dashboard Executivo</h4><p>KPIs e rankings de mecânicos, serviços, peças e clientes, vivos e interativos.</p></div>
+    <div class="feat"><div class="ic">🧾</div><h4>Nota Fiscal (NF-e)</h4><p>Emissão a partir da OS, DANFE e XML, pronta para integração fiscal.</p></div>
+    <div class="feat"><div class="ic">⏱</div><h4>Ponto & Equipe</h4><p>Controle de ponto, banco de horas, bem-estar e metas de produtividade.</p></div>
+    <div class="feat"><div class="ic">⚡</div><h4>Motor Torque (IA)</h4><p>Alertas e recomendações automáticas: o que comprar, quem chamar, onde está o lucro.</p></div>
+  </div>
+</div></section>
+
+<section id="planos"><div class="wrap">
+  <div class="sec-tag">Planos</div>
+  <h2 class="sec-h">Escolha o tamanho da sua operação</h2>
+  <p class="sec-sub">Comece simples e evolua. Valores de referência — fale com a gente para a condição da sua oficina.</p>
+  <div class="plans">
+    <div class="plan"><div class="pn">Essencial</div><div class="pp">R$ 149<small>/mês</small></div>
+      <div class="pd">Para começar a organizar a operação.</div>
+      <ul><li>Ordem de Serviço digital</li><li>Cadastros e Agenda</li><li>Portal do Cliente</li><li>1 usuário</li></ul>
+      <a class="btn btn-g" href="mailto:isaacn.ti@outlook.com?subject=Vizio%20Motors%20-%20Essencial">Começar</a></div>
+    <div class="plan hot"><div class="pn">Profissional</div><div class="pp">R$ 299<small>/mês</small></div>
+      <div class="pd">A oficina rodando de ponta a ponta.</div>
+      <ul><li>Tudo do Essencial</li><li>Financeiro + DRE</li><li>Estoque inteligente</li><li>Dashboard + CRM/Recuperação</li><li>Até 5 usuários</li></ul>
+      <a class="btn btn-p" href="mailto:isaacn.ti@outlook.com?subject=Vizio%20Motors%20-%20Profissional">Assinar</a></div>
+    <div class="plan"><div class="pn">Premium</div><div class="pp">R$ 499<small>/mês</small></div>
+      <div class="pd">Inteligência e escala máximas.</div>
+      <ul><li>Tudo do Profissional</li><li>Motor Torque (IA) avançado</li><li>NF-e</li><li>Ponto, Bem-estar e Alavancagem</li><li>Usuários ilimitados</li></ul>
+      <a class="btn btn-g" href="mailto:isaacn.ti@outlook.com?subject=Vizio%20Motors%20-%20Premium">Falar com especialista</a></div>
+  </div>
+</div></section>
+
+<section><div class="wrap quote">
+  <div class="sec-tag">Case piloto</div>
+  <div class="q">"A R3 Centro Automotivo, especialista em Renault Master, foi a primeira oficina a rodar o Vizio Motors — do orçamento ao portal do cliente em tempo real."</div>
+  <div class="a">R3 Centro Automotivo · projeto-piloto Vizio Motors</div>
+</div></section>
+
+<section class="final"><div class="wrap">
+  <h2 class="sec-h">Pronto para transformar sua oficina?</h2>
+  <p class="sec-sub">Veja o sistema funcionando agora, com dados reais de demonstração.</p>
+  <div class="cta-row">
+    <a class="btn btn-p" href="https://motors.viziostudio.com.br" target="_blank">Ver demonstração ao vivo →</a>
+    <a class="btn btn-g" href="mailto:isaacn.ti@outlook.com?subject=Quero%20conhecer%20o%20Vizio%20Motors">Falar com especialista</a>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  Vizio Motors — sua oficina virou sistema inteligente. · um produto <b>VIZIO</b> / <b>INPERSON</b>
+</div></footer>
+
+<script>
+// geometria da engrenagem
+const n=12,rt=250,rr=214,tf=.36,rf=.62,s=2*Math.PI/n,P=(r,a)=>[300+r*Math.cos(a),300+r*Math.sin(a)];let p=[];
+for(let i=0;i<n;i++){const a=i*s-Math.PI/2;p.push(P(rr,a-s*rf/2),P(rt,a-s*tf/2),P(rt,a+s*tf/2),P(rr,a+s*rf/2));}
+document.getElementById('gp').setAttribute('d',"M"+p.map(q=>q[0].toFixed(1)+" "+q[1].toFixed(1)).join(" L")+" Z");
+// glow do mouse
+const g=document.getElementById('glow');
+addEventListener('pointermove',e=>{g.style.opacity=1;g.style.left=e.clientX+'px';g.style.top=e.clientY+'px';});
+addEventListener('pointerleave',()=>g.style.opacity=0);
+</script>
+</body>
+</html>
