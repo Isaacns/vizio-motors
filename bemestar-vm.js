@@ -81,7 +81,7 @@ function esc(s){return (s==null?"":String(s)).replace(/</g,"&lt;");}
 function renderBemEstar(){
   injectCSS();
   var p=load();var INTS=[15,20,30,40,45,60,90,120,180];
-  function selInt(k){return '<select onchange="BEM.setInt(\''+k+'\',this.value)" style="flex:none;min-width:150px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;color:var(--txt);font:inherit">'+
+  function selInt(k){return '<select onchange="BEM.setInt(\''+k+'\',this.value)" style="flex:none;width:158px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;color:var(--txt);font:inherit">'+
     INTS.map(function(m){return '<option value="'+m+'"'+(Number(p.tipos[k].intervalo)===m?" selected":"")+'>a cada '+(m<60?m+" min":(m/60)+"h"+(m%60?" "+(m%60)+"min":""))+'</option>';}).join("")+'</select>';}
   var linhas=ORD.map(function(k){var t=TIPOS[k];var on=p.tipos[k].on;
     return '<div style="display:flex;align-items:center;gap:14px;padding:14px 2px;border-bottom:1px solid var(--line)">'+
@@ -89,7 +89,7 @@ function renderBemEstar(){
       '<div style="flex:1 1 auto;min-width:140px"><div style="font-weight:600">'+t.nome+'</div><div style="font-size:.82rem;color:var(--muted);line-height:1.4">'+esc(t.msgs[0])+'</div></div>'+
       '<div style="flex:none;display:flex;align-items:center;gap:12px">'+selInt(k)+'<label class="bemSw"><input type="checkbox" '+(on?"checked":"")+' onchange="BEM.toggle(\''+k+'\',this.checked)"><span></span></label></div>'+
     '</div>';}).join("");
-  document.getElementById('view').innerHTML=
+  document.getElementById('view').innerHTML='<div style="max-width:1080px">'+
     '<div class="panel" style="display:flex;align-items:center;gap:16px">'+
       '<div style="width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#f97316,#fb923c);display:flex;align-items:center;justify-content:center;font-size:1.7rem;box-shadow:0 8px 20px rgba(249,115,22,.28)">🌱</div>'+
       '<div style="flex:1"><h3 style="margin:0">Bem-estar & Pausas</h3><div style="font-size:13px;color:var(--muted)">Lembretes amigáveis para você cuidar de si durante o trabalho. Não interrompem o que você está fazendo — aparecem discretamente no canto da tela.</div></div>'+
@@ -97,7 +97,8 @@ function renderBemEstar(){
     '</div>'+
     '<div class="panel"><div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Tipos de lembrete &amp; frequência</div>'+linhas+
       '<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="b b-sm" onclick="BEM.testar()">🔔 Testar um lembrete agora</button>'+
-      '<span style="font-size:.8rem;color:var(--muted)">Suas preferências ficam salvas neste aparelho.</span></div></div>';
+      '<span style="font-size:.8rem;color:var(--muted)">Suas preferências ficam salvas neste aparelho.</span></div></div>'+
+    '</div>';
 }
 function abrirBemEstar(){
   document.querySelectorAll('.nav a').forEach(function(x){x.classList.remove('active');});
