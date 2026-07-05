@@ -121,6 +121,9 @@
   ["stepOS","toggleChk","toggleAprov","delItem","marcarPago","closeModal","gerarRecebiveis",
    "gerarCampanha","emitirNF","cancelarNF","registrarPonto","salvarBemestar","salvarMeta"].forEach(wrap);
   const _delOS=window.delOS; window.delOS=function(id){ sbDelete("mt_os",id); return _delOS(id); };
+  const _delAg=window.delAg; if(_delAg)window.delAg=function(id){ sbDelete("mt_agenda",id); return _delAg(id); };
+  const _delLanc=window.delLanc; if(_delLanc)window.delLanc=function(id){ sbDelete("mt_financeiro",id); return _delLanc(id); };
+  const _delServico=window.delServico; if(_delServico)window.delServico=function(id){ sbDelete("mt_servicos",id); return _delServico(id); };
   const _entrar=window.entrar;
   window.entrar=async function(e){ if(e&&e.preventDefault)e.preventDefault();
     try{ await sbLogin(); await resolveOrg(); _entrar({preventDefault(){}}); await loadAll(); }catch(err){} };

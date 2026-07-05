@@ -34,12 +34,12 @@ function renderDash(){
 
   // KPIs clicáveis (drill)
   const kpis=[
-    ['Faturamento aprovado',money(fat),'faturamento','#f6d16a'],
-    ['OS abertas',os.filter(o=>o.statusIdx<8).length,'abertas','#5aa0ff'],
-    ['OS concluídas',os.filter(o=>o.statusIdx>=7).length,'concluidas','#4ecb8f'],
-    ['Ticket médio',money(ticket),'ticket','#b78bff'],
-    ['Clientes ativos',WORK.clientes.length,'clientes','#39c5c5'],
-    ['Estoque crítico',critico,'estoque','#e5647e'],
+    ['Faturamento aprovado',money(fat),'faturamento','#5b8cff'],
+    ['OS abertas',os.filter(o=>o.statusIdx<8).length,'abertas','#7fa3ff'],
+    ['OS concluídas',os.filter(o=>o.statusIdx>=7).length,'concluidas','#54d1a6'],
+    ['Ticket médio',money(ticket),'ticket','#b7a6ff'],
+    ['Clientes ativos',WORK.clientes.length,'clientes','#7fbfd6'],
+    ['Estoque crítico',critico,'estoque','#e77b7b'],
   ];
   document.getElementById('view').innerHTML=`
    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--muted)">Clique em qualquer indicador para ver os detalhes.</div><div style="flex:1"></div><button class="b b-ghost b-sm" onclick="relDashboard()">📄 Gerar relatório</button></div>
@@ -82,7 +82,8 @@ window.relDashboard=relDashboard;
 function drawDash(d){
   if(typeof Chart==="undefined")return;
   dashDestroy();
-  const grid='rgba(255,255,255,.045)', tick='#79838f';
+  const _cs=getComputedStyle(document.documentElement);
+  const grid=(_cs.getPropertyValue('--line').trim())||'rgba(255,255,255,.045)', tick=(_cs.getPropertyValue('--muted').trim())||'#79838f';
   const el=id=>{const e=document.getElementById(id);return e&&e.getContext?e.getContext('2d'):null;};
   const baseOpts=(money)=>({responsive:true,maintainAspectRatio:true,aspectRatio:3.4,
     plugins:{legend:{display:false}},

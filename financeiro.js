@@ -152,6 +152,8 @@ function drawFinChart(k){
   if(typeof Chart==="undefined")return;               // guard (browser only)
   const el=document.getElementById('finChart'); if(!el||!el.getContext)return;
   if(_finChart)_finChart.destroy();
+  const _cs=getComputedStyle(document.documentElement);
+  const _tick=(_cs.getPropertyValue('--muted').trim())||'#79838f', _grid=(_cs.getPropertyValue('--line').trim())||'rgba(255,255,255,.045)';
   _finChart=new Chart(el.getContext('2d'),{
     type:'bar',
     data:{labels:['Recebido','A receber','Pago','A pagar'],
@@ -159,8 +161,8 @@ function drawFinChart(k){
         backgroundColor:['#54d1a6','rgba(84,209,166,.35)','#e77b7b','rgba(231,123,123,.35)'],
         borderRadius:6,borderSkipped:false,maxBarThickness:44}]},
     options:{responsive:true,maintainAspectRatio:true,aspectRatio:3,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{color:'#79838f',font:{family:'Inter',size:10},callback:v=>'R$ '+(v/1000)+'k'},grid:{color:'rgba(255,255,255,.045)',drawBorder:false},border:{display:false}},
-              x:{ticks:{color:'#79838f',font:{family:'Inter',size:10}},grid:{display:false},border:{display:false}}}}
+      scales:{y:{ticks:{color:_tick,font:{family:'Inter',size:10},callback:v=>'R$ '+(v/1000)+'k'},grid:{color:_grid,drawBorder:false},border:{display:false}},
+              x:{ticks:{color:_tick,font:{family:'Inter',size:10}},grid:{display:false},border:{display:false}}}}
   });
 }
 
