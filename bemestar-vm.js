@@ -43,13 +43,13 @@ function injectCSS(){
   ".bemT .m{font-size:.86rem;line-height:1.45;color:var(--muted)}"+
   ".bemT .b{display:flex;gap:8px;margin-top:10px}"+
   ".bemT .b button{flex:1;font-size:.76rem;font-weight:600;border-radius:8px;padding:7px 9px;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt)}"+
-  ".bemT .b button.ok{background:var(--gold-3);border-color:var(--gold-3);color:#241a06}"+
+  ".bemT .b button.ok{background:var(--gold-3);border-color:var(--gold-3);color:#fff}"+
   ".bemPop{position:fixed;left:50%;top:28%;transform:translateX(-50%);z-index:200;background:rgba(27,26,23,.96);backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:20px;padding:24px 28px;text-align:center;box-shadow:0 26px 64px rgba(0,0,0,.5);max-width:310px;cursor:pointer;animation:bemPopIn .36s cubic-bezier(.2,.9,.3,1.5)}"+
   ".bemPop .e{font-size:2.6rem;margin-bottom:6px;line-height:1}.bemPop .m{color:var(--txt);font-size:.98rem;font-weight:600;line-height:1.45}"+
   ".bemPop.out{animation:bemPopOut .3s ease forwards}"+
   "@keyframes bemPopIn{from{opacity:0;transform:translateX(-50%) scale(.8) translateY(12px)}to{opacity:1;transform:translateX(-50%) scale(1)}}"+
   "@keyframes bemPopOut{to{opacity:0;transform:translateX(-50%) scale(.92)}}"+
-  ".bemSw{position:relative;display:inline-block;width:46px;height:26px;flex:none}.bemSw input{display:none}.bemSw span{position:absolute;inset:0;background:#454239;border-radius:999px;transition:.2s;cursor:pointer}.bemSw span:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.bemSw input:checked+span{background:#22c55e}.bemSw input:checked+span:before{transform:translateX(20px)}";
+  ".bemSw{position:relative;display:inline-block;width:46px;height:26px;flex:none}.bemSw input{display:none}.bemSw span{position:absolute;inset:0;background:rgba(140,150,165,.4);border-radius:999px;transition:.2s;cursor:pointer}.bemSw span:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.bemSw input:checked+span{background:#22c55e}.bemSw input:checked+span:before{transform:translateX(20px)}";
   var s=document.createElement("style");s.id="bem-css";s.textContent=c;document.head.appendChild(s);
 }
 var REC=["Boa! Seu corpo agradece. 🎉","Mandou bem! Pequenas pausas, grandes resultados. 💪","Isso! Você está cuidando de você. 🌟","Feito! Mente renovada para seguir. ☕"];
@@ -79,14 +79,15 @@ function tick(){var p=load();if(!p.master)return;var now=Date.now();ORD.forEach(
 
 function esc(s){return (s==null?"":String(s)).replace(/</g,"&lt;");}
 function renderBemEstar(){
+  injectCSS();
   var p=load();var INTS=[15,20,30,40,45,60,90,120,180];
-  function selInt(k){return '<select onchange="BEM.setInt(\''+k+'\',this.value)" style="padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:rgba(0,0,0,.25);color:var(--txt);font:inherit">'+
+  function selInt(k){return '<select onchange="BEM.setInt(\''+k+'\',this.value)" style="flex:none;min-width:150px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;color:var(--txt);font:inherit">'+
     INTS.map(function(m){return '<option value="'+m+'"'+(Number(p.tipos[k].intervalo)===m?" selected":"")+'>a cada '+(m<60?m+" min":(m/60)+"h"+(m%60?" "+(m%60)+"min":""))+'</option>';}).join("")+'</select>';}
   var linhas=ORD.map(function(k){var t=TIPOS[k];var on=p.tipos[k].on;
-    return '<div style="display:flex;align-items:center;gap:14px;padding:14px 2px;border-bottom:1px solid rgba(255,255,255,.05)">'+
-      '<div style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:'+t.cor+'22">'+t.emoji+'</div>'+
-      '<div style="flex:1;min-width:0"><div style="font-weight:700">'+t.nome+'</div><div style="font-size:.8rem;color:var(--muted)">'+esc(t.msgs[0])+'</div></div>'+
-      selInt(k)+'<label class="bemSw"><input type="checkbox" '+(on?"checked":"")+' onchange="BEM.toggle(\''+k+'\',this.checked)"><span></span></label>'+
+    return '<div style="display:flex;align-items:center;gap:14px;padding:14px 2px;border-bottom:1px solid var(--line)">'+
+      '<div style="width:42px;height:42px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:'+t.cor+'22">'+t.emoji+'</div>'+
+      '<div style="flex:1 1 auto;min-width:140px"><div style="font-weight:600">'+t.nome+'</div><div style="font-size:.82rem;color:var(--muted);line-height:1.4">'+esc(t.msgs[0])+'</div></div>'+
+      '<div style="flex:none;display:flex;align-items:center;gap:12px">'+selInt(k)+'<label class="bemSw"><input type="checkbox" '+(on?"checked":"")+' onchange="BEM.toggle(\''+k+'\',this.checked)"><span></span></label></div>'+
     '</div>';}).join("");
   document.getElementById('view').innerHTML=
     '<div class="panel" style="display:flex;align-items:center;gap:16px">'+

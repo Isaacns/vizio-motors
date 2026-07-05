@@ -100,7 +100,7 @@ function drawDash(d){
   bar('c_mec',agg(d.mec),true,PALETTE);
   bar('c_serv',agg(d.servCount).slice(0,7),false,'#5aa0ff');
   bar('c_peca',agg(d.pecaCount).slice(0,7),false,'#4ecb8f');
-  bar('c_cli',agg(d.cliRec).slice(0,7),true,'#39c5c5');
+  bar('c_cli',agg(d.cliRec).slice(0,7),true,'#7fbfd6');
 }
 
 /* drill-down: lista os registros por trás do indicador */

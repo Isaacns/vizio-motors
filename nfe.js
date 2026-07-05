@@ -53,7 +53,7 @@ function renderNFe(){
        :'<div style="color:var(--muted);font-size:13px">Todas as OS aprovadas já têm nota.</div>'}
    </div>
 
-   <div style="font-size:11.5px;color:#6d6552;text-align:center;margin-top:6px">
+   <div style="font-size:11.5px;color:var(--dim);text-align:center;margin-top:6px">
      Emissão simulada (piloto). Integração fiscal real via provedor (Focus NF-e / PlugNotas) entra na configuração da oficina.</div>`;
 }
 

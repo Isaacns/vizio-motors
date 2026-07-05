@@ -61,7 +61,7 @@ function renderConfig(){
    <div class="panel"><h3>👥 Usuários & Perfis (RBAC)</h3>
      <table class="tbl"><thead><tr><th>Perfil</th><th>Permissões</th></tr></thead>
      <tbody>${PERFIS_INFO.map(p=>`<tr><td><b>${p[0]}</b></td><td style="color:var(--muted)">${p[1]}</td></tr>`).join('')}</tbody></table>
-     <div style="font-size:11.5px;color:#6d6552;margin-top:8px">Gestão de usuários por oficina entra com o painel do administrador master.</div>
+     <div style="margin-top:12px"><button class="b b-sm" onclick="abrirRBAC()">Gerenciar usuários & acessos</button></div>
    </div>
 
    <div class="grid2">

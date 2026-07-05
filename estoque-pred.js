@@ -96,12 +96,12 @@ function renderEstoquePred(q){
        <td style="text-align:center;color:${r.dias!==Infinity&&r.dias<ALERTA_DIAS?'var(--bad)':'var(--txt)'}">${diasFmt(r.dias)}</td>
        <td style="text-align:right;color:var(--gold-2)">${money(r.p.preco)}</td>
        <td style="text-align:right"><button class="b b-ghost b-sm" onclick="editPeca('${r.p.id}')">Editar</button></td></tr>`).join('')}</tbody></table>
-     <div style="font-size:11.5px;color:#6d6552;margin-top:10px">Curva ABC por valor de giro (A = itens que mais movimentam receita). Cobertura = dias de estoque no ritmo atual. Janela: ${JANELA_DIAS} dias.</div>
+     <div style="font-size:11.5px;color:var(--dim);margin-top:10px">Curva ABC por valor de giro (A = itens que mais movimentam receita). Cobertura = dias de estoque no ritmo atual. Janela: ${JANELA_DIAS} dias.</div>
    </div>
 
    ${paradas.length?`<div class="panel"><h3>🐌 Peças paradas (sem saída na janela)</h3>
      ${paradas.map(r=>`<div class="info-line"><span class="k">${r.p.nome}</span><span style="color:var(--muted)">${r.p.estoque} un · ${money((r.p.custo||0)*r.p.estoque)} parado</span></div>`).join('')}
-     <div style="font-size:11.5px;color:#6d6552;margin-top:8px">Considere promoção/combo para girar esse capital.</div></div>`:''}`;
+     <div style="font-size:11.5px;color:var(--dim);margin-top:8px">Considere promoção/combo para girar esse capital.</div></div>`:''}`;
 }
 
 function novaPeca(id){ const p=id?byId(WORK.pecas,id):{}; const ed=!!p.id;

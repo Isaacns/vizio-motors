@@ -6,6 +6,12 @@
    Depende de app.js (emblemSVG, toast). Storage: bucket 'brand'.
    ============================================================ */
 const VIZIO_BRAND={nome:"Vizio Motors",accent:"#5aa0ff",logo:"vizio-symbol.png"};
+/* logo VIZIO por tema: clara (traços claros) no escuro; navy no fundo branco */
+function vizioLogo(){ return document.documentElement.classList.contains('theme-light')?'vizio-symbol-light.png':'vizio-symbol.png'; }
+function reRenderEmblems(){ ['emblemLogin','emblemSide','emblemP'].forEach(function(id){
+  var e=document.getElementById(id);
+  if(e&&typeof emblemSVG==='function'&&(e.innerHTML||'').trim()){ e.innerHTML=emblemSVG();
+    var c=e.firstElementChild; if(c)c.style.maxWidth=(id==='emblemSide'?'44px':id==='emblemP'?'76px':'120px'); }}); }
 
 function shade(hex,pct){
   hex=(hex||'#5aa0ff').replace('#','');
@@ -27,7 +33,8 @@ function applyTheme(b){
   rs.setProperty('--gold-3',shade(acc,-6));
   rs.setProperty('--gold-4',shade(acc,-30));
   rs.setProperty('--gold-5',shade(acc,-48));
-  window.BRAND_LOGO=b.logo||b.logo_url||VIZIO_BRAND.logo;
+  var custom=(b&&(b.logo||b.logo_url)); window.__brandCustom=!!custom;
+  window.BRAND_LOGO=custom||vizioLogo();
   window.BRAND_NAME=b.nome||b.nome_exibicao||VIZIO_BRAND.nome;
   ['emblemLogin','emblemSide','emblemP'].forEach(function(id){
     var e=document.getElementById(id);
@@ -107,6 +114,8 @@ function toggleTheme(){
   var lit=document.documentElement.classList.toggle('theme-light');
   try{ localStorage.setItem('vm_theme', lit?'light':'dark'); }catch(e){}
   _themeGlyph(lit);
+  // troca a logo VIZIO conforme o tema (a menos que haja marca de cliente carregada)
+  if(!window.__brandCustom){ window.BRAND_LOGO=vizioLogo(); reRenderEmblems(); }
   // re-renderiza a view atual p/ atualizar cores dos gráficos
   var t=(document.getElementById('pageTitle')||{}).textContent;
   if(t==='Dashboard Executivo'&&typeof renderDash==='function')renderDash();
@@ -115,4 +124,5 @@ function toggleTheme(){
 window.toggleTheme=toggleTheme;
 (function initTheme(){ try{ var lit=localStorage.getItem('vm_theme')==='light';
   if(lit)document.documentElement.classList.add('theme-light'); _themeGlyph(lit);
+  if(!window.__brandCustom){ window.BRAND_LOGO=vizioLogo(); reRenderEmblems(); }
 }catch(e){} })();

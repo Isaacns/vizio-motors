@@ -74,7 +74,7 @@ function renderHome(){
         <div class="veh" onclick="openOS('${o.id}')"><div class="plate">${v.placa||''}</div>
           <div class="info"><div class="t">${v.modelo||''}</div><div class="s">OS #${o.numero} · ${cli(o.clienteId).nome||''}</div>
             <div class="bar"><i style="width:${pct}%"></i></div></div>
-          <div class="stage">${STATUS_FLOW[o.statusIdx]}<br><span style="color:#6d6552;font-weight:400">${pct}%</span></div></div>`;}).join('')||'<div style="color:var(--muted);font-size:13px">Nenhum veículo em execução.</div>'}
+          <div class="stage">${STATUS_FLOW[o.statusIdx]}<br><span style="color:var(--dim);font-weight:400">${pct}%</span></div></div>`;}).join('')||'<div style="color:var(--muted);font-size:13px">Nenhum veículo em execução.</div>'}
      </div>
      <div class="panel"><h3>⚡ Motor Torque <span class="torque-badge">IA · RECOMENDA</span></h3>
        ${alertas.map(a=>`<div class="alert"><div class="ai">${a[0]}</div><div class="at">${a[1]}</div></div>`).join('')}
@@ -410,7 +410,7 @@ function renderPortal(token){
       <div class="info-line" style="border:none"><span class="k">Observações</span><span style="max-width:60%;text-align:right">${o.obs||'—'}</span></div>
       <button class="btn" style="margin-top:14px" onclick="this.textContent='🔔 Você será avisado quando ficar pronto!';this.disabled=true">🔔 Receber notificação quando finalizar</button>
     </div>
-    <div style="text-align:center;color:#6d6552;font-size:11px;margin:18px 0">Atualiza em tempo real · powered by <b style="color:var(--gold-4)">Vizio Motors</b></div>
+    <div style="text-align:center;color:var(--dim);font-size:11px;margin:18px 0">Atualiza em tempo real · powered by <b style="color:var(--gold-2)">Vizio Motors</b></div>
   </div>`;
   document.getElementById('emblemP').innerHTML=emblemSVG();
   document.getElementById('emblemP').firstElementChild.style.maxWidth='76px';
