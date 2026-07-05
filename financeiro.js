@@ -136,11 +136,11 @@ function renderFinanceiro(){
 
    <div class="panel"><div class="head"><h3>🧾 Extrato</h3><div class="sp"></div><button class="b b-sm" onclick="novoLanc()">+ Lançamento</button></div>
      <table class="tbl"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Forma</th><th>Status</th><th style="text-align:right">Valor</th><th></th></tr></thead>
-     <tbody>${extrato.map(x=>`<tr><td>${finD(x.data)}</td><td>${x.desc}</td><td style="color:var(--muted)">${x.cat}</td>
+     <tbody>${extrato.map(x=>`<tr style="cursor:pointer" onclick="editLanc('${x.id}')"><td>${finD(x.data)}</td><td>${x.desc}</td><td style="color:var(--muted)">${x.cat}</td>
        <td style="color:var(--muted)">${x.forma||'—'}</td>
        <td><span class="badge ${x.status==='pago'?'s7':'s1'}">${x.status}</span></td>
        <td style="text-align:right;font-weight:600;color:${x.tipo==='receita'?'var(--ok)':'var(--bad)'}">${x.tipo==='receita'?'+':'−'} ${brl(x.valor)}</td>
-       <td style="text-align:right;white-space:nowrap"><button class="b b-ghost b-sm" title="Editar" onclick="editLanc('${x.id}')">✏️</button> <button class="b b-ghost b-sm" title="Excluir" onclick="delLanc('${x.id}')">🗑</button></td></tr>`).join('')}</tbody></table>
+       <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()"><button class="b b-ghost b-sm" title="Editar" onclick="editLanc('${x.id}')">✏️</button> <button class="b b-ghost b-sm" title="Excluir" onclick="delLanc('${x.id}')">🗑</button></td></tr>`).join('')}</tbody></table>
    </div>`;
 
   drawFinChart(k);

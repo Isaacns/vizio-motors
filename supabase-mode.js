@@ -75,7 +75,7 @@
     if(t==="Financeiro")return renderFinanceiro();
     if(t==="CRM & Recuperação")return renderCRM();
     if(t==="Dashboard Executivo")return renderDash();
-    if(t==="Nota Fiscal (NF-e)")return renderNFe();
+    if(t==="Nota Fiscal (NFS-e)")return renderNFe();
     if(t==="Ponto & Equipe")return renderCorp();
     if(t==="Estoque Inteligente")return renderEstoquePred();
     const f=LISTVIEWS[CUR]; if(f)f();

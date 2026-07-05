@@ -324,9 +324,9 @@ function renderAgenda(){
   document.getElementById('view').innerHTML=`
    <div class="panel"><div class="head"><h3>🗓 Agenda</h3><div class="sp"></div><button class="b" onclick="novoAg()">+ Agendamento</button></div>
      ${Object.keys(dias).map(d=>`<div style="margin-bottom:18px"><div style="font-family:var(--display);color:var(--gold-2);font-size:15px;margin-bottom:8px">${fmtFull(d)}</div>
-       ${dias[d].map(a=>{const v=veh(a.veiculoId);return `<div class="veh"><div class="plate">${a.hora}</div>
+       ${dias[d].map(a=>{const v=veh(a.veiculoId);return `<div class="veh" style="cursor:pointer" onclick="editAg('${a.id}')"><div class="plate">${a.hora}</div>
          <div class="info"><div class="t">${a.tipo} · ${cli(a.clienteId).nome||''}</div><div class="s">${v.placa||''} ${v.modelo||''} — ${a.obs||''}</div></div>${agBadge(a)}
-         <div style="display:flex;gap:6px"><button class="b b-ghost b-sm" title="Editar" onclick="editAg('${a.id}')">✏️</button><button class="b b-ghost b-sm" title="Excluir" onclick="delAg('${a.id}')">🗑</button></div></div>`;}).join('')}</div>`).join('')}
+         <div style="display:flex;gap:6px" onclick="event.stopPropagation()"><button class="b b-ghost b-sm" title="Editar" onclick="editAg('${a.id}')">✏️</button><button class="b b-ghost b-sm" title="Excluir" onclick="delAg('${a.id}')">🗑</button></div></div>`;}).join('')}</div>`).join('')}
    </div>`;
 }
 function formAg(a){a=a||{};const ed=!!a.id;const TIPOS=['Revisão','Retorno','Diagnóstico','Orçamento'];

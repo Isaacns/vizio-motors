@@ -53,9 +53,9 @@ function renderConfig(){
        <button class="b b-sm" onclick="novoServico()">+ Novo serviço</button></div>
      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Serviços e preços usados nas Ordens de Serviço e nos combos.</div>
      <table class="tbl"><thead><tr><th>Serviço</th><th>Categoria</th><th style="text-align:center">Tempo</th><th style="text-align:right">Preço</th><th></th></tr></thead>
-     <tbody>${(WORK.servicos||[]).map(s=>`<tr><td><b>${s.nome}</b></td><td style="color:var(--muted)">${s.categoria||'—'}</td>
+     <tbody>${(WORK.servicos||[]).map(s=>`<tr style="cursor:pointer" onclick="editServico('${s.id}')"><td><b>${s.nome}</b></td><td style="color:var(--muted)">${s.categoria||'—'}</td>
        <td style="text-align:center">${s.tempoMin?s.tempoMin+' min':'—'}</td><td style="text-align:right;color:var(--gold-2)">${money(s.preco)}</td>
-       <td style="text-align:right;white-space:nowrap"><button class="b b-ghost b-sm" title="Editar" onclick="editServico('${s.id}')">✏️</button> <button class="b b-ghost b-sm" title="Excluir" onclick="delServico('${s.id}')">🗑</button></td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted)">Nenhum serviço cadastrado.</td></tr>'}</tbody></table>
+       <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()"><button class="b b-ghost b-sm" title="Editar" onclick="editServico('${s.id}')">✏️</button> <button class="b b-ghost b-sm" title="Excluir" onclick="delServico('${s.id}')">🗑</button></td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted)">Nenhum serviço cadastrado.</td></tr>'}</tbody></table>
    </div>
 
    <div class="panel"><h3>👥 Usuários & Perfis (RBAC)</h3>

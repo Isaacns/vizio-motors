@@ -73,12 +73,15 @@ function renderEstoquePred(q){
   document.getElementById('view').innerHTML=`
    <div class="kpis">${kpis.map(k=>`<div class="kpi"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div></div>`).join('')}</div>
 
-   <div class="panel"><div class="head"><h3>🛒 Sugestão automática de compra <span class="torque-badge">IA · PREDITIVO</span></h3></div>
-     ${compras.length?`<table class="tbl"><thead><tr><th>Peça</th><th>Estoque</th><th>Cobertura</th><th>Comprar</th><th>Custo est.</th><th>Fornecedor</th></tr></thead>
-       <tbody>${compras.map(r=>`<tr><td><b>${r.p.nome}</b></td>
+   <div class="panel"><div class="head"><h3>🛒 Sugestão automática de compra <span class="torque-badge">IA · PREDITIVO</span></h3><div class="sp"></div>
+       <button class="b b-ghost b-sm" onclick="addCompra()">+ Adicionar item</button></div>
+     <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Clique num item para ajustar quantidade/fornecedor ou removê-lo.</div>
+     ${planoCompra().length?`<table class="tbl"><thead><tr><th>Peça</th><th>Estoque</th><th>Cobertura</th><th>Comprar</th><th>Custo est.</th><th>Fornecedor</th><th></th></tr></thead>
+       <tbody>${planoCompra().map(it=>{const r=it.r;return `<tr style="cursor:pointer" onclick="editCompra('${it.pecaId}')"><td><b>${r.p.nome}</b>${it.manual?' <span class="badge s0">manual</span>':''}</td>
          <td style="color:var(--bad)">${r.p.estoque}</td><td style="color:${r.dias<ALERTA_DIAS?'var(--bad)':'var(--txt)'}">${diasFmt(r.dias)}</td>
-         <td style="color:var(--gold-2);font-weight:600">+${r.compra}</td><td>${money(r.compra*(r.p.custo||0))}</td>
-         <td style="color:var(--muted)">${r.p.fornecedor}</td></tr>`).join('')}</tbody></table>
+         <td style="color:var(--gold-2);font-weight:600">+${it.qtd}</td><td>${money(it.qtd*(r.p.custo||0))}</td>
+         <td style="color:var(--muted)">${r.p.fornecedor||'—'}</td>
+         <td style="text-align:right" onclick="event.stopPropagation()"><button class="b b-ghost b-sm" title="Remover" onclick="removeCompra('${it.pecaId}')">🗑</button></td></tr>`;}).join('')}</tbody></table>
        <div style="text-align:right;margin-top:10px"><button class="b" onclick="gerarOrdemCompra()">Gerar ordem de compra</button></div>`
        :'<div style="color:var(--muted);font-size:13px">Nenhuma reposição necessária no momento. 👍</div>'}
    </div>
@@ -88,14 +91,14 @@ function renderEstoquePred(q){
        <button class="b b-ghost b-sm" onclick="relEstoque_pdf()">📄 Relatório</button>
        <button class="b b-sm" onclick="novaPeca()">+ Nova peça</button></div>
      <table class="tbl"><thead><tr><th>Peça</th><th>ABC</th><th style="text-align:center">Estoque</th><th style="text-align:center">Mín.</th><th style="text-align:center">Consumo/mês</th><th style="text-align:center">Cobertura</th><th style="text-align:right">Preço</th><th></th></tr></thead>
-     <tbody>${R.map(r=>`<tr><td><b>${r.p.nome}</b>${r.consumo===0?' <span style="color:var(--muted);font-size:11px">(parada)</span>':''}</td>
+     <tbody>${R.map(r=>`<tr style="cursor:pointer" onclick="editPeca('${r.p.id}')"><td><b>${r.p.nome}</b>${r.consumo===0?' <span style="color:var(--muted);font-size:11px">(parada)</span>':''}</td>
        <td>${abcBadge(r.abc)}</td>
        <td style="text-align:center;color:${r.baixo?'var(--bad)':'var(--txt)'};font-weight:600">${r.p.estoque}</td>
        <td style="text-align:center;color:var(--muted)">${r.p.minimo}</td>
        <td style="text-align:center">${r.consumo}</td>
        <td style="text-align:center;color:${r.dias!==Infinity&&r.dias<ALERTA_DIAS?'var(--bad)':'var(--txt)'}">${diasFmt(r.dias)}</td>
        <td style="text-align:right;color:var(--gold-2)">${money(r.p.preco)}</td>
-       <td style="text-align:right"><button class="b b-ghost b-sm" onclick="editPeca('${r.p.id}')">Editar</button></td></tr>`).join('')}</tbody></table>
+       <td style="text-align:right" onclick="event.stopPropagation()"><button class="b b-ghost b-sm" onclick="editPeca('${r.p.id}')">Editar</button></td></tr>`).join('')}</tbody></table>
      <div style="font-size:11.5px;color:var(--dim);margin-top:10px">Curva ABC por valor de giro (A = itens que mais movimentam receita). Cobertura = dias de estoque no ritmo atual. Janela: ${JANELA_DIAS} dias.</div>
    </div>
 
@@ -121,8 +124,47 @@ function novaPeca(id){ const p=id?byId(WORK.pecas,id):{}; const ed=!!p.id;
 }
 function editPeca(id){ novaPeca(id); }
 
+/* ---- plano de compra editável (sugestão + overrides + itens manuais) ---- */
+function compraPlano(){ if(!WORK.compraPlano)WORK.compraPlano={ov:{},hide:{},extra:[]}; return WORK.compraPlano; }
+function planoCompra(){
+  var cp=compraPlano(); var R=estoqueAnalise(); var byId2={}; R.forEach(function(r){byId2[r.p.id]=r;});
+  var out=[];
+  R.filter(function(r){return r.compra>0;}).sort(function(a,b){return a.dias-b.dias;}).forEach(function(r){
+    if(cp.hide[r.p.id])return;
+    var q=cp.ov[r.p.id]!=null?cp.ov[r.p.id]:r.compra;
+    if(q>0)out.push({pecaId:r.p.id,qtd:q,r:r,manual:false});
+  });
+  (cp.extra||[]).forEach(function(e){ var r=byId2[e.pecaId]; if(r&&!out.some(function(x){return x.pecaId===e.pecaId;}))out.push({pecaId:e.pecaId,qtd:e.qtd,r:r,manual:true}); });
+  return out;
+}
+function editCompra(pecaId){ var cp=compraPlano(); var p=byId(WORK.pecas,pecaId); if(!p)return;
+  var it=planoCompra().filter(function(x){return x.pecaId===pecaId;})[0];
+  var cur=it?it.qtd:0;
+  modal("Ajustar compra — "+p.nome,"",
+    '<div class="frow"><div><label>Quantidade a comprar</label><input id="cc_qtd" type="number" min="0" value="'+cur+'"></div>'+
+    '<div><label>Fornecedor</label><input id="cc_forn" value="'+(p.fornecedor||'').replace(/"/g,'&quot;')+'"></div></div>'+
+    '<div style="font-size:11.5px;color:var(--muted);margin-top:8px">Zerar a quantidade remove o item da sugestão.</div>',
+   function(){ var q=+document.getElementById('cc_qtd').value||0; p.fornecedor=document.getElementById('cc_forn').value;
+     var ex=(cp.extra||[]).filter(function(e){return e.pecaId===pecaId;})[0];
+     if(ex){ if(q<=0)cp.extra=cp.extra.filter(function(e){return e.pecaId!==pecaId;}); else ex.qtd=q; }
+     else if(q<=0){ cp.hide[pecaId]=true; } else { cp.ov[pecaId]=q; delete cp.hide[pecaId]; }
+     closeModal(); renderEstoquePred(); toast('Compra ajustada ✓'); });
+}
+function removeCompra(pecaId){ var cp=compraPlano(); cp.hide[pecaId]=true; cp.extra=(cp.extra||[]).filter(function(e){return e.pecaId!==pecaId;}); renderEstoquePred(); toast('Item removido da sugestão'); }
+function addCompra(){ var cp=compraPlano();
+  var opts=WORK.pecas.map(function(p){return '<option value="'+p.id+'">'+p.nome+' (estoque '+p.estoque+')</option>';}).join('');
+  modal("Adicionar item à compra","",
+    '<label>Peça</label><select id="ac_peca">'+opts+'</select><label>Quantidade</label><input id="ac_qtd" type="number" min="1" value="1">',
+   function(){ var id=document.getElementById('ac_peca').value; var q=+document.getElementById('ac_qtd').value||1;
+     if(cp.hide[id])delete cp.hide[id];
+     var auto=estoqueAnalise().filter(function(r){return r.p.id===id;})[0];
+     if(auto&&auto.compra>0){ cp.ov[id]=q; } else { var ex=(cp.extra||[]).filter(function(e){return e.pecaId===id;})[0]; if(ex)ex.qtd=q; else { cp.extra=cp.extra||[]; cp.extra.push({pecaId:id,qtd:q}); } }
+     closeModal(); renderEstoquePred(); toast('Item adicionado à compra ✓'); });
+}
+window.editCompra=editCompra; window.removeCompra=removeCompra; window.addCompra=addCompra;
+
 function gerarOrdemCompra(){
-  const R=estoqueAnalise().filter(r=>r.compra>0);
+  const R=planoCompra().map(it=>({p:it.r.p,compra:it.qtd}));
   if(!R.length){ toast('Nenhuma compra necessária'); return; }
   const forn={}; R.forEach(r=>{ const k=r.p.fornecedor||'—'; (forn[k]=forn[k]||[]).push(r); });
   let total=0;
