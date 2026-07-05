@@ -89,7 +89,7 @@ function renderBemEstar(){
       '<div style="flex:1 1 auto;min-width:140px"><div style="font-weight:600">'+t.nome+'</div><div style="font-size:.82rem;color:var(--muted);line-height:1.4">'+esc(t.msgs[0])+'</div></div>'+
       '<div style="flex:none;display:flex;align-items:center;gap:12px">'+selInt(k)+'<label class="bemSw"><input type="checkbox" '+(on?"checked":"")+' onchange="BEM.toggle(\''+k+'\',this.checked)"><span></span></label></div>'+
     '</div>';}).join("");
-  document.getElementById('view').innerHTML='<div style="max-width:1080px">'+
+  document.getElementById('view').innerHTML='<div style="max-width:1080px;margin:0 auto">'+
     '<div class="panel" style="display:flex;align-items:center;gap:16px">'+
       '<div style="width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#f97316,#fb923c);display:flex;align-items:center;justify-content:center;font-size:1.7rem;box-shadow:0 8px 20px rgba(249,115,22,.28)">🌱</div>'+
       '<div style="flex:1"><h3 style="margin:0">Bem-estar & Pausas</h3><div style="font-size:13px;color:var(--muted)">Lembretes amigáveis para você cuidar de si durante o trabalho. Não interrompem o que você está fazendo — aparecem discretamente no canto da tela.</div></div>'+
