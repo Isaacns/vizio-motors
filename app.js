@@ -325,21 +325,28 @@ function renderAgenda(){
    <div class="panel"><div class="head"><h3>🗓 Agenda</h3><div class="sp"></div><button class="b" onclick="novoAg()">+ Agendamento</button></div>
      ${Object.keys(dias).map(d=>`<div style="margin-bottom:18px"><div style="font-family:var(--display);color:var(--gold-2);font-size:15px;margin-bottom:8px">${fmtFull(d)}</div>
        ${dias[d].map(a=>{const v=veh(a.veiculoId);return `<div class="veh"><div class="plate">${a.hora}</div>
-         <div class="info"><div class="t">${a.tipo} · ${cli(a.clienteId).nome||''}</div><div class="s">${v.placa||''} ${v.modelo||''} — ${a.obs||''}</div></div>${agBadge(a)}</div>`;}).join('')}</div>`).join('')}
+         <div class="info"><div class="t">${a.tipo} · ${cli(a.clienteId).nome||''}</div><div class="s">${v.placa||''} ${v.modelo||''} — ${a.obs||''}</div></div>${agBadge(a)}
+         <div style="display:flex;gap:6px"><button class="b b-ghost b-sm" title="Editar" onclick="editAg('${a.id}')">✏️</button><button class="b b-ghost b-sm" title="Excluir" onclick="delAg('${a.id}')">🗑</button></div></div>`;}).join('')}</div>`).join('')}
    </div>`;
 }
-function novoAg(){modal("Novo agendamento","",`
-   <div class="frow"><div><label>Data</label><input id="a_data" type="date" value="${today()}"></div>
-   <div><label>Hora</label><input id="a_hora" type="time" value="09:00"></div></div>
-   <label>Cliente</label><select id="a_cli" onchange="agVeic()">${WORK.clientes.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('')}</select>
+function formAg(a){a=a||{};const ed=!!a.id;const TIPOS=['Revisão','Retorno','Diagnóstico','Orçamento'];
+  modal(ed?"Editar agendamento":"Novo agendamento","",`
+   <div class="frow"><div><label>Data</label><input id="a_data" type="date" value="${a.data||today()}"></div>
+   <div><label>Hora</label><input id="a_hora" type="time" value="${a.hora||'09:00'}"></div></div>
+   <label>Cliente</label><select id="a_cli" onchange="agVeic()">${WORK.clientes.map(c=>`<option value="${c.id}"${a.clienteId===c.id?' selected':''}>${c.nome}</option>`).join('')}</select>
    <label>Veículo</label><select id="a_vei"></select>
-   <div class="frow"><div><label>Tipo</label><select id="a_tipo"><option>Revisão</option><option>Retorno</option><option>Diagnóstico</option><option>Orçamento</option></select></div>
-   <div><label>Obs</label><input id="a_obs"></div></div>`,
-  ()=>{WORK.agenda.push({id:uid('A'),data:document.getElementById('a_data').value,hora:document.getElementById('a_hora').value,
+   <div class="frow"><div><label>Tipo</label><select id="a_tipo">${TIPOS.map(t=>`<option${a.tipo===t?' selected':''}>${t}</option>`).join('')}</select></div>
+   <div><label>Obs</label><input id="a_obs" value="${(a.obs||'').replace(/"/g,'&quot;')}"></div></div>`,
+  ()=>{const rec={data:document.getElementById('a_data').value,hora:document.getElementById('a_hora').value,
     clienteId:document.getElementById('a_cli').value,veiculoId:document.getElementById('a_vei').value,
-    tipo:document.getElementById('a_tipo').value,obs:document.getElementById('a_obs').value});closeModal();renderAgenda();});
-  agVeic();
+    tipo:document.getElementById('a_tipo').value,obs:document.getElementById('a_obs').value};
+    if(ed){Object.assign(a,rec);}else{WORK.agenda.push(Object.assign({id:uid('A')},rec));}
+    closeModal();renderAgenda();});
+  agVeic(); if(ed&&a.veiculoId){const sel=document.getElementById('a_vei');if(sel)sel.value=a.veiculoId;}
 }
+function novoAg(){formAg();}
+function editAg(id){formAg(byId(WORK.agenda,id));}
+function delAg(id){confirmar("Excluir este agendamento?",()=>{WORK.agenda=WORK.agenda.filter(a=>a.id!==id);closeModal();renderAgenda();});}
 function agVeic(){const c=document.getElementById('a_cli').value,sel=document.getElementById('a_vei');
   const vs=WORK.veiculos.filter(v=>v.clienteId===c);sel.innerHTML=vs.map(v=>`<option value="${v.id}">${v.placa} — ${v.modelo}</option>`).join('');}
 

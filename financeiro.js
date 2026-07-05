@@ -135,11 +135,12 @@ function renderFinanceiro(){
    </div>
 
    <div class="panel"><div class="head"><h3>🧾 Extrato</h3><div class="sp"></div><button class="b b-sm" onclick="novoLanc()">+ Lançamento</button></div>
-     <table class="tbl"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Forma</th><th>Status</th><th style="text-align:right">Valor</th></tr></thead>
+     <table class="tbl"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Forma</th><th>Status</th><th style="text-align:right">Valor</th><th></th></tr></thead>
      <tbody>${extrato.map(x=>`<tr><td>${finD(x.data)}</td><td>${x.desc}</td><td style="color:var(--muted)">${x.cat}</td>
        <td style="color:var(--muted)">${x.forma||'—'}</td>
        <td><span class="badge ${x.status==='pago'?'s7':'s1'}">${x.status}</span></td>
-       <td style="text-align:right;font-weight:600;color:${x.tipo==='receita'?'var(--ok)':'var(--bad)'}">${x.tipo==='receita'?'+':'−'} ${brl(x.valor)}</td></tr>`).join('')}</tbody></table>
+       <td style="text-align:right;font-weight:600;color:${x.tipo==='receita'?'var(--ok)':'var(--bad)'}">${x.tipo==='receita'?'+':'−'} ${brl(x.valor)}</td>
+       <td style="text-align:right;white-space:nowrap"><button class="b b-ghost b-sm" title="Editar" onclick="editLanc('${x.id}')">✏️</button> <button class="b b-ghost b-sm" title="Excluir" onclick="delLanc('${x.id}')">🗑</button></td></tr>`).join('')}</tbody></table>
    </div>`;
 
   drawFinChart(k);
@@ -164,23 +165,30 @@ function drawFinChart(k){
 }
 
 /* CRUD */
-function novoLanc(){
-  modal("Novo lançamento","Entrada ou saída no caixa",`
+function formLanc(l){ l=l||{}; const ed=!!l.id;
+  modal(ed?"Editar lançamento":"Novo lançamento","Entrada ou saída no caixa",`
     <div class="frow"><div><label>Tipo</label><select id="l_tipo" onchange="lancCats()"><option value="receita">Receita (entrada)</option><option value="despesa">Despesa (saída)</option></select></div>
     <div><label>Categoria</label><select id="l_cat"></select></div></div>
-    <label>Descrição</label><input id="l_desc" placeholder="Ex.: OS #1050 — freios">
-    <div class="frow"><div><label>Valor (R$)</label><input id="l_valor" type="number" step="0.01" value="0"></div>
-    <div><label>Data</label><input id="l_data" type="date" value="${typeof today==='function'?today():''}"></div></div>
+    <label>Descrição</label><input id="l_desc" value="${(l.desc||'').replace(/"/g,'&quot;')}" placeholder="Ex.: OS #1050 — freios">
+    <div class="frow"><div><label>Valor (R$)</label><input id="l_valor" type="number" step="0.01" value="${l.valor||0}"></div>
+    <div><label>Data</label><input id="l_data" type="date" value="${l.data||(typeof today==='function'?today():'')}"></div></div>
     <div class="frow"><div><label>Forma</label><select id="l_forma"><option>PIX</option><option>Cartão</option><option>Boleto</option><option>Dinheiro</option><option>—</option></select></div>
     <div><label>Status</label><select id="l_status"><option value="pago">Pago/Recebido</option><option value="pendente">Pendente</option></select></div></div>`,
    ()=>{const v=+document.getElementById('l_valor').value||0;
      if(v<=0){toast('Informe um valor');return;}
-     finList().push({id:uid('F'),data:document.getElementById('l_data').value,tipo:document.getElementById('l_tipo').value,
+     const rec={data:document.getElementById('l_data').value,tipo:document.getElementById('l_tipo').value,
        cat:document.getElementById('l_cat').value,desc:document.getElementById('l_desc').value||'Lançamento',
-       valor:v,forma:document.getElementById('l_forma').value,status:document.getElementById('l_status').value});
+       valor:v,forma:document.getElementById('l_forma').value,status:document.getElementById('l_status').value};
+     if(ed){Object.assign(l,rec);}else{finList().push(Object.assign({id:uid('F')},rec));}
      closeModal();renderFinanceiro();});
-  lancCats();
+  const setV=(id,val)=>{const e=document.getElementById(id); if(e&&val!=null)e.value=val;};
+  setV('l_tipo',l.tipo||'receita'); lancCats();
+  setV('l_cat',l.cat); setV('l_forma',l.forma||'PIX'); setV('l_status',l.status||'pago');
 }
+function novoLanc(){formLanc();}
+function editLanc(id){formLanc(byId(finList(),id));}
+function delLanc(id){confirmar("Excluir este lançamento?",()=>{WORK.financeiro=finList().filter(x=>x.id!==id);closeModal();renderFinanceiro();});}
+window.editLanc=editLanc; window.delLanc=delLanc;
 function lancCats(){const t=document.getElementById('l_tipo').value;
   document.getElementById('l_cat').innerHTML=(t==='receita'?CATS_REC:CATS_DES).map(c=>`<option>${c}</option>`).join('');}
 function marcarPago(id){const x=byId(finList(),id); if(x&&x.id){x.status='pago'; if(x.forma==='—')x.forma='PIX';} renderFinanceiro();}
