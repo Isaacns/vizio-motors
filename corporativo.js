@@ -64,6 +64,7 @@ function viewPontoInovar(inov){
   ];
   const linhaMin=v=>v?`<span style="color:var(--bad)">${v}</span>`:'<span style="color:var(--muted)">—</span>';
   const resumoTbl=`<div class="panel"><div class="head"><h3>📋 Resumo de presença <span style="font-size:11px;color:var(--muted)">(Inovar · relógio de ponto)</span></h3><div class="sp"></div>
+      <button class="b b-ghost b-sm" onclick="relPonto_pdf()">📄 Relatório</button>
       <button class="b b-ghost b-sm" onclick="importarPonto()">Reimportar</button>
       <button class="b b-ghost b-sm" onclick="limparPontoInovar()">Limpar</button></div>
      <div style="overflow:auto"><table class="tbl"><thead>
@@ -190,6 +191,17 @@ function importarPonto(){
 function limparPontoInovar(){ if(!window.confirmar){ WORK.pontoInovar=null; renderCorp(); return; }
   confirmar('Limpar a importação do relógio?', ()=>{ WORK.pontoInovar=null; renderCorp(); toast('Importação removida'); }); }
 window.importarPonto=importarPonto; window.limparPontoInovar=limparPontoInovar;
+function relPonto_pdf(){
+  if(typeof relatorioPDF!=='function')return;
+  var inov=WORK.pontoInovar; if(!inov||!inov.resumo.length){ if(window.toast)toast('Importe o Excel do relógio primeiro'); return; }
+  var R=inov.resumo;
+  var kpis=[['Colaboradores',R.length],['Atrasos (ocorr.)',R.reduce(function(s,r){return s+(r.atrasoFreq||0);},0)],['Saídas antecip.',R.reduce(function(s,r){return s+(r.cedoFreq||0);},0)],['Período',inov.periodo||'—']];
+  var corpo=RP.kpis(kpis)+
+    RP.sec('Resumo de presença — '+(inov.periodo||''))+RP.table(['Nº','Nome','Departamento','Atrasos (qtd/min)','Saídas (qtd/min)','Dias'],
+      R.map(function(r){return [r.num,r.nome,r.depto||'—',(r.atrasoFreq||0)+'/'+(r.atrasoMin||0),(r.cedoFreq||0)+'/'+(r.cedoMin||0),r.dias||'—'];}));
+  relatorioPDF({titulo:'Relatório de Ponto',subtitulo:'Resumo de presença (relógio de ponto)',corpo:corpo});
+}
+window.relPonto_pdf=relPonto_pdf;
 
 /* ---------- PRODUTIVIDADE ---------- */
 function viewProd(){

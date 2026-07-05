@@ -70,7 +70,8 @@ function renderCRM(){
 
    <div class="panel"><div class="head"><h3>💛 Recuperação de Receita</h3><div class="sp"></div>
       <button class="b b-sm" onclick="gerarCampanha('oleo')">Campanha: óleo vencido</button>
-      <button class="b b-sm" onclick="gerarCampanha('revisao')">Campanha: revisão vencida</button></div>
+      <button class="b b-sm" onclick="gerarCampanha('revisao')">Campanha: revisão vencida</button>
+      <button class="b b-ghost b-sm" onclick="relCRM_pdf()">📄 Relatório</button></div>
       <table class="tbl"><thead><tr><th>Cliente</th><th>Última troca de óleo</th><th>Revisão</th><th>Visitas</th><th>Gasto total</th><th>Ação</th></tr></thead>
       <tbody>${D.map(d=>`<tr><td><b>${d.c.nome}</b><br><span style="color:var(--muted);font-size:11px">${d.c.tel||''}</span></td>
         <td>${badge(d.oleo)}</td><td>${badge(d.rev)}</td><td>${d.visitas}</td>
@@ -116,6 +117,23 @@ function gerarCampanha(tipo){
   toast(`Campanha criada para ${alvos.length} cliente(s) ✓`);
   renderCRM();
 }
+
+/* relatório PDF do CRM */
+function relCRM_pdf(){
+  if(typeof relatorioPDF!=='function')return;
+  const D=crmDados();
+  const mesAtual=new Date(today()).getMonth();
+  const aniver=WORK.clientes.filter(c=>c.nasc && new Date(c.nasc).getMonth()===mesAtual);
+  const oleoV=D.filter(d=>d.oleo[0]==='Vencida'), revV=D.filter(d=>d.rev[0]==='Vencida'), inat=D.filter(d=>d.inativo);
+  const kpis=[['Aniversariantes',aniver.length],['Óleo vencido',oleoV.length],['Revisão vencida',revV.length],['Inativos',inat.length],['Base',WORK.clientes.length]];
+  const corpo=RP.kpis(kpis)+
+    RP.sec('Óleo vencido')+RP.table(['Cliente','Telefone','Meses'],oleoV.map(d=>[d.c.nome,d.c.tel||'—','~'+d.mO]))+
+    RP.sec('Revisão vencida')+RP.table(['Cliente','Telefone','Meses'],revV.map(d=>[d.c.nome,d.c.tel||'—','~'+d.mR]))+
+    RP.sec('Clientes inativos')+RP.table(['Cliente','Sem visita (meses)','OS'],inat.map(d=>[d.c.nome,'~'+d.ultMes,String(d.visitas)]))+
+    RP.sec('Aniversariantes do mês')+RP.table(['Cliente','Nascimento','Telefone'],aniver.map(c=>[c.nome,fmtFull(c.nasc),c.tel||'—']));
+  relatorioPDF({titulo:'Relatório de CRM & Recuperação',subtitulo:'Oportunidades de reengajamento e receita',corpo:corpo});
+}
+window.relCRM_pdf=relCRM_pdf;
 
 /* drill-down dos KPIs do CRM (indicador clicável → detalhe acionável) */
 function crmDrill(tipo){

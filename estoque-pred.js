@@ -28,6 +28,23 @@ function estoqueAnalise(){
   return rows;
 }
 
+function relEstoque_pdf(){
+  if(typeof relatorioPDF!=='function')return;
+  const R=estoqueAnalise();
+  const compras=R.filter(r=>r.compra>0).sort((a,b)=>a.dias-b.dias);
+  const criticas=R.filter(r=>r.baixo);
+  const paradas=R.filter(r=>r.consumo===0);
+  const custoCompra=compras.reduce((s,r)=>s+r.compra*(r.p.custo||0),0);
+  const money2=v=>"R$ "+(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const kpis=[['Peças cadastradas',R.length],['Sugestões de compra',compras.length],['Peças críticas',criticas.length],['Paradas',paradas.length],['Custo da compra sugerida',money2(custoCompra)]];
+  const corpo=RP.kpis(kpis)+
+    RP.sec('Sugestão de compra')+RP.table(['Peça','Fornecedor','Estoque','Comprar','Custo'],compras.map(r=>[r.p.nome,r.p.fornecedor||'—',String(r.p.estoque),String(r.compra),money2(r.compra*(r.p.custo||0))]))+
+    RP.sec('Peças críticas (abaixo do mínimo)')+RP.table(['Peça','Estoque','Mínimo'],criticas.map(r=>[r.p.nome,String(r.p.estoque),String(r.p.minimo)]))+
+    RP.sec('Estoque completo (curva ABC)')+RP.table(['Peça','ABC','Estoque','Mín.','Consumo'],R.map(r=>[r.p.nome,r.abc||'—',String(r.p.estoque),String(r.p.minimo),String(r.consumo)]));
+  relatorioPDF({titulo:'Relatório de Estoque',subtitulo:'Análise preditiva, curva ABC e compra sugerida',corpo:corpo});
+}
+window.relEstoque_pdf=relEstoque_pdf;
+
 function abrirEstoquePred(){
   document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
   document.getElementById('pageTitle').textContent="Estoque Inteligente";
@@ -68,6 +85,7 @@ function renderEstoquePred(q){
 
    <div class="panel"><div class="head"><h3>📦 Estoque completo</h3><div class="sp"></div>
        <input class="search" style="width:170px" placeholder="Buscar peça…" oninput="renderEstoquePred(this.value)">
+       <button class="b b-ghost b-sm" onclick="relEstoque_pdf()">📄 Relatório</button>
        <button class="b b-sm" onclick="novaPeca()">+ Nova peça</button></div>
      <table class="tbl"><thead><tr><th>Peça</th><th>ABC</th><th style="text-align:center">Estoque</th><th style="text-align:center">Mín.</th><th style="text-align:center">Consumo/mês</th><th style="text-align:center">Cobertura</th><th style="text-align:right">Preço</th><th></th></tr></thead>
      <tbody>${R.map(r=>`<tr><td><b>${r.p.nome}</b>${r.consumo===0?' <span style="color:var(--muted);font-size:11px">(parada)</span>':''}</td>

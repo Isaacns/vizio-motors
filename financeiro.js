@@ -63,6 +63,26 @@ function finKPIs(){
   return {saldo:recPago-desPago,aReceber,aPagar,recMes,desMes,lucro,margem,recPago,desPago};
 }
 
+function relFinanceiro_pdf(){
+  if(typeof relatorioPDF!=='function')return;
+  const f=finList(), k=finKPIs(), m=curMonth();
+  const porCat=(tipo,cats)=>cats.map(c=>[c,f.filter(x=>x.tipo===tipo&&x.cat===c&&(x.data||'').slice(0,7)===m).reduce((s,x)=>s+x.valor,0)]).filter(r=>r[1]>0);
+  const recCats=porCat("receita",CATS_REC), desCats=porCat("despesa",CATS_DES);
+  const receber=f.filter(x=>x.tipo==="receita"&&x.status==="pendente");
+  const pagar=f.filter(x=>x.tipo==="despesa"&&x.status==="pendente");
+  const kpis=[['Saldo em caixa',brl(k.saldo)],['A receber',brl(k.aReceber)],['A pagar',brl(k.aPagar)],['Receita (mês)',brl(k.recMes)],['Despesa (mês)',brl(k.desMes)],['Resultado (mês)',brl(k.lucro)+' ('+k.margem.toFixed(1)+'%)']];
+  const dreRows=recCats.map(r=>['＋ '+r[0],brl(r[1])])
+    .concat([['Receita bruta',brl(k.recMes)]])
+    .concat(desCats.map(r=>['－ '+r[0],brl(r[1])]))
+    .concat([['Total de despesas',brl(k.desMes)],['Resultado do mês',brl(k.lucro)]]);
+  const corpo=RP.kpis(kpis)+
+    RP.sec('DRE simplificado — '+m)+RP.table(['Categoria','Valor'],dreRows)+
+    RP.sec('Contas a receber')+RP.table(['Descrição','Vencimento','Valor'],receber.map(x=>[x.desc,x.data||'—',brl(x.valor)]))+
+    RP.sec('Contas a pagar')+RP.table(['Descrição','Vencimento','Valor'],pagar.map(x=>[x.desc,x.data||'—',brl(x.valor)]));
+  relatorioPDF({titulo:'Relatório Financeiro',subtitulo:'DRE, caixa e contas — '+m,corpo:corpo});
+}
+window.relFinanceiro_pdf=relFinanceiro_pdf;
+
 function renderFinanceiro(){
   const f=finList(), k=finKPIs();
   const receber=f.filter(x=>x.tipo==="receita"&&x.status==="pendente");
@@ -86,6 +106,7 @@ function renderFinanceiro(){
    <div class="grid2">
      <div class="panel"><div class="head"><h3>💳 Fluxo do mês</h3><div class="sp"></div>
         <button class="b b-ghost b-sm" onclick="gerarRecebiveis()">Gerar recebíveis das OS</button>
+        <button class="b b-ghost b-sm" onclick="relFinanceiro_pdf()">📄 Relatório</button>
         <button class="b b-sm" onclick="novoLanc()">+ Lançamento</button></div>
         <canvas id="finChart" height="150"></canvas>
      </div>

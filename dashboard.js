@@ -42,7 +42,7 @@ function renderDash(){
     ['Estoque crítico',critico,'estoque','#e5647e'],
   ];
   document.getElementById('view').innerHTML=`
-   <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Clique em qualquer indicador para ver os detalhes.</div>
+   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--muted)">Clique em qualquer indicador para ver os detalhes.</div><div style="flex:1"></div><button class="b b-ghost b-sm" onclick="relDashboard()">📄 Gerar relatório</button></div>
    <div class="kpis">${kpis.map(k=>`<div class="kpi" style="cursor:pointer;border-left:3px solid ${k[3]}" onclick="dashDrill('${k[2]}')">
        <div class="lbl">${k[0]}</div><div class="val">${k[1]}</div><div class="dt" style="color:${k[3]};font-size:11px">ver detalhes →</div></div>`).join('')}</div>
 
@@ -59,6 +59,25 @@ function renderDash(){
    <div class="panel"><h3>👥 Clientes por receita</h3><canvas id="c_cli" height="150"></canvas></div>`;
   drawDash({recServ,porStatus,mec,servCount,pecaCount,cliRec});
 }
+
+function relDashboard(){
+  if(typeof relatorioPDF!=='function')return;
+  const os=WORK.os, aprov=os.filter(o=>o.aprovado);
+  const fat=aprov.reduce((s,o)=>s+osTotal(o),0);
+  const ticket=aprov.length?fat/aprov.length:0;
+  const critico=WORK.pecas.filter(p=>p.estoque<p.minimo);
+  const recServ={}; os.forEach(o=>(o.itens||[]).forEach(i=>{if(i.tipo==='servico'){const n=svc(i.refId).nome||i.refId;recServ[n]=(recServ[n]||0)+i.valor;}}));
+  const mec={}; os.forEach(o=>{const m=(o.responsavel||'—').split(' ')[0];mec[m]=(mec[m]||0)+osTotal(o);});
+  const topServ=Object.entries(recServ).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const rankMec=Object.entries(mec).sort((a,b)=>b[1]-a[1]);
+  const kpis=[['Faturamento aprovado',money(fat)],['OS abertas',os.filter(o=>o.statusIdx<8).length],['OS concluídas',os.filter(o=>o.statusIdx>=7).length],['Ticket médio',money(ticket)],['Clientes',WORK.clientes.length],['Estoque crítico',critico.length]];
+  const corpo=RP.kpis(kpis)+
+    RP.sec('Receita por serviço')+RP.table(['Serviço','Receita'],topServ.map(x=>[x[0],money(x[1])]))+
+    RP.sec('Ranking de mecânicos')+RP.table(['Mecânico','Receita'],rankMec.map(x=>[x[0],money(x[1])]))+
+    RP.sec('Estoque crítico')+RP.table(['Peça','Estoque','Mínimo'],critico.map(p=>[p.nome,String(p.estoque),String(p.minimo)]));
+  relatorioPDF({titulo:'Relatório Executivo',subtitulo:'Visão geral da operação',corpo:corpo});
+}
+window.relDashboard=relDashboard;
 
 function drawDash(d){
   if(typeof Chart==="undefined")return;
