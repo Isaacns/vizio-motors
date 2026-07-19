@@ -195,7 +195,10 @@
   try{
     const h=document.querySelector('#login .hint'); if(h)h.textContent="Acesso real (Supabase) — use sua senha";
     const p=document.getElementById('pass'); if(p)p.value="";
-    const u=document.getElementById('user'); if(u){u.value=window.SB_EMAIL||""; u.readOnly=true;}
+    /* Só trava o campo quando há uma conta fixa configurada (piloto de conta única).
+       Sem SB_EMAIL o campo fica livre — travá-lo vazio impediria qualquer login. */
+    const u=document.getElementById('user');
+    if(u){ if(window.SB_EMAIL){ u.value=window.SB_EMAIL; u.readOnly=true; } else { u.readOnly=false; } }
     const st=document.getElementById('signupToggle'); if(st)st.style.display="block";
   }catch(e){}
   console.log("Vizio Motors: modo SUPABASE (LIVE) + Realtime + self-service · org base "+ORG);
