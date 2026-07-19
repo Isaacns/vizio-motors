@@ -142,7 +142,15 @@
 
   const _entrar=window.entrar;
   window.entrar=async function(e){ if(e&&e.preventDefault)e.preventDefault();
-    try{ await sbLogin(); await resolveOrg(); _entrar({preventDefault(){}}); await aplicarPermissoes(); await loadAll(); }catch(err){} };
+    /* Nada de catch mudo: uma falha aqui deixava o usuário clicando em ENTRAR sem
+       nenhuma resposta na tela. Falha silenciosa é pior que erro visível. */
+    try{ await sbLogin(); }
+    catch(err){ return; }                       // sbLogin já avisou o motivo por toast
+    try{ await resolveOrg(); _entrar({preventDefault(){}}); await aplicarPermissoes(); await loadAll(); }
+    catch(err){
+      console.error('entrar:',err);
+      toast('Entrou, mas houve falha ao carregar: '+((err&&err.message)||err)+' — recarregue a página');
+    } };
 
   /* cadastro self-service: cria conta + provisiona oficina */
   window.criarOficina=async function(){
