@@ -43,7 +43,11 @@
 
   async function sbLogin(){
     const pass=(document.getElementById('pass')||{}).value||"";
-    const email=window.SB_EMAIL||((document.getElementById('user')||{}).value||"admin")+"@vizio.local";
+    const digitado=(((document.getElementById('user')||{}).value)||"").trim();
+    /* E-mail completo digitado vence sempre. Sem "@", mantém o atalho legado
+       usuario -> usuario@vizio.local para não quebrar quem já usa assim. */
+    const email = digitado.indexOf('@')>=0 ? digitado
+                : (window.SB_EMAIL || (digitado||"admin")+"@vizio.local");
     const {error}=await SB.auth.signInWithPassword({email,password:pass});
     if(error){ toast("Login Supabase falhou: "+error.message); throw error; }
   }

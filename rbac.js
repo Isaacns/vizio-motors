@@ -34,13 +34,16 @@ function defaults(){
         perm:perm(['os','agenda','clientes','estoque','financeiro','dashboard','crm'],[])}
     ],
     usuarios:[
-      {id:"u_master",nome:"Isaac Nogueira",email:"isaacmaster@vizio.local",perfil:"admin"}
+      {id:"u_master",nome:"Isaac Nogueira",email:"isaacn.ti@outlook.com",perfil:"admin"}
     ]
   };
 }
 function load(){ try{var s=JSON.parse(localStorage.getItem(RKEY)||"null"); if(s&&s.perfis&&s.usuarios){
   // garante módulos novos em perfis existentes
   s.perfis.forEach(function(p){ ALLKEYS.forEach(function(k){ if(!p.perm[k])p.perm[k]={a:false,e:false}; }); });
+  /* Migração: a conta de piloto isaacmaster@vizio.local foi banida no Supabase e o
+     login passou a usar o e-mail real. Sem isto o cadastro local ficaria órfão. */
+  s.usuarios.forEach(function(u){ if((u.email||'').toLowerCase()==='isaacmaster@vizio.local'){ u.email='isaacn.ti@outlook.com'; } });
   return s; } }catch(e){} return defaults(); }
 function save(s){ try{localStorage.setItem(RKEY,JSON.stringify(s));}catch(e){}
   /* menu reflete a mudança na hora — sem exigir novo login */
@@ -51,7 +54,14 @@ function perfilById(s,id){ return s.perfis.filter(function(p){return p.id===id;}
    Sem sessão ou sem correspondência, cai no primeiro usuário (master do piloto). */
 function usuarioAtual(s){
   var email=(window.__vmUserEmail||'').toLowerCase();
-  if(email){ var achado=s.usuarios.filter(function(u){return (u.email||'').toLowerCase()===email;})[0]; if(achado)return achado; }
+  if(email){
+    var achado=s.usuarios.filter(function(u){return (u.email||'').toLowerCase()===email;})[0];
+    if(achado) return achado;
+    /* Sessão autenticada SEM cadastro correspondente não herda o primeiro usuário —
+       isso daria admin a qualquer um que entrasse. Perfil mínimo até o dono cadastrar. */
+    return {id:'_desconhecido',nome:email,email:email,perfil:'visualizador'};
+  }
+  /* Sem sessão (modo demo/piloto local): mantém o master. */
   return s.usuarios[0]||{perfil:'admin'};
 }
 window.rbacUsuarioAtual=function(){ return usuarioAtual(load()); };
