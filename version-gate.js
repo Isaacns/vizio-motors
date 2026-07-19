@@ -45,8 +45,12 @@
   }
 
   setTimeout(checar, 8000);
-  setInterval(checar, INTERVALO);
+  setInterval(checar, INTERVALO);            // roda SEMPRE, inclusive com a aba oculta
   window.addEventListener('focus', checar);
+  /* Reativar uma aba de segundo plano nem sempre dispara 'focus' (comprovado no teste de
+     19/07/2026). 'visibilitychange' é o sinal confiável para troca de aba. Isto NÃO condiciona
+     a checagem periódica a document.hidden — é gatilho adicional, não filtro. */
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) checar(); });
 
   window.vgChecar = checar;
 })();

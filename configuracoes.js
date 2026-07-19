@@ -9,7 +9,7 @@
    inteiro. (Bug real, 19/07/2026: quebrou o módulo Configurações por completo.) */
 const APP_VERSION = window.APP_VERSION || "0.6.0";
 const CHANGELOG = [
-  ["1.0.75","VersionGate (push de atualização), botão WhatsApp padrão e régua de botões"],
+  ["1.0.76","VersionGate (push de atualização), botão WhatsApp padrão e régua de botões"],
   ["0.6.0","Configurações, WhatsApp no cliente, alertas de agenda e dashboard reestruturado"],
   ["0.5.0","Módulos corporativos (ponto/bem-estar/alavancagem) e estoque preditivo"],
   ["0.4.0","CRM & Recuperação, Dashboard executivo e NF-e"],
