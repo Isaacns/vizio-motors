@@ -183,13 +183,40 @@ function importarPonto(){
        WORK.pontoInovar=parsed;
        closeModal(); renderCorp();
        toast('Ponto importado: '+parsed.resumo.length+' colaborador(es) ✓');
+       salvarPontoInovar(parsed);   // deixa de morrer com a sessão
      }catch(err){ toast('Erro ao ler o arquivo: '+err.message); } };
      rd.onerror=()=>toast('Falha ao ler o arquivo');
      rd.readAsArrayBuffer(file);
    });
 }
-function limparPontoInovar(){ if(!window.confirmar){ WORK.pontoInovar=null; renderCorp(); return; }
-  confirmar('Limpar a importação do relógio?', ()=>{ WORK.pontoInovar=null; renderCorp(); toast('Importação removida'); }); }
+/* Persistência da importação (tabela mt_ponto_inovar, isolada por org_id via RLS).
+   Sem isto, a importação morria ao fechar a aba — quem importou de manhã não achava à tarde. */
+async function salvarPontoInovar(p){
+  var SB=window.__SB, ORG=window.__ORG; if(!SB||!ORG||!p) return;
+  try{
+    await SB.from('mt_ponto_inovar').delete().eq('org_id',ORG);   // guardamos só a importação vigente
+    var r=await SB.from('mt_ponto_inovar').insert({org_id:ORG,periodo:p.periodo||null,
+      resumo:p.resumo||[],registro:p.registro||[]});
+    if(r.error) console.warn('ponto inovar salvar',r.error.message);
+  }catch(e){ console.warn('ponto inovar salvar',e); }
+}
+async function carregarPontoInovar(){
+  var SB=window.__SB, ORG=window.__ORG; if(!SB||!ORG) return;
+  try{
+    var r=await SB.from('mt_ponto_inovar').select('periodo,resumo,registro')
+      .eq('org_id',ORG).order('importado_em',{ascending:false}).limit(1).maybeSingle();
+    if(r.data){ WORK.pontoInovar={periodo:r.data.periodo||'',resumo:r.data.resumo||[],registro:r.data.registro||[]};
+      if(typeof renderCorp==='function' && document.getElementById('corpTabs')) renderCorp(); }
+  }catch(e){ console.warn('ponto inovar carregar',e); }
+}
+window.salvarPontoInovar=salvarPontoInovar; window.carregarPontoInovar=carregarPontoInovar;
+
+function limparPontoInovar(){
+  var apagar=function(){ WORK.pontoInovar=null; renderCorp();
+    var SB=window.__SB, ORG=window.__ORG;
+    if(SB&&ORG){ SB.from('mt_ponto_inovar').delete().eq('org_id',ORG).then(function(r){ if(r&&r.error)console.warn('ponto inovar limpar',r.error.message); }); } };
+  if(!window.confirmar){ apagar(); return; }
+  confirmar('Limpar a importação do relógio?', function(){ apagar(); toast('Importação removida'); }); }
 window.importarPonto=importarPonto; window.limparPontoInovar=limparPontoInovar;
 function relPonto_pdf(){
   if(typeof relatorioPDF!=='function')return;

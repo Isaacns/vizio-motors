@@ -156,9 +156,13 @@ async function salvarMarca(){
     if(!up.error){ logo_url=SB.storage.from('brand').getPublicUrl(path).data.publicUrl; }
     else { toast('Falha no upload da logo: '+up.error.message); }
   }
-  if(SB&&ORG){ var r=await SB.from('mt_orgs').update({nome_exibicao:nome,cor_primaria:accent,logo_url:logo_url,tema:'custom'}).eq('id',ORG);
+  if(SB&&ORG){
+    /* §6 — Brand Kit inteiro no tenant: secundária e raio também. Antes viviam só no
+       localStorage, então trocar de máquina perdia metade da identidade da marca. */
+    var r=await SB.from('mt_orgs').update({nome_exibicao:nome,cor_primaria:accent,cor_secundaria:accent2,
+      radius:radius,logo_url:logo_url,tema:'custom'}).eq('id',ORG);
     if(r.error){ toast('Erro ao salvar: '+r.error.message); return; } }
-  _bkSave({accent:accent,accent2:accent2,radius:radius,org:ORG||'demo'});   // secundária/raio (persist local)
+  _bkSave({accent:accent,accent2:accent2,radius:radius,org:ORG||'demo'});   // cache local (resposta imediata)
   applyTheme({nome:nome,accent:accent,accent2:accent2,radius:radius,logo:logo_url});
   toast('Identidade da oficina aplicada ✓');
   renderMarca();

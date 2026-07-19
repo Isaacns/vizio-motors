@@ -84,17 +84,22 @@
   async function fetchBrand(){
     try{
       window.__ORG=ORG;
-      const {data,error}=await SB.from('mt_orgs').select('nome_exibicao,cor_primaria,logo_url,tema').eq('id',ORG).single();
+      const {data,error}=await SB.from('mt_orgs')
+        .select('nome_exibicao,cor_primaria,cor_secundaria,radius,logo_url,tema').eq('id',ORG).single();
       if(error||!data){ if(typeof applyTheme==='function')applyTheme(); return; }
       let logo=data.logo_url;
       if(logo && !/^https?:|^data:|\//.test(logo)){ logo=logo; } // relativo servido pelo Pages
       if(typeof applyTheme==='function'){
         if(data.tema==='vizio' || (!data.cor_primaria && !data.logo_url)){ applyTheme(); }
-        else applyTheme({nome:data.nome_exibicao,accent:data.cor_primaria,logo:logo});
+        /* §6 — Brand Kit completo vem do tenant: secundária e raio inclusive. */
+        else applyTheme({nome:data.nome_exibicao,accent:data.cor_primaria,accent2:data.cor_secundaria,
+                         radius:(data.radius!=null?data.radius:null),logo:logo});
       }
     }catch(e){ console.warn('fetchBrand',e); if(typeof applyTheme==='function')applyTheme(); }
   }
-  async function loadAll(){ await fetchAll(); await fetchBrand(); if(typeof go==="function") go(CUR||"home"); toast("Dados carregados ✓"); subscribeRealtime(); }
+  async function loadAll(){ await fetchAll(); await fetchBrand();
+    if(typeof carregarPontoInovar==="function") await carregarPontoInovar();
+    if(typeof go==="function") go(CUR||"home"); toast("Dados carregados ✓"); subscribeRealtime(); }
 
   let _t=null;
   function scheduleSync(){ clearTimeout(_t); _t=setTimeout(syncAll,500); }
