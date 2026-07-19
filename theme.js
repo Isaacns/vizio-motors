@@ -5,9 +5,14 @@
    applyTheme() é chamado pelo supabase-mode após carregar a org.
    Depende de app.js (emblemSVG, toast). Storage: bucket 'brand'.
    ============================================================ */
-const VIZIO_BRAND={nome:"Vizio Motors",accent:"#5aa0ff",logo:"vizio-symbol.png"};
+/* §5 dos Padrões — o sufixo descreve a COR DA LOGO, não o tema:
+   vizio-symbol-light.png = logo CLARA  -> usar no tema ESCURO
+   vizio-symbol-dark.png  = logo ESCURA -> usar no tema CLARO
+   (`vizio-symbol.png` é o nome legado; mantido no repositório para não quebrar
+    quem ainda estiver rodando JS antigo em cache — Lei de Postel, §14.4.) */
+const VIZIO_BRAND={nome:"Vizio Motors",accent:"#5aa0ff",logo:"vizio-symbol-light.png"};
 /* logo VIZIO por tema: clara (traços claros) no escuro; navy no fundo branco */
-function vizioLogo(){ return document.documentElement.classList.contains('theme-light')?'vizio-symbol-light.png':'vizio-symbol.png'; }
+function vizioLogo(){ return document.documentElement.classList.contains('theme-light')?'vizio-symbol-dark.png':'vizio-symbol-light.png'; }
 function reRenderEmblems(){ ['emblemLogin','emblemSide','emblemP'].forEach(function(id){
   var e=document.getElementById(id);
   if(e&&typeof emblemSVG==='function'&&(e.innerHTML||'').trim()){ e.innerHTML=emblemSVG();
@@ -101,7 +106,7 @@ function renderMarca(){
   var accent=(css.getPropertyValue('--gold-2').trim())||"#5aa0ff";
   var accent2=(css.getPropertyValue('--accent2').trim())||shade(accent,28);
   var radius=parseInt(css.getPropertyValue('--radius'))||18;
-  var logo=window.BRAND_LOGO||"vizio-symbol.png";
+  var logo=window.BRAND_LOGO||vizioLogo();
   window._mkPreview=function(){ applyTheme({nome:document.getElementById('mk_nome').value,
     accent:document.getElementById('mk_accent').value, accent2:document.getElementById('mk_accent2').value,
     radius:+document.getElementById('mk_radius').value, logo:window.BRAND_LOGO}); };
@@ -147,7 +152,7 @@ async function salvarMarca(){
   var accent=(document.getElementById('mk_accent')||{}).value||"#5aa0ff";
   var accent2=(document.getElementById('mk_accent2')||{}).value||shade(accent,28);
   var radius=+(document.getElementById('mk_radius')||{}).value||18;
-  var logo_url=window.BRAND_LOGO||"vizio-symbol.png";
+  var logo_url=window.BRAND_LOGO||vizioLogo();
   var SB=window.__SB, ORG=window.__ORG;
   var f=document.getElementById('mk_logo'); var file=f&&f.files&&f.files[0];
   if(file&&SB&&ORG){

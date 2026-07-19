@@ -8,7 +8,7 @@ const GEAR=(()=>{const n=12,rt=250,rr=214,tf=.36,rf=.62,s=2*Math.PI/n,P=(r,a)=>[
  for(let i=0;i<n;i++){const a=i*s-Math.PI/2;p.push(P(rr,a-s*rf/2),P(rt,a-s*tf/2),P(rt,a+s*tf/2),P(rr,a+s*rf/2));}
  return "M"+p.map(q=>q[0].toFixed(1)+" "+q[1].toFixed(1)).join(" L")+" Z";})();
 const MED=327,MOFF=(600-MED)/2;
-function emblemSVG(){var L=(window.BRAND_LOGO||'vizio-symbol.png');return `<svg viewBox="0 0 100 100" width="100%" height="100%" style="max-width:110px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><image x="1" y="1" width="98" height="98" href="${L}" xlink:href="${L}"/></svg>`}
+function emblemSVG(){var L=(window.BRAND_LOGO||'vizio-symbol-light.png');return `<svg viewBox="0 0 100 100" width="100%" height="100%" style="max-width:110px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><image x="1" y="1" width="98" height="98" href="${L}" xlink:href="${L}"/></svg>`}
 
 /* ===== estado ===== */
 let WORK = JSON.parse(JSON.stringify(DADOS));

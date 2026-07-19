@@ -18,7 +18,8 @@ window.RP = {
 function relatorioPDF(opts){
   opts=opts||{};
   var brand=(window.BRAND_NAME||'Vizio Motors');
-  var rawLogo=(window.BRAND_LOGO||'vizio-symbol.png');
+  /* Relatório é impresso em papel branco: a logo tem de ser a ESCURA (§5). */
+  var rawLogo=(window.BRAND_LOGO&&window.__brandCustom)?window.BRAND_LOGO:'vizio-symbol-dark.png';
   var logo; try{ logo=(/^https?:|^data:/.test(rawLogo))?rawLogo:new URL(rawLogo,document.baseURI).href; }catch(e){ logo=rawLogo; }
   var accent='#3f6fe0';
   try{ var a=getComputedStyle(document.documentElement).getPropertyValue('--gold-3').trim(); if(a)accent=a; }catch(e){}
