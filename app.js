@@ -241,7 +241,7 @@ function renderClientes(q){q=(q||'').toLowerCase();
        return `<tr><td onclick="openCli('${c.id}')"><b>${c.nome}</b></td><td onclick="openCli('${c.id}')">${c.tel||''}<br><span style="color:var(--muted);font-size:12px">${c.email||''}</span></td>
        <td onclick="openCli('${c.id}')">${vs.map(v=>`<span class="plate" style="margin:1px">${v.placa}</span>`).join(' ')||'—'}</td>
        <td onclick="openCli('${c.id}')">${nos}</td>
-       <td style="text-align:right;white-space:nowrap"><a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="https://wa.me/55${(c.tel||'').replace(/\D/g,'')}?text=${encodeURIComponent('Olá '+(c.nome||'').split(' ')[0]+'! Aqui é da oficina.')}">💬</a>
+       <td class="acoes">${window.waBtn?waBtn(c.tel,`Olá ${(c.nome||'').split(' ')[0]}! Aqui é da ${window.BRAND_NAME||'nossa oficina'}. Como podemos ajudar com o seu veículo?`,'WhatsApp →'):''}
        <button class="b b-ghost b-sm" onclick="editCli('${c.id}')">Editar</button></td></tr>`;}).join('')}</tbody></table></div>`;
 }
 function openCli(id){const c=byId(WORK.clientes,id);const vs=WORK.veiculos.filter(v=>v.clienteId===id);
@@ -266,7 +266,7 @@ function openCli(id){const c=byId(WORK.clientes,id);const vs=WORK.veiculos.filte
        <div class="info-line"><span class="k">Aniversário</span><span>${c.nasc?fmtFull(c.nasc):'—'}</span></div>
        <div class="info-line"><span class="k">Observações</span><span style="max-width:180px;text-align:right">${c.obs||'—'}</span></div>
        <div style="margin-top:14px;display:flex;gap:8px"><button class="b b-sm" onclick="editCli('${id}')">Editar cliente</button>
-         <a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="https://wa.me/55${(c.tel||'').replace(/\D/g,'')}?text=${encodeURIComponent('Olá '+(c.nome||'').split(' ')[0]+'! Aqui é da oficina.')}">💬 WhatsApp</a></div>
+         ${window.waBtn?waBtn(c.tel,`Olá ${(c.nome||'').split(' ')[0]}! Aqui é da ${window.BRAND_NAME||'nossa oficina'}. Como podemos ajudar com o seu veículo?`,'WhatsApp →'):''}</div>
      </div>
    </div>`;
 }

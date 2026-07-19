@@ -21,6 +21,9 @@ function mesesDe(dstr){ if(!dstr)return 999; const d=new Date(dstr), h=new Date(
 function statusRev(meses,limite){ if(meses>limite)return["Vencida","bad"]; if(meses>=limite-2)return["Vence em breve","warn"]; return["Em dia","ok"]; }
 function soDig(s){ return (s||"").replace(/\D/g,""); }
 function waLink(tel,msg){ let d=soDig(tel); if(d.length<=11)d="55"+d; return `https://wa.me/${d}?text=${encodeURIComponent(msg)}`; }
+/* §12 dos Padrões INPERSON/VIZIO — botão verde canônico de WhatsApp */
+function waBtn(tel,msg,label){ return `<a class="b b-wa b-sm" style="text-decoration:none" target="_blank" rel="noopener" href="${waLink(tel,msg)}">${label||'WhatsApp →'}</a>`; }
+window.waLink=waLink; window.waBtn=waBtn;
 function mailLink(email,assunto,corpo){ return `mailto:${email||""}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`; }
 function crmList(){ if(!WORK.campanhas)WORK.campanhas=[]; return WORK.campanhas; }
 
@@ -62,7 +65,7 @@ function renderCRM(){
     ['Base de clientes',WORK.clientes.length,'up','ativos cadastrados','base'],
   ];
   const badge=s=>`<span class="badge ${s[1]==='ok'?'s7':(s[1]==='warn'?'s1':'s0')}" style="${s[1]==='bad'?'background:rgba(229,100,78,.15);color:var(--bad)':''}">${s[0]}</span>`;
-  const acoes=(c,msg)=>`<a class="b b-sm" style="text-decoration:none" target="_blank" href="${waLink(c.tel,msg)}">WhatsApp</a>
+  const acoes=(c,msg)=>`${waBtn(c.tel,msg,'WhatsApp →')}
      <a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="${mailLink(c.email,(window.BRAND_NAME||'Vizio Motors'),msg)}">E-mail</a>`;
 
   document.getElementById('view').innerHTML=`
@@ -83,13 +86,13 @@ function renderCRM(){
      <div class="panel"><h3>🎂 Aniversariantes do mês</h3>
        ${aniver.length?aniver.map(c=>`<div class="veh"><div class="info"><div class="t">${c.nome}</div>
          <div class="s">${fmtFull(c.nasc)} · ${c.tel||''}</div></div>
-         <a class="b b-sm" style="text-decoration:none" target="_blank" href="${waLink(c.tel,`Feliz aniversário, ${c.nome.split(' ')[0]}! 🎉 A ${window.BRAND_NAME||'nossa oficina'} deseja tudo de bom. Passe aqui e ganhe uma revisão de cortesia no seu veículo!`)}">Parabenizar</a></div>`).join('')
+         ${waBtn(c.tel,`Feliz aniversário, ${c.nome.split(' ')[0]}! 🎉 A ${window.BRAND_NAME||'nossa oficina'} deseja tudo de bom. Passe aqui e ganhe uma revisão de cortesia no seu veículo!`,'Parabenizar')}</div>`).join('')
          :'<div style="color:var(--muted);font-size:13px">Ninguém faz aniversário este mês.</div>'}
      </div>
      <div class="panel"><h3>😴 Clientes inativos</h3>
        ${inativos.length?inativos.map(d=>`<div class="veh"><div class="info"><div class="t">${d.c.nome}</div>
          <div class="s">Sem visita há ~${d.ultMes} meses · ${d.visitas} OS no histórico</div></div>
-         <a class="b b-ghost b-sm" style="text-decoration:none" target="_blank" href="${waLink(d.c.tel,`Olá ${d.c.nome.split(' ')[0]}! Sentimos sua falta. Que tal um check-up no seu veículo? Temos condição especial de retorno. 🚐`)}">Reativar</a></div>`).join('')
+         ${waBtn(d.c.tel,`Olá ${d.c.nome.split(' ')[0]}! Sentimos sua falta. Que tal um check-up no seu veículo? Temos condição especial de retorno. 🚐`,'Reativar')}</div>`).join('')
          :'<div style="color:var(--muted);font-size:13px">Nenhum cliente inativo. 👏</div>'}
      </div>
    </div>
@@ -139,7 +142,7 @@ window.relCRM_pdf=relCRM_pdf;
 function crmDrill(tipo){
   const D=crmDados();
   const mesAtual=new Date(today()).getMonth();
-  const wa=(c,msg)=>`<a class="b b-sm" style="text-decoration:none;white-space:nowrap" target="_blank" href="${waLink(c.tel,msg)}">WhatsApp</a>`;
+  const wa=(c,msg)=>waBtn(c.tel,msg,'WhatsApp →');
   const fn=nome=>(nome||'').split(' ')[0];
   let titulo="", sub="Detalhe do indicador", head="", rows="", vazio="Sem itens neste segmento.";
   if(tipo==='aniver'){
