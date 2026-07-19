@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- Vizio Motors · build v074 · VersionGate + régua de botões + WhatsApp padrão -->
 <!-- Fonte única da versão (§14.2). Sem `const`: colidiria com o escopo de script dos demais .js -->
-<script>window.APP_VERSION='1.0.82';</script>
+<script>window.APP_VERSION='1.0.83';</script>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -97,6 +97,19 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold-2);box-shadow:0 
 .topbar .sp{flex:1}
 .search{background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:11px;padding:9px 14px;color:var(--txt);font-size:13px;width:220px;outline:none}
 .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));display:flex;align-items:center;justify-content:center;color:#ffffff;font-weight:700;font-family:var(--display)}
+/* Identificação do usuário no canto superior direito (padrão INPERSON/VIZIO, §8.1) */
+.user{display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 6px 4px 10px;border-radius:999px;border:1px solid transparent;transition:.18s;flex:none}
+.user:hover{border-color:var(--line);background:rgba(255,255,255,.03)}
+.user .who{display:flex;flex-direction:column;line-height:1.2;text-align:right}
+.user .who b{font-family:var(--display);font-size:12.5px;font-weight:600;color:var(--txt);letter-spacing:.2px;white-space:nowrap}
+.user .who span{font-size:10.5px;color:var(--muted);white-space:nowrap}
+.user .av{width:38px;height:38px;border-radius:50%;flex:none;overflow:hidden;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;font-family:var(--display);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.user .av img{width:100%;height:100%;object-fit:cover;display:block}
+@media(max-width:720px){.user .who{display:none}}
+/* Foto na tela de edição do usuário */
+.fotoEdit{display:flex;align-items:center;gap:14px;margin:4px 0 2px}
+.fotoEdit .prev{width:64px;height:64px;border-radius:50%;overflow:hidden;flex:none;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:19px;font-family:var(--display)}
+.fotoEdit .prev img{width:100%;height:100%;object-fit:cover;display:block}
 .theme-toggle{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:16px;cursor:pointer;transition:.18s;display:flex;align-items:center;justify-content:center}
 .theme-toggle:hover{color:var(--txt);border-color:var(--gold-2)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
@@ -284,7 +297,10 @@ footer b{color:var(--gold-4)}
         <h1 id="pageTitle">Início</h1><div class="sp"></div>
         <input class="search" id="q" placeholder="Buscar…" oninput="onSearch()">
         <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Alternar tema claro/escuro" aria-label="Alternar tema">◐</button>
-        <div class="avatar">IS</div>
+        <div class="user" id="userChip" onclick="abrirMeuPerfil()" title="Meu perfil">
+          <div class="who"><b id="uName">—</b><span id="uRole"></span></div>
+          <div class="av" id="uAv"></div>
+        </div>
       </div>
       <div id="view"></div>
       <footer>Vizio Motors <b>v0.7.0</b> · Sua oficina virou sistema inteligente. — um produto <b>INPERSON</b></footer>
@@ -298,23 +314,23 @@ footer b{color:var(--gold-4)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=082"></script>
-<script src="dados.js?v=082"></script>
-<script src="app.js?v=082"></script>
-<script src="financeiro.js?v=082"></script>
-<script src="crm.js?v=082"></script>
-<script src="dashboard.js?v=082"></script>
-<script src="nfe.js?v=082"></script>
-<script src="corporativo.js?v=082"></script>
-<script src="bemestar-vm.js?v=082"></script>
-<script src="alavancagem-vm.js?v=082"></script>
-<script src="estoque-pred.js?v=082"></script>
-<script src="configuracoes.js?v=082"></script>
-<script src="relatorio.js?v=082"></script>
-<script src="torque.js?v=082"></script>
-<script src="rbac.js?v=082"></script>
-<script src="theme.js?v=082"></script>
-<script src="supabase-mode.js?v=082"></script>
-<script src="version-gate.js?v=082"></script>
+<script src="config.js?v=083"></script>
+<script src="dados.js?v=083"></script>
+<script src="app.js?v=083"></script>
+<script src="financeiro.js?v=083"></script>
+<script src="crm.js?v=083"></script>
+<script src="dashboard.js?v=083"></script>
+<script src="nfe.js?v=083"></script>
+<script src="corporativo.js?v=083"></script>
+<script src="bemestar-vm.js?v=083"></script>
+<script src="alavancagem-vm.js?v=083"></script>
+<script src="estoque-pred.js?v=083"></script>
+<script src="configuracoes.js?v=083"></script>
+<script src="relatorio.js?v=083"></script>
+<script src="torque.js?v=083"></script>
+<script src="rbac.js?v=083"></script>
+<script src="theme.js?v=083"></script>
+<script src="supabase-mode.js?v=083"></script>
+<script src="version-gate.js?v=083"></script>
 </body>
 </html>

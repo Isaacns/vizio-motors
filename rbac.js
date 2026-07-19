@@ -46,8 +46,9 @@ function load(){ try{var s=JSON.parse(localStorage.getItem(RKEY)||"null"); if(s&
   s.usuarios.forEach(function(u){ if((u.email||'').toLowerCase()==='isaacmaster@vizio.local'){ u.email='isaacn.ti@outlook.com'; } });
   return s; } }catch(e){} return defaults(); }
 function save(s){ try{localStorage.setItem(RKEY,JSON.stringify(s));}catch(e){}
-  /* menu reflete a mudança na hora — sem exigir novo login */
-  if(window.rbacAplicarNav) window.rbacAplicarNav(); }
+  /* menu e identificação no topo refletem a mudança na hora — sem exigir novo login */
+  if(window.rbacAplicarNav) window.rbacAplicarNav();
+  if(window.renderUserChip) window.renderUserChip(); }
 function perfilById(s,id){ return s.perfis.filter(function(p){return p.id===id;})[0]||s.perfis[0]; }
 
 /* Usuário logado: casa o e-mail da sessão (Supabase) com o cadastro de usuários.
@@ -65,6 +66,24 @@ function usuarioAtual(s){
   return s.usuarios[0]||{perfil:'admin'};
 }
 window.rbacUsuarioAtual=function(){ return usuarioAtual(load()); };
+
+/* ---------- Identificação do usuário no topo (§8.1) ---------- */
+function iniciais(nome){ return (nome||'?').trim().split(/\s+/).map(function(x){return x[0];}).slice(0,2).join('').toUpperCase(); }
+function avatarHTML(u){ return u&&u.foto ? '<img src="'+u.foto+'" alt="">' : iniciais(u&&u.nome); }
+window.rbacIniciais=iniciais;
+
+window.renderUserChip=function(){
+  try{
+    var s=load(), u=usuarioAtual(s), p=perfilById(s,u.perfil);
+    var n=document.getElementById('uName'), r=document.getElementById('uRole'), a=document.getElementById('uAv');
+    if(n) n.textContent=u.nome||u.email||'Usuário';
+    if(r) r.textContent=p?p.nome:'';
+    if(a) a.innerHTML=avatarHTML(u);
+  }catch(e){}
+};
+/* Clicar no chip abre o próprio cadastro para edição. */
+window.abrirMeuPerfil=function(){ var u=usuarioAtual(load()); if(u&&u.id&&u.id!=='_desconhecido') formUser(u);
+  else toast('Seu usuário ainda não está cadastrado em Usuários & Acessos'); };
 
 /* permissão do usuário logado */
 window.rbacCan=function(mod,edit){ try{ var s=load(); var u=usuarioAtual(s); var p=perfilById(s,u.perfil);
@@ -160,26 +179,74 @@ window.rbacDelPerfil=function(id){ confirmar("Excluir este perfil?",function(){ 
 
 function viewUsuarios(s){
   var opts=function(cur){return s.perfis.map(function(p){return '<option value="'+p.id+'"'+(p.id===cur?' selected':'')+'>'+p.nome+'</option>';}).join('');};
-  var rows=s.usuarios.map(function(u){ return '<tr><td><b>'+u.nome+'</b></td><td style="color:var(--muted)">'+(u.email||'—')+'</td>'+
-    '<td><select onchange="rbacSetPerfil(\''+u.id+'\',this.value)" style="min-width:150px">'+opts(u.perfil)+'</select></td>'+
-    '<td style="text-align:right;white-space:nowrap"><button class="b b-ghost b-sm" onclick="rbacEditUser(\''+u.id+'\')">✏️</button> '+
-      (u.id==='u_master'?'':'<button class="b b-ghost b-sm" onclick="rbacDelUser(\''+u.id+'\')">🗑</button>')+'</td></tr>';}).join('');
+  /* Linha inteira clicável abre a ficha do usuário (§ editabilidade: clicar no registro edita).
+     Perfil e ações param a propagação para não abrirem o modal sem querer. */
+  var rows=s.usuarios.map(function(u){ return '<tr style="cursor:pointer" onclick="rbacEditUser(\''+u.id+'\')" title="Abrir ficha do usuário">'+
+    '<td style="width:46px"><div class="av" style="width:32px;height:32px;border-radius:50%;overflow:hidden;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11.5px;font-family:var(--display)">'+avatarHTML(u)+'</div></td>'+
+    '<td><b>'+u.nome+'</b></td><td style="color:var(--muted)">'+(u.email||'—')+'</td>'+
+    '<td onclick="event.stopPropagation()"><select onchange="rbacSetPerfil(\''+u.id+'\',this.value)" style="min-width:150px">'+opts(u.perfil)+'</select></td>'+
+    '<td class="acoes" onclick="event.stopPropagation()"><button class="b b-ghost b-sm" onclick="rbacEditUser(\''+u.id+'\')">Editar</button> '+
+      (u.id==='u_master'?'':'<button class="b b-ghost b-sm" onclick="rbacDelUser(\''+u.id+'\')">Excluir</button>')+'</td></tr>';}).join('');
   return '<div class="panel"><div class="head"><h3>👥 Usuários</h3><div class="sp"></div>'+
      '<button class="b b-sm" onclick="rbacNovoUser()">+ Novo usuário</button></div>'+
-     '<table class="tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'+
+     '<table class="tbl"><thead><tr><th></th><th>Nome</th><th>E-mail</th><th>Perfil</th><th class="acoes"></th></tr></thead><tbody>'+rows+'</tbody></table>'+
      '<div style="font-size:11.5px;color:var(--muted);margin-top:8px">O convite/senha de novos usuários é gerado no go-live (Supabase Auth). Aqui você define nome, e-mail e perfil.</div>'+
    '</div>';
 }
 window.rbacSetPerfil=function(uid_,pid){ var s=load(); var u=s.usuarios.filter(function(x){return x.id===uid_;})[0]; if(u){u.perfil=pid;save(s);toast('Perfil atualizado');} };
-function formUser(u){ u=u||{}; var ed=!!u.id; var s=load();
-  modal(ed?"Editar usuário":"Novo usuário","",'<label>Nome</label><input id="ru_nome" value="'+(u.nome||'').replace(/"/g,'&quot;')+'">'+
+/* Foto escolhida na tela de edição (só sobe ao salvar, para não deixar lixo no Storage). */
+var _fotoNova=null;
+window.ruFotoEscolher=function(input){
+  var f=input&&input.files&&input.files[0]; if(!f) return;
+  if(!/^image\//.test(f.type)){ toast('Selecione uma imagem'); input.value=''; return; }
+  if(f.size>3*1024*1024){ toast('Imagem muito grande (máx. 3 MB)'); input.value=''; return; }
+  _fotoNova=f;
+  var rd=new FileReader();
+  rd.onload=function(ev){ var p=document.getElementById('ru_prev'); if(p)p.innerHTML='<img src="'+ev.target.result+'" alt="">'; };
+  rd.readAsDataURL(f);
+};
+window.ruFotoRemover=function(){ _fotoNova='REMOVER';
+  var p=document.getElementById('ru_prev');
+  if(p)p.textContent=iniciais((document.getElementById('ru_nome')||{}).value);
+  var i=document.getElementById('ru_foto'); if(i)i.value=''; };
+
+async function subirFoto(userId){
+  var SB=window.__SB, ORG=window.__ORG;
+  if(!_fotoNova) return undefined;                 // não mexeu na foto
+  if(_fotoNova==='REMOVER') return '';             // limpou
+  if(!SB||!ORG){ toast('Sem conexão para enviar a foto'); return undefined; }
+  var ext=((_fotoNova.name.split('.').pop()||'png')+'').toLowerCase();
+  var path=ORG+'/'+userId+'-'+Date.now()+'.'+ext;
+  var up=await SB.storage.from('avatars').upload(path,_fotoNova,{upsert:true,contentType:_fotoNova.type});
+  if(up.error){ toast('Falha ao enviar a foto: '+up.error.message); return undefined; }
+  return SB.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+}
+
+function formUser(u){ u=u||{}; var ed=!!u.id; var s=load(); _fotoNova=null;
+  var prev=u.foto?'<img src="'+u.foto+'" alt="">':iniciais(u.nome);
+  modal(ed?"Editar usuário":"Novo usuário","",
+    '<div class="fotoEdit"><div class="prev" id="ru_prev">'+prev+'</div>'+
+      '<div style="display:flex;flex-direction:column;gap:6px">'+
+        '<label style="margin:0;font-size:11px">Foto do usuário</label>'+
+        '<input id="ru_foto" type="file" accept="image/*" onchange="ruFotoEscolher(this)" style="font-size:12px">'+
+        '<button type="button" class="b b-ghost b-sm" onclick="ruFotoRemover()">Remover foto</button>'+
+      '</div></div>'+
+    '<label>Nome</label><input id="ru_nome" value="'+(u.nome||'').replace(/"/g,'&quot;')+'">'+
     '<label>E-mail</label><input id="ru_email" value="'+(u.email||'').replace(/"/g,'&quot;')+'" placeholder="nome@oficina.com">'+
     '<label>Perfil</label><select id="ru_perfil">'+s.perfis.map(function(p){return '<option value="'+p.id+'"'+(u.perfil===p.id?' selected':'')+'>'+p.nome+'</option>';}).join('')+'</select>',
-   function(){ var nome=(document.getElementById('ru_nome').value||'').trim(); if(!nome){toast('Informe o nome');return;}
+   async function(){ var nome=(document.getElementById('ru_nome').value||'').trim(); if(!nome){toast('Informe o nome');return;}
+     var id = ed ? u.id : ('u_'+uid('u'));
+     var foto = await subirFoto(id);               // undefined = manter a atual
      var rec={nome:nome,email:document.getElementById('ru_email').value,perfil:document.getElementById('ru_perfil').value};
+     if(foto!==undefined) rec.foto=foto;
      var s2=load(); if(ed){var t=s2.usuarios.filter(function(x){return x.id===u.id;})[0]; if(t)Object.assign(t,rec);}
-     else{s2.usuarios.push(Object.assign({id:'u_'+uid('u')},rec));} save(s2); closeModal(); renderRBAC(); toast('Usuário salvo ✓'); });
+     else{s2.usuarios.push(Object.assign({id:id},rec));} save(s2); _fotoNova=null; closeModal(); renderRBAC(); toast('Usuário salvo ✓'); });
 }
+/* Primeira pintura do chip: se o app abrir já autenticado, a sessão ainda não chegou
+   quando este arquivo carrega — o aplicarPermissoes() repinta depois com o usuário certo. */
+if(document.readyState!=='loading') setTimeout(function(){window.renderUserChip();},0);
+else document.addEventListener('DOMContentLoaded',function(){window.renderUserChip();});
+
 window.rbacNovoUser=function(){formUser();};
 window.rbacEditUser=function(id){var s=load();formUser(s.usuarios.filter(function(x){return x.id===id;})[0]);};
 window.rbacDelUser=function(id){ confirmar("Excluir este usuário?",function(){var s=load();s.usuarios=s.usuarios.filter(function(x){return x.id!==id;});save(s);closeModal();renderRBAC();}); };

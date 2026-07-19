@@ -141,6 +141,7 @@
       window.__vmUserEmail=(data&&data.user&&data.user.email)||"";
     }catch(_){ window.__vmUserEmail=""; }
     if(window.rbacAplicarNav) window.rbacAplicarNav();
+    if(window.renderUserChip) window.renderUserChip();
   }
   window.aplicarPermissoes=aplicarPermissoes;
 
