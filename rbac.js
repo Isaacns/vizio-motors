@@ -38,6 +38,70 @@ function defaults(){
     ]
   };
 }
+/* ---------------------------------------------------------------------------
+   Persistência: Supabase (mt_perfis / mt_usuarios, isolados por org_id via RLS).
+   O localStorage vira apenas ESPELHO local — mantém load() síncrono (rbacCan é
+   chamado no meio da renderização) e faz o app funcionar em modo demo/offline.
+   Fonte de verdade é o banco: hidrata no login e a cada gravação.
+   --------------------------------------------------------------------------- */
+var _hidratado=false;
+
+function paraBanco(s,ORG){
+  return {
+    perfis: s.perfis.map(function(p){ return {org_id:ORG,id:p.id,nome:p.nome,nivel:p.nivel||3,
+      fixo:!!p.fixo,descricao:p.desc||'',perm:p.perm||{}}; }),
+    usuarios: s.usuarios.map(function(u){ return {org_id:ORG,id:u.id,nome:u.nome,email:u.email||null,
+      perfil:u.perfil||'visualizador',foto:u.foto||null}; })
+  };
+}
+function doBanco(perfis,usuarios){
+  return {
+    perfis: perfis.map(function(p){ return {id:p.id,nome:p.nome,nivel:p.nivel,fixo:p.fixo,
+      desc:p.descricao||'',perm:p.perm||{}}; }),
+    usuarios: usuarios.map(function(u){ return {id:u.id,nome:u.nome,email:u.email||'',
+      perfil:u.perfil,foto:u.foto||''}; })
+  };
+}
+
+/* Traz do banco para o espelho local. Chamado no login (aplicarPermissoes). */
+window.rbacHidratar=async function(){
+  var SB=window.__SB, ORG=window.__ORG; if(!SB||!ORG) return false;
+  try{
+    var rp=await SB.from('mt_perfis').select('*').eq('org_id',ORG).order('nivel');
+    var ru=await SB.from('mt_usuarios').select('*').eq('org_id',ORG).order('nome');
+    if(rp.error||ru.error){ console.warn('rbac hidratar',(rp.error||ru.error).message); return false; }
+    if(!rp.data.length && !ru.data.length){
+      /* org sem RBAC no banco ainda: sobe o que existe localmente (ou os padrões) */
+      await window.rbacSincronizar(load()); return true;
+    }
+    var s=doBanco(rp.data, ru.data);
+    if(!s.perfis.length) s.perfis=defaults().perfis;
+    try{ localStorage.setItem(RKEY,JSON.stringify(s)); }catch(e){}
+    _hidratado=true;
+    if(window.rbacAplicarNav) window.rbacAplicarNav();
+    if(window.renderUserChip) window.renderUserChip();
+    /* se a tela de Usuários & Acessos estiver aberta, repinta com o dado do banco */
+    if(document.getElementById('rbTabs')) renderRBAC();
+    return true;
+  }catch(e){ console.warn('rbac hidratar',e); return false; }
+};
+
+/* Empurra o estado local para o banco (upsert + remove o que sumiu). */
+window.rbacSincronizar=async function(s){
+  var SB=window.__SB, ORG=window.__ORG; if(!SB||!ORG) return;
+  try{
+    var d=paraBanco(s,ORG);
+    var e1=(await SB.from('mt_perfis').upsert(d.perfis,{onConflict:'org_id,id'})).error;
+    var e2=(await SB.from('mt_usuarios').upsert(d.usuarios,{onConflict:'org_id,id'})).error;
+    if(e1||e2){ toast('Falha ao salvar acessos: '+((e1||e2).message)); return; }
+    var idsP=d.perfis.map(function(p){return p.id;});
+    var idsU=d.usuarios.map(function(u){return u.id;});
+    if(idsP.length) await SB.from('mt_perfis').delete().eq('org_id',ORG).not('id','in','('+idsP.map(function(i){return '"'+i+'"';}).join(',')+')');
+    if(idsU.length) await SB.from('mt_usuarios').delete().eq('org_id',ORG).not('id','in','('+idsU.map(function(i){return '"'+i+'"';}).join(',')+')');
+    _hidratado=true;
+  }catch(e){ console.warn('rbac sincronizar',e); }
+};
+
 function load(){ try{var s=JSON.parse(localStorage.getItem(RKEY)||"null"); if(s&&s.perfis&&s.usuarios){
   // garante módulos novos em perfis existentes
   s.perfis.forEach(function(p){ ALLKEYS.forEach(function(k){ if(!p.perm[k])p.perm[k]={a:false,e:false}; }); });
@@ -48,7 +112,9 @@ function load(){ try{var s=JSON.parse(localStorage.getItem(RKEY)||"null"); if(s&
 function save(s){ try{localStorage.setItem(RKEY,JSON.stringify(s));}catch(e){}
   /* menu e identificação no topo refletem a mudança na hora — sem exigir novo login */
   if(window.rbacAplicarNav) window.rbacAplicarNav();
-  if(window.renderUserChip) window.renderUserChip(); }
+  if(window.renderUserChip) window.renderUserChip();
+  /* e o banco é a fonte de verdade: grava para valer, em todo dispositivo */
+  if(window.rbacSincronizar) window.rbacSincronizar(s); }
 function perfilById(s,id){ return s.perfis.filter(function(p){return p.id===id;})[0]||s.perfis[0]; }
 
 /* Usuário logado: casa o e-mail da sessão (Supabase) com o cadastro de usuários.
@@ -123,7 +189,7 @@ function pill(on,label){ return '<span style="font-size:11px;font-weight:600;pad
 function renderRBAC(){
   var s=load();
   var tabs=[["perfis","🛡 Perfis & Permissões"],["usuarios","👥 Usuários"]];
-  var nav='<div style="display:flex;gap:8px;margin-bottom:16px">'+tabs.map(function(t){
+  var nav='<div id="rbTabs" style="display:flex;gap:8px;margin-bottom:16px">'+tabs.map(function(t){
     return '<button class="b '+(_tab===t[0]?'':'b-ghost')+' b-sm" onclick="rbacTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join('')+'</div>';
   document.getElementById('view').innerHTML=nav+(_tab==='usuarios'?viewUsuarios(s):viewPerfis(s));
 }

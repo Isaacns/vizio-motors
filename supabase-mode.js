@@ -140,6 +140,8 @@
       const {data}=await SB.auth.getUser();
       window.__vmUserEmail=(data&&data.user&&data.user.email)||"";
     }catch(_){ window.__vmUserEmail=""; }
+    /* RBAC vem do banco (mt_perfis/mt_usuarios) — o localStorage é só espelho. */
+    if(window.rbacHidratar) await window.rbacHidratar();
     if(window.rbacAplicarNav) window.rbacAplicarNav();
     if(window.renderUserChip) window.renderUserChip();
   }
