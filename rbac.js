@@ -42,12 +42,39 @@ function load(){ try{var s=JSON.parse(localStorage.getItem(RKEY)||"null"); if(s&
   // garante módulos novos em perfis existentes
   s.perfis.forEach(function(p){ ALLKEYS.forEach(function(k){ if(!p.perm[k])p.perm[k]={a:false,e:false}; }); });
   return s; } }catch(e){} return defaults(); }
-function save(s){ try{localStorage.setItem(RKEY,JSON.stringify(s));}catch(e){} }
+function save(s){ try{localStorage.setItem(RKEY,JSON.stringify(s));}catch(e){}
+  /* menu reflete a mudança na hora — sem exigir novo login */
+  if(window.rbacAplicarNav) window.rbacAplicarNav(); }
 function perfilById(s,id){ return s.perfis.filter(function(p){return p.id===id;})[0]||s.perfis[0]; }
 
-/* permissão do usuário logado (default admin master no piloto) */
-window.rbacCan=function(mod,edit){ try{ var s=load(); var u=s.usuarios[0]||{perfil:'admin'}; var p=perfilById(s,u.perfil);
+/* Usuário logado: casa o e-mail da sessão (Supabase) com o cadastro de usuários.
+   Sem sessão ou sem correspondência, cai no primeiro usuário (master do piloto). */
+function usuarioAtual(s){
+  var email=(window.__vmUserEmail||'').toLowerCase();
+  if(email){ var achado=s.usuarios.filter(function(u){return (u.email||'').toLowerCase()===email;})[0]; if(achado)return achado; }
+  return s.usuarios[0]||{perfil:'admin'};
+}
+window.rbacUsuarioAtual=function(){ return usuarioAtual(load()); };
+
+/* permissão do usuário logado */
+window.rbacCan=function(mod,edit){ try{ var s=load(); var u=usuarioAtual(s); var p=perfilById(s,u.perfil);
   var pm=p.perm[mod]; if(!pm)return true; return edit?!!pm.e:!!pm.a; }catch(e){ return true; } };
+
+/* §8 dos Padrões — o menu reflete a permissão. Esconde item sem acesso e o título do grupo
+   que ficar vazio. Não substitui RLS: é conforto de UI; o bloqueio real é no backend. */
+window.rbacAplicarNav=function(){
+  try{
+    document.querySelectorAll('a[data-perm]').forEach(function(a){
+      a.style.display = window.rbacCan(a.getAttribute('data-perm')) ? '' : 'none';
+    });
+    document.querySelectorAll('nav[data-grp-nav]').forEach(function(nav){
+      var visiveis=[].slice.call(nav.querySelectorAll('a')).filter(function(a){return a.style.display!=='none';});
+      var titulo=nav.previousElementSibling;
+      if(titulo&&titulo.hasAttribute('data-grp')) titulo.style.display = visiveis.length ? '' : 'none';
+      nav.style.display = visiveis.length ? '' : 'none';
+    });
+  }catch(e){}
+};
 
 var _tab="perfis", _sel="admin";
 function abrirRBAC(){

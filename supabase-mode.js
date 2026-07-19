@@ -124,9 +124,20 @@
   const _delAg=window.delAg; if(_delAg)window.delAg=function(id){ sbDelete("mt_agenda",id); return _delAg(id); };
   const _delLanc=window.delLanc; if(_delLanc)window.delLanc=function(id){ sbDelete("mt_financeiro",id); return _delLanc(id); };
   const _delServico=window.delServico; if(_delServico)window.delServico=function(id){ sbDelete("mt_servicos",id); return _delServico(id); };
+  /* §8 — quem está logado define o que o menu mostra. Guarda o e-mail da sessão para o
+     rbacCan casar com o cadastro de usuários e aplica o gating logo após entrar. */
+  async function aplicarPermissoes(){
+    try{
+      const {data}=await SB.auth.getUser();
+      window.__vmUserEmail=(data&&data.user&&data.user.email)||"";
+    }catch(_){ window.__vmUserEmail=""; }
+    if(window.rbacAplicarNav) window.rbacAplicarNav();
+  }
+  window.aplicarPermissoes=aplicarPermissoes;
+
   const _entrar=window.entrar;
   window.entrar=async function(e){ if(e&&e.preventDefault)e.preventDefault();
-    try{ await sbLogin(); await resolveOrg(); _entrar({preventDefault(){}}); await loadAll(); }catch(err){} };
+    try{ await sbLogin(); await resolveOrg(); _entrar({preventDefault(){}}); await aplicarPermissoes(); await loadAll(); }catch(err){} };
 
   /* cadastro self-service: cria conta + provisiona oficina */
   window.criarOficina=async function(){
@@ -141,6 +152,7 @@
     if(e2){ toast('Conta criada! Confirme seu e-mail e faça login para ativar sua oficina.'); return; }
     await resolveOrg();
     _entrar({preventDefault(){}});
+    await aplicarPermissoes();
     await loadAll();
   };
 

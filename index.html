@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- Vizio Motors · build v074 · VersionGate + régua de botões + WhatsApp padrão -->
 <!-- Fonte única da versão (§14.2). Sem `const`: colidiria com o escopo de script dos demais .js -->
-<script>window.APP_VERSION='1.0.76';</script>
+<script>window.APP_VERSION='1.0.77';</script>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -248,33 +248,33 @@ footer b{color:var(--gold-4)}
       <div class="navgrp">Operação</div>
       <nav class="nav" id="nav">
         <a class="active" data-m="home"><span class="ic">◈</span>Início</a>
-        <a data-m="os"><span class="ic">🔧</span>Ordens de Serviço</a>
-        <a data-m="agenda"><span class="ic">🗓</span>Agenda</a>
-        <a data-m="clientes"><span class="ic">🚐</span>Clientes & Veículos</a>
+        <a data-m="os" data-perm="os"><span class="ic">🔧</span>Ordens de Serviço</a>
+        <a data-m="agenda" data-perm="agenda"><span class="ic">🗓</span>Agenda</a>
+        <a data-m="clientes" data-perm="clientes"><span class="ic">🚐</span>Clientes & Veículos</a>
       </nav>
-      <div class="navgrp">Gestão</div>
-      <nav class="nav">
-        <a onclick="abrirEstoquePred()"><span class="ic">📦</span>Estoque</a>
-        <a onclick="abrirFin()"><span class="ic">💳</span>Financeiro</a>
-        <a onclick="abrirNFe()"><span class="ic">🧾</span>Nota Fiscal</a>
+      <div class="navgrp" data-grp>Gestão</div>
+      <nav class="nav" data-grp-nav>
+        <a data-perm="estoque" onclick="abrirEstoquePred()"><span class="ic">📦</span>Estoque</a>
+        <a data-perm="financeiro" onclick="abrirFin()"><span class="ic">💳</span>Financeiro</a>
+        <a data-perm="nfe" onclick="abrirNFe()"><span class="ic">🧾</span>Nota Fiscal</a>
       </nav>
-      <div class="navgrp">Inteligência</div>
-      <nav class="nav">
-        <a onclick="abrirDash()"><span class="ic">📊</span>Dashboard</a>
-        <a onclick="abrirTorque()"><span class="ic">⚡</span>Motor Torque</a>
-        <a onclick="abrirCRM()"><span class="ic">💛</span>CRM & Receita</a>
-        <a onclick="abrirAlavancagem()"><span class="ic">🚀</span>Alavancagem</a>
+      <div class="navgrp" data-grp>Inteligência</div>
+      <nav class="nav" data-grp-nav>
+        <a data-perm="dashboard" onclick="abrirDash()"><span class="ic">📊</span>Dashboard</a>
+        <a data-perm="torque" onclick="abrirTorque()"><span class="ic">⚡</span>Motor Torque</a>
+        <a data-perm="crm" onclick="abrirCRM()"><span class="ic">💛</span>CRM & Receita</a>
+        <a data-perm="alavancagem" onclick="abrirAlavancagem()"><span class="ic">🚀</span>Alavancagem</a>
       </nav>
-      <div class="navgrp">Corporativo</div>
-      <nav class="nav">
-        <a onclick="abrirPonto()"><span class="ic">⏱</span>Ponto & Equipe</a>
-        <a onclick="abrirBemEstar()"><span class="ic">🌿</span>Bem-estar</a>
+      <div class="navgrp" data-grp>Corporativo</div>
+      <nav class="nav" data-grp-nav>
+        <a data-perm="ponto" onclick="abrirPonto()"><span class="ic">⏱</span>Ponto & Equipe</a>
+        <a data-perm="bemestar" onclick="abrirBemEstar()"><span class="ic">🌿</span>Bem-estar</a>
       </nav>
-      <div class="navgrp">Sistema</div>
-      <nav class="nav">
-        <a onclick="abrirRBAC()"><span class="ic">👥</span>Usuários & Acessos</a>
-        <a onclick="abrirMarca()"><span class="ic">🦎</span>Identidade</a>
-        <a onclick="abrirConfig()"><span class="ic">⚙</span>Configurações</a>
+      <div class="navgrp" data-grp>Sistema</div>
+      <nav class="nav" data-grp-nav>
+        <a data-perm="usuarios" onclick="abrirRBAC()"><span class="ic">👥</span>Usuários & Acessos</a>
+        <a data-perm="config" onclick="abrirMarca()"><span class="ic">🦎</span>Identidade</a>
+        <a data-perm="config" onclick="abrirConfig()"><span class="ic">⚙</span>Configurações</a>
         <a onclick="sair()"><span class="ic">⏻</span>Sair</a>
       </nav>
     </aside>
@@ -298,23 +298,23 @@ footer b{color:var(--gold-4)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=076"></script>
-<script src="dados.js?v=076"></script>
-<script src="app.js?v=076"></script>
-<script src="financeiro.js?v=076"></script>
-<script src="crm.js?v=076"></script>
-<script src="dashboard.js?v=076"></script>
-<script src="nfe.js?v=076"></script>
-<script src="corporativo.js?v=076"></script>
-<script src="bemestar-vm.js?v=076"></script>
-<script src="alavancagem-vm.js?v=076"></script>
-<script src="estoque-pred.js?v=076"></script>
-<script src="configuracoes.js?v=076"></script>
-<script src="relatorio.js?v=076"></script>
-<script src="torque.js?v=076"></script>
-<script src="rbac.js?v=076"></script>
-<script src="theme.js?v=076"></script>
-<script src="supabase-mode.js?v=076"></script>
-<script src="version-gate.js?v=076"></script>
+<script src="config.js?v=077"></script>
+<script src="dados.js?v=077"></script>
+<script src="app.js?v=077"></script>
+<script src="financeiro.js?v=077"></script>
+<script src="crm.js?v=077"></script>
+<script src="dashboard.js?v=077"></script>
+<script src="nfe.js?v=077"></script>
+<script src="corporativo.js?v=077"></script>
+<script src="bemestar-vm.js?v=077"></script>
+<script src="alavancagem-vm.js?v=077"></script>
+<script src="estoque-pred.js?v=077"></script>
+<script src="configuracoes.js?v=077"></script>
+<script src="relatorio.js?v=077"></script>
+<script src="torque.js?v=077"></script>
+<script src="rbac.js?v=077"></script>
+<script src="theme.js?v=077"></script>
+<script src="supabase-mode.js?v=077"></script>
+<script src="version-gate.js?v=077"></script>
 </body>
 </html>
