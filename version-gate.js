@@ -22,7 +22,13 @@
       document.body.appendChild(el);
       el.querySelector('button').addEventListener('click', function(){ atualizar(nova); });
     }
-    requestAnimationFrame(function(){ el.classList.add('on'); });
+    /* Revelar NÃO pode depender só de requestAnimationFrame: em aba de segundo plano o
+       navegador não executa rAF, então o banner era criado e ficava invisível — justo no
+       cenário que o push existe para cobrir. (Pego no teste real de 20/07/2026.)
+       O setTimeout roda mesmo oculto; add() é idempotente, os dois caminhos convivem. */
+    var mostrar=function(){ el.classList.add('on'); };
+    requestAnimationFrame(mostrar);
+    setTimeout(mostrar, 60);
   }
 
   function atualizar(nova){
