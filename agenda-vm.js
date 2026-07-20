@@ -137,10 +137,12 @@ function cartao(a){
     '<div class="agHora">'+esc(a.hora||'')+'</div>'+
     '<div class="agInfo"><b>'+cat.ic+' '+esc(tituloDe(a))+'</b>'+
       (apoio.length?'<span>'+apoio.join(' · ')+'</span>':'')+'</div>'+
-    '<div class="agAcoes" onclick="event.stopPropagation()">'+
-      '<button class="b b-ghost b-sm" title="'+(a.concluida?'Reabrir':'Concluir')+'" onclick="agConcluir(\''+a.id+'\')">'+(a.concluida?'↺':'✓')+'</button>'+
-      '<button class="b b-ghost b-sm" title="Mover" onclick="agMoverMenu(\''+a.id+'\')">↔</button>'+
-      '<button class="b b-ghost b-sm" title="Excluir" onclick="delAg(\''+a.id+'\')">🗑</button>'+
+    /* draggable="false" nos botões: começar um arrasto a partir do "excluir" seria
+       um jeito fácil de mover sem querer. O arrasto sai do corpo do cartão. */
+    '<div class="agAcoes" draggable="false" onclick="event.stopPropagation()">'+
+      '<button draggable="false" class="b b-ghost b-sm" title="'+(a.concluida?'Reabrir':'Concluir')+'" onclick="agConcluir(\''+a.id+'\')">'+(a.concluida?'↺':'✓')+'</button>'+
+      '<button draggable="false" class="b b-ghost b-sm" title="Mover" onclick="agMoverMenu(\''+a.id+'\')">↔</button>'+
+      '<button draggable="false" class="b b-ghost b-sm" title="Excluir" onclick="delAg(\''+a.id+'\')">🗑</button>'+
     '</div></div>';
 }
 
@@ -256,17 +258,39 @@ function ligarArrastar(){
 
   var zonas=document.querySelectorAll('.agPer');
   Array.prototype.forEach.call(zonas,function(z){
-    z.addEventListener('dragover',function(e){ if(!idDoEvento(e)) return; e.preventDefault();
-      e.dataTransfer.dropEffect='move'; z.classList.add('drop-ok'); });
-    z.addEventListener('dragleave',function(){ z.classList.remove('drop-ok'); });
+    var aceitar=function(e){
+      /* ⚠️ Em dragenter/dragover o dataTransfer está em MODO PROTEGIDO: getData()
+         devolve "" por segurança — só no drop dá para ler. Então a checagem de tipo
+         aqui é pela LISTA `types`, que continua legível. Decidir pelo getData()
+         fazia o preventDefault() nunca acontecer e o drop nunca ocorrer. */
+      if(!temNossoTipo(e)) return;           /* §15: zona ignora o que não entende */
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      z.classList.add('drop-ok');
+    };
+    z.addEventListener('dragenter',aceitar);
+    z.addEventListener('dragover',aceitar);
+    z.addEventListener('dragleave',function(e){
+      /* só apaga o realce ao sair de verdade da zona, não ao passar sobre um filho */
+      if(!z.contains(e.relatedTarget)) z.classList.remove('drop-ok');
+    });
     z.addEventListener('drop',function(e){
-      var id=idDoEvento(e); z.classList.remove('drop-ok');
-      if(!id) return;                        /* §15: zona ignora o que não entende */
+      z.classList.remove('drop-ok');
+      var id=idDoEvento(e);                  /* aqui sim o conteúdo é legível */
+      if(!id) return;
       e.preventDefault(); limparRealce();
       agMover(id, z.dataset.dia, z.dataset.per);
     });
   });
 }
+/* Vale em dragenter/dragover (modo protegido) — `types` é sempre legível. */
+function temNossoTipo(e){
+  try{
+    var t=e.dataTransfer && e.dataTransfer.types; if(!t) return false;
+    return (t.indexOf ? t.indexOf('text/agid')>=0 : Array.prototype.indexOf.call(t,'text/agid')>=0);
+  }catch(_){ return false; }
+}
+/* Vale no drop, onde o conteúdo sai do modo protegido. */
 function idDoEvento(e){
   try{
     var v=e.dataTransfer.getData('text/agid'); if(v) return v;
