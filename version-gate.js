@@ -27,9 +27,15 @@
 
   function atualizar(nova){
     try{ sessionStorage.clear(); }catch(e){}
-    if(navigator.serviceWorker && navigator.serviceWorker.controller){
-      try{ navigator.serviceWorker.controller.postMessage('PULAR_ESPERA'); }catch(e){}
-    }
+    /* Vizio Motors não tem sw.js hoje (rota 1 do playbook não se aplica). Mantido no
+       formato canônico do padrão para funcionar no dia em que houver service worker. */
+    try{
+      if(navigator.serviceWorker){
+        navigator.serviceWorker.getRegistration().then(function(r){
+          if(r&&r.waiting) r.waiting.postMessage({type:'PULAR_ESPERA'});
+        }).catch(function(){});
+      }
+    }catch(e){}
     location.replace(location.pathname + '?v=' + encodeURIComponent(nova) + location.hash);
   }
 

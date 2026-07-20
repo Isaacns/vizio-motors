@@ -9,6 +9,7 @@
    inteiro. (Bug real, 19/07/2026: quebrou o módulo Configurações por completo.) */
 const APP_VERSION = window.APP_VERSION || "0.6.0";
 const CHANGELOG = [
+  ["1.0.85","Push de atualização conforme o playbook §14 e guarda de HTTPS com loopback"],
   ["1.0.84","RBAC no banco (perfis e usuários multiempresa com RLS) e ícone na aba"],
   ["1.0.83","Usuário no topo com foto, ficha ao clicar no registro e upload de avatar"],
   ["1.0.82","Login por e-mail real (fim do usuário fixo no código)"],
