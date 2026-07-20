@@ -128,7 +128,8 @@
   function wrap(name){ const o=window[name]; if(typeof o!=="function")return;
     window[name]=function(){ const r=o.apply(this,arguments); scheduleSync(); return r; }; }
   ["stepOS","toggleChk","toggleAprov","delItem","marcarPago","closeModal","gerarRecebiveis",
-   "gerarCampanha","emitirNF","cancelarNF","registrarPonto","salvarBemestar","salvarMeta"].forEach(wrap);
+   "gerarCampanha","emitirNF","cancelarNF","registrarPonto","salvarBemestar","salvarMeta",
+   "agMover"].forEach(wrap);   /* §15: arrastar altera dado -> tem de sincronizar como qualquer save */
   const _delOS=window.delOS; window.delOS=function(id){ sbDelete("mt_os",id); return _delOS(id); };
   const _delAg=window.delAg; if(_delAg)window.delAg=function(id){ sbDelete("mt_agenda",id); return _delAg(id); };
   const _delLanc=window.delLanc; if(_delLanc)window.delLanc=function(id){ sbDelete("mt_financeiro",id); return _delLanc(id); };
