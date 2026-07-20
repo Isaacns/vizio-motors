@@ -39,6 +39,71 @@ function periodoAgora(){ return periodoDaHora(String(new Date().getHours()).padS
 function periodoPorId(id){ return PERIODOS.filter(function(p){return p.id===id;})[0]||PERIODOS[0]; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
+/* ---------- categorias: a agenda é do dono, não só marcação de cliente ---------- */
+var CATEGORIAS=[
+  {id:'agendamento', nome:'Agendamento de cliente', ic:'🔧'},
+  {id:'tarefa',      nome:'Tarefa da oficina',      ic:'📋'},
+  {id:'pessoal',     nome:'Pessoal',                ic:'🙋'},
+  {id:'lembrete',    nome:'Lembrete',               ic:'🔔'},
+  {id:'reuniao',     nome:'Reunião / visita',       ic:'🤝'}
+];
+function catPorId(id){ return CATEGORIAS.filter(function(c){return c.id===id;})[0]||CATEGORIAS[0]; }
+function tituloDe(a){
+  return a.titulo || a.tipo || catPorId(a.categoria).nome;
+}
+
+/* Formulário livre: só data, hora e título são obrigatórios. Cliente, veículo,
+   serviço e duração entram quando fizerem sentido — item pessoal não tem cliente. */
+window.formAg=function(a){
+  a=a||{}; var ed=!!a.id;
+  var cat=a.categoria||'agendamento';
+  var servicos=(WORK.servicos||[]);
+  modal(ed?'Editar item da agenda':'Novo item da agenda','',
+    '<label>O que é</label><select id="a_cat" onchange="agFormCat()">'+
+      CATEGORIAS.map(function(c){return '<option value="'+c.id+'"'+(cat===c.id?' selected':'')+'>'+c.ic+' '+c.nome+'</option>';}).join('')+'</select>'+
+    '<label>Título</label><input id="a_titulo" placeholder="Ex.: Revisão do Corolla · Ligar para o contador · Buscar peça" value="'+esc(a.titulo||a.tipo||'')+'">'+
+    '<div class="frow"><div><label>Data</label><input id="a_data" type="date" value="'+(a.data||today())+'"></div>'+
+      '<div><label>Hora</label><input id="a_hora" type="time" value="'+(a.hora||'09:00')+'"></div>'+
+      '<div><label>Duração (min)</label><input id="a_dur" type="number" min="0" step="15" value="'+(a.duracaoMin||'')+'" placeholder="opcional"></div></div>'+
+    '<div id="a_blocoCli">'+
+      '<div class="frow"><div><label>Cliente <i style="color:var(--muted);font-style:normal">(opcional)</i></label>'+
+        '<select id="a_cli" onchange="agVeic()"><option value="">— sem cliente —</option>'+
+        (WORK.clientes||[]).map(function(c){return '<option value="'+c.id+'"'+(a.clienteId===c.id?' selected':'')+'>'+esc(c.nome)+'</option>';}).join('')+'</select></div>'+
+      '<div><label>Veículo <i style="color:var(--muted);font-style:normal">(opcional)</i></label><select id="a_vei"><option value="">—</option></select></div></div>'+
+      '<label>Serviço <i style="color:var(--muted);font-style:normal">(opcional)</i></label>'+
+      '<select id="a_serv"><option value="">— nenhum —</option>'+
+        servicos.map(function(s){return '<option value="'+esc(s.nome)+'"'+(a.servico===s.nome?' selected':'')+'>'+esc(s.nome)+'</option>';}).join('')+'</select>'+
+    '</div>'+
+    '<label>Descrição</label><textarea id="a_obs" rows="3" placeholder="Escreva livremente o que precisa">'+esc(a.obs||'')+'</textarea>'+
+    (ed?'<label style="display:flex;align-items:center;gap:8px;margin-top:10px"><input type="checkbox" id="a_ok"'+(a.concluida?' checked':'')+'> Concluído</label>':''),
+   function(){
+     var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
+     var titulo=(g('a_titulo')||'').trim();
+     if(!titulo){ toast('Dê um título ao item'); return; }
+     var okEl=document.getElementById('a_ok');
+     var rec={ categoria:g('a_cat'), titulo:titulo, tipo:titulo,
+               data:g('a_data'), hora:g('a_hora'),
+               duracaoMin:(+g('a_dur')||null),
+               clienteId:g('a_cli'), veiculoId:g('a_vei'), servico:g('a_serv'),
+               obs:g('a_obs'), concluida: okEl?okEl.checked:(a.concluida||false) };
+     if(ed){ Object.assign(a,rec); }
+     else{ WORK.agenda.push(Object.assign({id:uid('A'),historico:[]},rec)); }
+     closeModal(); renderAgenda(); toast('Item salvo ✓');
+   });
+  agFormCat();
+  agVeic(); if(a.veiculoId){ var sel=document.getElementById('a_vei'); if(sel)sel.value=a.veiculoId; }
+};
+/* Item pessoal/lembrete não precisa do bloco de cliente — some para não poluir. */
+window.agFormCat=function(){
+  var c=(document.getElementById('a_cat')||{}).value;
+  var bloco=document.getElementById('a_blocoCli');
+  if(bloco) bloco.style.display=(c==='pessoal'||c==='lembrete')?'none':'';
+};
+window.novoAg=function(){ formAg(); };
+window.editAg=function(id){ formAg(byId(WORK.agenda,id)); };
+window.agConcluir=function(id){ var a=byId(WORK.agenda,id); if(!a)return;
+  a.concluida=!a.concluida; renderAgenda(); toast(a.concluida?'Concluído ✓':'Reaberto'); };
+
 /* ---------- mover (arrastar §15 ou botão, para toque/acessibilidade) ---------- */
 window.agMover=function(id, dataDestino, periodoDestino){
   var a=byId(WORK.agenda,id); if(!a) return;
@@ -58,15 +123,35 @@ window.agMover=function(id, dataDestino, periodoDestino){
 
 /* ---------- render ---------- */
 function cartao(a){
-  var v=veh(a.veiculoId)||{}, c=cli(a.clienteId)||{};
-  return '<div class="agCard" draggable="true" data-agid="'+a.id+'" onclick="editAg(\''+a.id+'\')" title="Clique para editar · arraste para mover">'+
+  var v=(a.veiculoId?veh(a.veiculoId):null)||{}, c=(a.clienteId?cli(a.clienteId):null)||{};
+  var cat=catPorId(a.categoria);
+  /* Linha de apoio só com o que existe — item pessoal não inventa cliente. */
+  var apoio=[];
+  if(c.nome) apoio.push(esc(c.nome));
+  if(v.placa) apoio.push(esc(v.placa));
+  if(a.servico) apoio.push(esc(a.servico));
+  if(a.duracaoMin) apoio.push(a.duracaoMin+' min');
+  if(!apoio.length && a.obs) apoio.push(esc(String(a.obs).slice(0,40)));
+  return '<div class="agCard'+(a.concluida?' agFeito':'')+'" draggable="true" data-agid="'+a.id+'" '+
+      'onclick="editAg(\''+a.id+'\')" title="Clique para editar · arraste para mover">'+
     '<div class="agHora">'+esc(a.hora||'')+'</div>'+
-    '<div class="agInfo"><b>'+esc(a.tipo||'Agendamento')+'</b><span>'+esc(c.nome||'')+(v.placa?' · '+esc(v.placa):'')+'</span></div>'+
+    '<div class="agInfo"><b>'+cat.ic+' '+esc(tituloDe(a))+'</b>'+
+      (apoio.length?'<span>'+apoio.join(' · ')+'</span>':'')+'</div>'+
     '<div class="agAcoes" onclick="event.stopPropagation()">'+
+      '<button class="b b-ghost b-sm" title="'+(a.concluida?'Reabrir':'Concluir')+'" onclick="agConcluir(\''+a.id+'\')">'+(a.concluida?'↺':'✓')+'</button>'+
       '<button class="b b-ghost b-sm" title="Mover" onclick="agMoverMenu(\''+a.id+'\')">↔</button>'+
       '<button class="b b-ghost b-sm" title="Excluir" onclick="delAg(\''+a.id+'\')">🗑</button>'+
     '</div></div>';
 }
+
+/* Veículos do cliente escolhido; com "sem cliente", a lista fica vazia e opcional. */
+window.agVeic=function(){
+  var sel=document.getElementById('a_vei'); if(!sel) return;
+  var c=(document.getElementById('a_cli')||{}).value||'';
+  var vs=(WORK.veiculos||[]).filter(function(v){ return v.clienteId===c; });
+  sel.innerHTML='<option value="">—</option>'+vs.map(function(v){
+    return '<option value="'+v.id+'">'+esc(v.placa)+' — '+esc(v.modelo||'')+'</option>'; }).join('');
+};
 
 function renderAgenda(){
   var dias=diasDaSemana(), hoje=hojeISO(), pAgora=periodoAgora();
@@ -115,11 +200,29 @@ function renderAgenda(){
        '<button class="b" onclick="novoAg()">+ Agendamento</button></div>'+
      (semanaAtual?'<div class="agFoco">'+pn.ic+' Agora é <b>'+pn.nome+'</b> — foque nas atividades deste período.</div>':'')+
      '<div class="agGrade">'+colunas+'</div>'+
-     '<div class="agDica">Arraste um agendamento para outro dia ou período. No celular, use o botão ↔ do cartão.</div>'+
+     foraDaSemana(dias)+
+     '<div class="agDica">Arraste um item para outro dia ou período. No celular, use o botão ↔ do cartão.</div>'+
    '</div>';
   ligarArrastar();
 }
 
+/* A visão é semanal: item de outra semana não aparece. Sem este aviso parece que o
+   registro "sumiu" — foi exatamente essa a leitura do Isaac no teste de 20/07. */
+function foraDaSemana(dias){
+  var visiveis={}; dias.forEach(function(d){ visiveis[iso(d)]=1; });
+  var fora=(WORK.agenda||[]).filter(function(a){ return a.data && !visiveis[a.data]; });
+  if(!fora.length) return '';
+  var datas=fora.map(function(a){return a.data;}).sort();
+  var prox=datas.filter(function(d){ return d>=hojeISO(); })[0]||datas[datas.length-1];
+  return '<div class="agFora">'+fora.length+' item(ns) em outras semanas · mais próximo em <b>'+fmtFull(prox)+'</b> '+
+    '<button class="b b-ghost b-sm" onclick="agIrPara(\''+prox+'\')">Ir para essa semana</button></div>';
+}
+window.agIrPara=function(dataISO){
+  var alvo=new Date(dataISO+'T12:00:00');
+  var base=segundaDa(0);
+  _off=Math.round((alvo-base)/(7*864e5));
+  renderAgenda();
+};
 window.agSemana=function(n){ _off = (n===0? 0 : _off+n); renderAgenda(); };
 window.agTogglePeriodo=function(pid){ _fechados[pid] = !_fechados[pid]; renderAgenda(); };
 window.novoAgEm=function(dataISO){ formAg({data:dataISO, hora:periodoPorId(periodoAgora()).hora}); };
@@ -200,12 +303,16 @@ function injectCSS(){
      'background:var(--panel-2);cursor:grab;transition:.15s}'+
    '.agCard:hover{border-color:var(--gold-2)}'+
    '.agCard.dragging{opacity:.45;cursor:grabbing}'+          /* §15 feedback na origem */
+   '.agCard.agFeito .agInfo b{text-decoration:line-through;opacity:.55}'+
+   '.agCard.agFeito{opacity:.72}'+
    '.agHora{font-family:var(--display);font-size:12px;color:var(--gold-2);font-weight:600;flex:none}'+
    '.agInfo{display:flex;flex-direction:column;line-height:1.25;flex:1;min-width:0}'+
    '.agInfo b{font-size:12px;font-weight:600}'+
    '.agInfo span{font-size:10.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'+
    '.agAcoes{display:flex;gap:4px;flex:none}'+
    '.agPer.drop-ok{outline:2px dashed var(--gold-2);outline-offset:2px;background:rgba(91,140,255,.10)}'+  /* §15 destino */
+   '.agFora{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding:9px 12px;'+
+     'border:1px dashed var(--line);border-radius:10px;font-size:12px;color:var(--muted)}'+
    '.agDica{font-size:11.5px;color:var(--muted);margin-top:12px}'+
    '@media(prefers-reduced-motion:reduce){.agCard,.agPer{transition:none}}';
   document.head.appendChild(s);

@@ -22,8 +22,11 @@
     os:        {tbl:"mt_os",        key:"os",
                 to:r=>({cliente_id:r.clienteId,veiculo_id:r.veiculoId,status_idx:r.statusIdx}),
                 from:r=>({clienteId:r.cliente_id,veiculoId:r.veiculo_id,statusIdx:r.status_idx})},
-    agenda:    {tbl:"mt_agenda",    key:"agenda",    to:r=>({cliente_id:r.clienteId,veiculo_id:r.veiculoId}),
-                from:r=>({clienteId:r.cliente_id,veiculoId:r.veiculo_id})},
+    /* cliente/veículo são OPCIONAIS na agenda (item pessoal não tem cliente):
+       manda null em vez de string vazia, para o banco guardar "não tem" e não "vazio". */
+    agenda:    {tbl:"mt_agenda",    key:"agenda",
+                to:r=>({cliente_id:r.clienteId||null,veiculo_id:r.veiculoId||null,duracao_min:r.duracaoMin||null}),
+                from:r=>({clienteId:r.cliente_id||'',veiculoId:r.veiculo_id||'',duracaoMin:r.duracao_min||null})},
     financeiro:{tbl:"mt_financeiro",key:"financeiro",to:r=>({descricao:r.desc,os_id:r.osId||null}),
                 from:r=>({desc:r.descricao,osId:r.os_id})},
     notas:     {tbl:"mt_nf",        key:"notas",     to:r=>({os_id:r.osId||null}), from:r=>({osId:r.os_id})},
@@ -31,8 +34,8 @@
     bemestar:  {tbl:"mt_bemestar",  key:"bemestar"},
     metas:     {tbl:"mt_metas",     key:"metas"}
   };
-  const DROP_DB   = ["org_id","created_at","updated_at","cliente_id","veiculo_id","status_idx","tempo_min","descricao","os_id"];
-  const DROP_WORK = ["clienteId","veiculoId","statusIdx","tempoMin","desc","osId"];
+  const DROP_DB   = ["org_id","created_at","updated_at","cliente_id","veiculo_id","status_idx","tempo_min","descricao","os_id","duracao_min"];
+  const DROP_WORK = ["clienteId","veiculoId","statusIdx","tempoMin","desc","osId","duracaoMin"];
 
   function toDB(name,row){ const m=MAP[name],o={};
     for(const k in row){ if(DROP_WORK.includes(k))continue; o[k]=row[k]; }
@@ -108,8 +111,13 @@
   let _t=null;
   function scheduleSync(){ clearTimeout(_t); _t=setTimeout(syncAll,500); }
   async function syncAll(){
+    /* Falha de gravação NÃO pode ser silenciosa. Antes era só console.warn: o registro
+       aparecia na tela, o upsert falhava, o realtime recarregava do banco e o registro
+       "sumia" — sem uma linha de explicação para quem estava usando. */
     for(const name in MAP){ const rows=(WORK[name]||[]).map(r=>toDB(name,r));
-      if(rows.length){ const {error}=await SB.from(MAP[name].tbl).upsert(rows); if(error)console.warn("sync "+name,error.message); } }
+      if(rows.length){ const {error}=await SB.from(MAP[name].tbl).upsert(rows);
+        if(error){ console.error("sync "+name,error);
+          toast('Não consegui salvar ('+name+'): '+error.message); } } }
   }
   async function sbDelete(tbl,id){ const {error}=await SB.from(tbl).delete().eq("id",id); if(error)console.warn("del",error.message); }
 
@@ -129,7 +137,7 @@
     window[name]=function(){ const r=o.apply(this,arguments); scheduleSync(); return r; }; }
   ["stepOS","toggleChk","toggleAprov","delItem","marcarPago","closeModal","gerarRecebiveis",
    "gerarCampanha","emitirNF","cancelarNF","registrarPonto","salvarBemestar","salvarMeta",
-   "agMover"].forEach(wrap);   /* §15: arrastar altera dado -> tem de sincronizar como qualquer save */
+   "agMover","agConcluir"].forEach(wrap);   /* §15: arrastar/concluir alteram dado -> sincronizam como qualquer save */
   const _delOS=window.delOS; window.delOS=function(id){ sbDelete("mt_os",id); return _delOS(id); };
   const _delAg=window.delAg; if(_delAg)window.delAg=function(id){ sbDelete("mt_agenda",id); return _delAg(id); };
   const _delLanc=window.delLanc; if(_delLanc)window.delLanc=function(id){ sbDelete("mt_financeiro",id); return _delLanc(id); };
