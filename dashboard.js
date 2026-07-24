@@ -106,7 +106,7 @@ function drawDash(d){
 /* drill-down: lista os registros por trás do indicador */
 function dashDrill(tipo){
   const os=WORK.os; let titulo="", head="", rows="";
-  const osRow=o=>{const v=veh(o.veiculoId);return `<tr><td>#${o.numero}</td><td><span class="plate">${v.placa||''}</span></td><td>${cli(o.clienteId).nome||''}</td><td><span class="badge s${o.statusIdx}">${STATUS_FLOW[o.statusIdx]}</span></td><td style="text-align:right;color:var(--gold-2)">${money(osTotal(o))}</td></tr>`;};
+  const osRow=o=>{const v=veh(o.veiculoId);return `<tr><td>#${o.numero}</td><td><span class="plate">${esc(v.placa)}</span></td><td>${esc(cli(o.clienteId).nome)}</td><td><span class="badge s${o.statusIdx}">${STATUS_FLOW[o.statusIdx]}</span></td><td style="text-align:right;color:var(--gold-2)">${money(osTotal(o))}</td></tr>`;};
   if(tipo==='abertas'||tipo==='faturamento'||tipo==='ticket'){
     let list = tipo==='abertas'? os.filter(o=>o.statusIdx<8) : os.filter(o=>o.aprovado);
     titulo = tipo==='abertas'?'OS abertas':(tipo==='ticket'?'OS aprovadas (base do ticket)':'OS que compõem o faturamento');
@@ -120,12 +120,12 @@ function dashDrill(tipo){
     titulo="Clientes ativos";
     head="<tr><th>Cliente</th><th>Telefone</th><th>Veículos</th><th style='text-align:right'>OS</th></tr>";
     rows=WORK.clientes.map(c=>{const vs=WORK.veiculos.filter(v=>v.clienteId===c.id).length;const n=WORK.os.filter(o=>o.clienteId===c.id).length;
-      return `<tr><td><b>${c.nome}</b></td><td style="color:var(--muted)">${c.tel||''}</td><td>${vs}</td><td style="text-align:right">${n}</td></tr>`;}).join('');
+      return `<tr><td><b>${esc(c.nome)}</b></td><td style="color:var(--muted)">${esc(c.tel)}</td><td>${vs}</td><td style="text-align:right">${n}</td></tr>`;}).join('');
   } else if(tipo==='estoque'){
     titulo="Peças abaixo do mínimo";
     head="<tr><th>Peça</th><th>Fornecedor</th><th style='text-align:center'>Estoque</th><th style='text-align:center'>Mínimo</th></tr>";
     const cr=WORK.pecas.filter(p=>p.estoque<p.minimo);
-    rows=cr.map(p=>`<tr><td><b>${p.nome}</b></td><td style="color:var(--muted)">${p.fornecedor}</td><td style="text-align:center;color:var(--bad)">${p.estoque}</td><td style="text-align:center">${p.minimo}</td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--muted)">Estoque saudável.</td></tr>';
+    rows=cr.map(p=>`<tr><td><b>${esc(p.nome)}</b></td><td style="color:var(--muted)">${esc(p.fornecedor)}</td><td style="text-align:center;color:var(--bad)">${p.estoque}</td><td style="text-align:center">${p.minimo}</td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--muted)">Estoque saudável.</td></tr>';
   }
   modal(titulo,"Detalhe do indicador",`<div style="max-height:52vh;overflow:auto"><table class="tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>`, ()=>closeModal());
   const b=document.getElementById('mSave'); if(b)b.textContent="Fechar";

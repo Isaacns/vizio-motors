@@ -37,7 +37,8 @@ function periodoDaHora(h){
 }
 function periodoAgora(){ return periodoDaHora(String(new Date().getHours()).padStart(2,'0')+':00'); }
 function periodoPorId(id){ return PERIODOS.filter(function(p){return p.id===id;})[0]||PERIODOS[0]; }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+/* esc(): helper único agora provido globalmente por esc.js (fix XSS 🔴-1). Fallback local mantido. */
+var esc = window.esc || function(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };
 
 /* ---------- categorias: a agenda é do dono, não só marcação de cliente ---------- */
 var CATEGORIAS=[

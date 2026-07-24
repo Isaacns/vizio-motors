@@ -121,13 +121,13 @@ function renderFinanceiro(){
 
    <div class="grid2">
      <div class="panel"><h3>⬇ Contas a receber</h3>
-       ${receber.length?`<table class="tbl"><tbody>${receber.map(x=>`<tr><td>${x.desc}</td><td style="color:var(--muted)">${finD(x.data)}</td>
+       ${receber.length?`<table class="tbl"><tbody>${receber.map(x=>`<tr><td>${esc(x.desc)}</td><td style="color:var(--muted)">${finD(x.data)}</td>
          <td style="text-align:right;color:var(--ok);font-weight:600">${brl(x.valor)}</td>
          <td style="text-align:right"><button class="b b-sm" onclick="marcarPago('${x.id}')">Receber</button></td></tr>`).join('')}</tbody></table>`
          :'<div style="color:var(--muted);font-size:13px">Nada a receber. Use “Gerar recebíveis das OS”.</div>'}
      </div>
      <div class="panel"><h3>⬆ Contas a pagar</h3>
-       ${pagar.length?`<table class="tbl"><tbody>${pagar.map(x=>`<tr><td>${x.desc}<br><span style="color:var(--muted);font-size:11px">${x.cat}</span></td>
+       ${pagar.length?`<table class="tbl"><tbody>${pagar.map(x=>`<tr><td>${esc(x.desc)}<br><span style="color:var(--muted);font-size:11px">${esc(x.cat)}</span></td>
          <td style="color:var(--muted)">${finD(x.data)}</td><td style="text-align:right;color:var(--bad);font-weight:600">${brl(x.valor)}</td>
          <td style="text-align:right"><button class="b b-danger b-sm" onclick="marcarPago('${x.id}')">Pagar</button></td></tr>`).join('')}</tbody></table>`
          :'<div style="color:var(--muted);font-size:13px">Nenhuma conta pendente.</div>'}
@@ -136,8 +136,8 @@ function renderFinanceiro(){
 
    <div class="panel"><div class="head"><h3>🧾 Extrato</h3><div class="sp"></div><button class="b b-sm" onclick="novoLanc()">+ Lançamento</button></div>
      <table class="tbl"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Forma</th><th>Status</th><th style="text-align:right">Valor</th><th></th></tr></thead>
-     <tbody>${extrato.map(x=>`<tr style="cursor:pointer" onclick="editLanc('${x.id}')"><td>${finD(x.data)}</td><td>${x.desc}</td><td style="color:var(--muted)">${x.cat}</td>
-       <td style="color:var(--muted)">${x.forma||'—'}</td>
+     <tbody>${extrato.map(x=>`<tr style="cursor:pointer" onclick="editLanc('${x.id}')"><td>${finD(x.data)}</td><td>${esc(x.desc)}</td><td style="color:var(--muted)">${esc(x.cat)}</td>
+       <td style="color:var(--muted)">${esc(x.forma)||'—'}</td>
        <td><span class="badge ${x.status==='pago'?'s7':'s1'}">${x.status}</span></td>
        <td style="text-align:right;font-weight:600;color:${x.tipo==='receita'?'var(--ok)':'var(--bad)'}">${x.tipo==='receita'?'+':'−'} ${brl(x.valor)}</td>
        <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()"><button class="b b-ghost b-sm" title="Editar" onclick="editLanc('${x.id}')">✏️</button> <button class="b b-ghost b-sm" title="Excluir" onclick="delLanc('${x.id}')">🗑</button></td></tr>`).join('')}</tbody></table>
@@ -171,7 +171,7 @@ function formLanc(l){ l=l||{}; const ed=!!l.id;
   modal(ed?"Editar lançamento":"Novo lançamento","Entrada ou saída no caixa",`
     <div class="frow"><div><label>Tipo</label><select id="l_tipo" onchange="lancCats()"><option value="receita">Receita (entrada)</option><option value="despesa">Despesa (saída)</option></select></div>
     <div><label>Categoria</label><select id="l_cat"></select></div></div>
-    <label>Descrição</label><input id="l_desc" value="${(l.desc||'').replace(/"/g,'&quot;')}" placeholder="Ex.: OS #1050 — freios">
+    <label>Descrição</label><input id="l_desc" value="${esc(l.desc)}" placeholder="Ex.: OS #1050 — freios">
     <div class="frow"><div><label>Valor (R$)</label><input id="l_valor" type="number" step="0.01" value="${l.valor||0}"></div>
     <div><label>Data</label><input id="l_data" type="date" value="${l.data||(typeof today==='function'?today():'')}"></div></div>
     <div class="frow"><div><label>Forma</label><select id="l_forma"><option>PIX</option><option>Cartão</option><option>Boleto</option><option>Dinheiro</option><option>—</option></select></div>

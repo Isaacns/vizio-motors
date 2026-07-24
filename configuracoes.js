@@ -48,8 +48,8 @@ function renderConfig(){
   document.getElementById('view').innerHTML=`
    <div class="grid2">
      <div class="panel"><h3>🏢 Dados da oficina</h3>
-       <div class="info-line"><span class="k">Nome</span><span id="cf_nome_v">${cfg.oficina||'—'}</span></div>
-       <div class="info-line"><span class="k">Especialidade</span><span>${cfg.especialidade||'—'}</span></div>
+       <div class="info-line"><span class="k">Nome</span><span id="cf_nome_v">${esc(cfg.oficina)||'—'}</span></div>
+       <div class="info-line"><span class="k">Especialidade</span><span>${esc(cfg.especialidade)||'—'}</span></div>
        <div class="info-line"><span class="k">Plano</span><span style="color:var(--gold-2)">${live?'—':'Piloto'}</span></div>
        <div class="info-line" style="border:none"><span class="k">Backend</span><span>${live?'Supabase (ao vivo)':'Demonstração'}</span></div>
        <div style="margin-top:14px"><button class="b b-sm" onclick="editarOficina()">Editar dados</button></div>
@@ -64,7 +64,7 @@ function renderConfig(){
        <button class="b b-sm" onclick="novoServico()">+ Novo serviço</button></div>
      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Serviços e preços usados nas Ordens de Serviço e nos combos.</div>
      <table class="tbl"><thead><tr><th>Serviço</th><th>Categoria</th><th style="text-align:center">Tempo</th><th style="text-align:right">Preço</th><th></th></tr></thead>
-     <tbody>${(WORK.servicos||[]).map(s=>`<tr style="cursor:pointer" onclick="editServico('${s.id}')"><td><b>${s.nome}</b></td><td style="color:var(--muted)">${s.categoria||'—'}</td>
+     <tbody>${(WORK.servicos||[]).map(s=>`<tr style="cursor:pointer" onclick="editServico('${s.id}')"><td><b>${esc(s.nome)}</b></td><td style="color:var(--muted)">${esc(s.categoria)||'—'}</td>
        <td style="text-align:center">${s.tempoMin?s.tempoMin+' min':'—'}</td><td style="text-align:right;color:var(--gold-2)">${money(s.preco)}</td>
        <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()"><button class="b b-ghost b-sm" title="Editar" onclick="editServico('${s.id}')">✏️</button> <button class="b b-ghost b-sm" title="Excluir" onclick="delServico('${s.id}')">🗑</button></td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted)">Nenhum serviço cadastrado.</td></tr>'}</tbody></table>
    </div>
@@ -97,10 +97,10 @@ function renderConfig(){
 
 function formServico(s){ s=s||{}; const ed=!!s.id;
   modal(ed?"Editar serviço":"Novo serviço","",`
-    <label>Nome</label><input id="sv_nome" value="${(s.nome||'').replace(/"/g,'&quot;')}" placeholder="Ex.: Alinhamento e balanceamento">
+    <label>Nome</label><input id="sv_nome" value="${esc(s.nome)}" placeholder="Ex.: Alinhamento e balanceamento">
     <div class="frow"><div><label>Preço (R$)</label><input id="sv_preco" type="number" step="0.01" value="${s.preco||0}"></div>
     <div><label>Tempo (min)</label><input id="sv_tempo" type="number" value="${s.tempoMin||0}"></div></div>
-    <label>Categoria</label><input id="sv_cat" value="${(s.categoria||'').replace(/"/g,'&quot;')}" placeholder="Ex.: Freios, Motor, Revisão">`,
+    <label>Categoria</label><input id="sv_cat" value="${esc(s.categoria)}" placeholder="Ex.: Freios, Motor, Revisão">`,
    ()=>{ if(!document.getElementById('sv_nome').value){toast('Informe o nome do serviço');return;}
      const rec={nome:document.getElementById('sv_nome').value,preco:+document.getElementById('sv_preco').value||0,
        tempoMin:+document.getElementById('sv_tempo').value||0,categoria:document.getElementById('sv_cat').value};
@@ -134,8 +134,8 @@ window.trocarSenha=trocarSenha;
 function editarOficina(){
   const cfg=(WORK._cfg)||(WORK._cfg={oficina:'Oficina Demonstração',especialidade:'Multimarcas'});
   modal("Editar dados da oficina","",`
-    <label>Nome da oficina</label><input id="of_nome" value="${cfg.oficina||''}">
-    <label>Especialidade</label><input id="of_esp" value="${cfg.especialidade||''}">`,
+    <label>Nome da oficina</label><input id="of_nome" value="${esc(cfg.oficina)}">
+    <label>Especialidade</label><input id="of_esp" value="${esc(cfg.especialidade)}">`,
    ()=>{cfg.oficina=document.getElementById('of_nome').value; cfg.especialidade=document.getElementById('of_esp').value;
      if(window.salvarOficinaMarca) window.salvarOficinaMarca(cfg);
      closeModal(); renderConfig();

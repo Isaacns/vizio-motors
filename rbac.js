@@ -135,7 +135,7 @@ window.rbacUsuarioAtual=function(){ return usuarioAtual(load()); };
 
 /* ---------- Identificação do usuário no topo (§8.1) ---------- */
 function iniciais(nome){ return (nome||'?').trim().split(/\s+/).map(function(x){return x[0];}).slice(0,2).join('').toUpperCase(); }
-function avatarHTML(u){ return u&&u.foto ? '<img src="'+u.foto+'" alt="">' : iniciais(u&&u.nome); }
+function avatarHTML(u){ return u&&u.foto ? '<img src="'+esc(u.foto)+'" alt="">' : esc(iniciais(u&&u.nome)); }
 window.rbacIniciais=iniciais;
 
 window.renderUserChip=function(){
@@ -199,7 +199,7 @@ function viewPerfis(s){
   var sel=perfilById(s,_sel);
   var chips=s.perfis.slice().sort(function(a,b){return a.nivel-b.nivel;}).map(function(p){
     return '<button class="b '+(p.id===_sel?'':'b-ghost')+' b-sm" onclick="rbacSel(\''+p.id+'\')" style="margin:0 6px 6px 0">'+
-      '<span style="opacity:.6">N'+p.nivel+'</span> '+p.nome+'</button>';}).join('');
+      '<span style="opacity:.6">N'+p.nivel+'</span> '+esc(p.nome)+'</button>';}).join('');
   var rows=MODULOS.map(function(m){var k=m[0],pm=sel.perm[k]||{a:false,e:false};
     return '<tr><td><b>'+m[1]+'</b></td>'+
       '<td style="text-align:center"><label class="rbSw"><input type="checkbox" '+(pm.a?'checked':'')+' '+(sel.fixo?'disabled':'')+' onchange="rbacToggle(\''+sel.id+'\',\''+k+'\',\'a\',this.checked)"><span></span></label></td>'+
@@ -213,10 +213,10 @@ function viewPerfis(s){
    '<div class="panel"><div class="head"><h3>🛡 Perfis</h3><div class="sp"></div>'+
      '<button class="b b-sm" onclick="rbacNovoPerfil()">+ Novo perfil</button></div>'+
      '<div style="margin-bottom:6px">'+chips+'</div>'+
-     '<div style="font-size:12.5px;color:var(--muted)">'+sel.desc+' · <b>Hierarquia:</b> nível '+sel.nivel+(sel.fixo?' · <span style="color:var(--gold-2)">perfil protegido</span>':'')+'</div>'+
+     '<div style="font-size:12.5px;color:var(--muted)">'+esc(sel.desc)+' · <b>Hierarquia:</b> nível '+sel.nivel+(sel.fixo?' · <span style="color:var(--gold-2)">perfil protegido</span>':'')+'</div>'+
      (sel.fixo?'':'<div style="margin-top:10px;display:flex;gap:8px"><button class="b b-ghost b-sm" onclick="rbacEditarPerfil(\''+sel.id+'\')">Renomear / nível</button><button class="b b-ghost b-sm" onclick="rbacDelPerfil(\''+sel.id+'\')">Excluir perfil</button></div>')+
    '</div>'+
-   '<div class="panel"><h3>Permissões por módulo — '+sel.nome+'</h3>'+
+   '<div class="panel"><h3>Permissões por módulo — '+esc(sel.nome)+'</h3>'+
      '<table class="tbl"><thead><tr><th>Módulo</th><th style="text-align:center">Acesso</th><th style="text-align:center">Pode editar</th></tr></thead><tbody>'+rows+'</tbody></table>'+
      '<div style="font-size:11.5px;color:var(--muted);margin-top:8px">"Editar" só vale com "Acesso" ligado. O perfil Administrador é protegido (acesso total).</div>'+
    '</div>';
@@ -233,9 +233,9 @@ window.rbacNovoPerfil=function(){
        desc:'Perfil personalizado.',perm:perm([],[])}); save(s); _sel=s.perfis[s.perfis.length-1].id; closeModal(); renderRBAC(); });
 };
 window.rbacEditarPerfil=function(id){ var s=load(); var p=perfilById(s,id); if(p.fixo)return;
-  modal("Editar perfil","",'<label>Nome</label><input id="rp_nome" value="'+(p.nome||'').replace(/"/g,'&quot;')+'">'+
+  modal("Editar perfil","",'<label>Nome</label><input id="rp_nome" value="'+esc(p.nome)+'">'+
     '<label>Nível de hierarquia</label><input id="rp_nivel" type="number" min="1" max="9" value="'+p.nivel+'">'+
-    '<label>Descrição</label><input id="rp_desc" value="'+(p.desc||'').replace(/"/g,'&quot;')+'">',
+    '<label>Descrição</label><input id="rp_desc" value="'+esc(p.desc)+'">',
    function(){ p.nome=document.getElementById('rp_nome').value||p.nome; p.nivel=+document.getElementById('rp_nivel').value||p.nivel;
      p.desc=document.getElementById('rp_desc').value; save(s); closeModal(); renderRBAC(); });
 };
@@ -244,12 +244,12 @@ window.rbacDelPerfil=function(id){ confirmar("Excluir este perfil?",function(){ 
   s.usuarios.forEach(function(u){if(u.perfil===id)u.perfil='visualizador';}); save(s); _sel='admin'; closeModal(); renderRBAC(); }); };
 
 function viewUsuarios(s){
-  var opts=function(cur){return s.perfis.map(function(p){return '<option value="'+p.id+'"'+(p.id===cur?' selected':'')+'>'+p.nome+'</option>';}).join('');};
+  var opts=function(cur){return s.perfis.map(function(p){return '<option value="'+p.id+'"'+(p.id===cur?' selected':'')+'>'+esc(p.nome)+'</option>';}).join('');};
   /* Linha inteira clicável abre a ficha do usuário (§ editabilidade: clicar no registro edita).
      Perfil e ações param a propagação para não abrirem o modal sem querer. */
   var rows=s.usuarios.map(function(u){ return '<tr style="cursor:pointer" onclick="rbacEditUser(\''+u.id+'\')" title="Abrir ficha do usuário">'+
     '<td style="width:46px"><div class="av" style="width:32px;height:32px;border-radius:50%;overflow:hidden;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11.5px;font-family:var(--display)">'+avatarHTML(u)+'</div></td>'+
-    '<td><b>'+u.nome+'</b></td><td style="color:var(--muted)">'+(u.email||'—')+'</td>'+
+    '<td><b>'+esc(u.nome)+'</b></td><td style="color:var(--muted)">'+(esc(u.email)||'—')+'</td>'+
     '<td onclick="event.stopPropagation()"><select onchange="rbacSetPerfil(\''+u.id+'\',this.value)" style="min-width:150px">'+opts(u.perfil)+'</select></td>'+
     '<td class="acoes" onclick="event.stopPropagation()"><button class="b b-ghost b-sm" onclick="rbacEditUser(\''+u.id+'\')">Editar</button> '+
       (u.id==='u_master'?'':'<button class="b b-ghost b-sm" onclick="rbacDelUser(\''+u.id+'\')">Excluir</button>')+'</td></tr>';}).join('');
@@ -289,7 +289,7 @@ async function subirFoto(userId){
 }
 
 function formUser(u){ u=u||{}; var ed=!!u.id; var s=load(); _fotoNova=null;
-  var prev=u.foto?'<img src="'+u.foto+'" alt="">':iniciais(u.nome);
+  var prev=u.foto?'<img src="'+esc(u.foto)+'" alt="">':esc(iniciais(u.nome));
   modal(ed?"Editar usuário":"Novo usuário","",
     '<div class="fotoEdit"><div class="prev" id="ru_prev">'+prev+'</div>'+
       '<div style="display:flex;flex-direction:column;gap:6px">'+
@@ -297,9 +297,9 @@ function formUser(u){ u=u||{}; var ed=!!u.id; var s=load(); _fotoNova=null;
         '<input id="ru_foto" type="file" accept="image/*" onchange="ruFotoEscolher(this)" style="font-size:12px">'+
         '<button type="button" class="b b-ghost b-sm" onclick="ruFotoRemover()">Remover foto</button>'+
       '</div></div>'+
-    '<label>Nome</label><input id="ru_nome" value="'+(u.nome||'').replace(/"/g,'&quot;')+'">'+
-    '<label>E-mail</label><input id="ru_email" value="'+(u.email||'').replace(/"/g,'&quot;')+'" placeholder="nome@oficina.com">'+
-    '<label>Perfil</label><select id="ru_perfil">'+s.perfis.map(function(p){return '<option value="'+p.id+'"'+(u.perfil===p.id?' selected':'')+'>'+p.nome+'</option>';}).join('')+'</select>',
+    '<label>Nome</label><input id="ru_nome" value="'+esc(u.nome)+'">'+
+    '<label>E-mail</label><input id="ru_email" value="'+esc(u.email)+'" placeholder="nome@oficina.com">'+
+    '<label>Perfil</label><select id="ru_perfil">'+s.perfis.map(function(p){return '<option value="'+p.id+'"'+(u.perfil===p.id?' selected':'')+'>'+esc(p.nome)+'</option>';}).join('')+'</select>',
    async function(){ var nome=(document.getElementById('ru_nome').value||'').trim(); if(!nome){toast('Informe o nome');return;}
      var id = ed ? u.id : ('u_'+uid('u'));
      var foto = await subirFoto(id);               // undefined = manter a atual

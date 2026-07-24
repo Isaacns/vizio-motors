@@ -66,9 +66,9 @@ function renderAlavancagem(){
     const eco=(c.precoNormal||0)-(c.precoPromo||0);
     const itens=(c.itens||[]).map(x=>x.nome).join(" + ");
     return `<div class="veh" style="align-items:flex-start;flex-direction:column;gap:6px${sugerido?'':';cursor:pointer'}"${sugerido?'':` onclick="alavAbrir('${c.id}')" title="Abrir combo"`}>
-      <div style="display:flex;align-items:center;gap:8px;width:100%"><b style="flex:1">${c.nome}</b>
+      <div style="display:flex;align-items:center;gap:8px;width:100%"><b style="flex:1">${esc(c.nome)}</b>
         ${sugerido?'<span class="badge s1">sugestão</span>':(c.periodo?`<span class="badge s0">${c.periodo}</span>`:'')}</div>
-      <div style="font-size:12px;color:var(--muted)">${itens}${c.desc?' — '+c.desc:''}</div>
+      <div style="font-size:12px;color:var(--muted)">${esc(itens)}${c.desc?' — '+esc(c.desc):''}</div>
       <div style="display:flex;align-items:baseline;gap:10px"><span style="text-decoration:line-through;color:var(--muted);font-size:12px">${money(c.precoNormal)}</span>
         <b style="color:var(--ok);font-size:17px">${money(c.precoPromo)}</b>${eco>0?`<span style="font-size:11px;color:var(--ok)">economize ${money(eco)}</span>`:''}</div>
       <div style="display:flex;gap:7px;margin-top:2px" onclick="event.stopPropagation()">
@@ -103,7 +103,7 @@ function renderAlavancagem(){
 
    <div class="panel"><h3>🏅 Produtividade por mecânico</h3>
      <table class="tbl"><thead><tr><th>Mecânico</th><th>OS</th><th>Receita</th><th>Receita/OS</th></tr></thead>
-     <tbody>${rank.map(([m,d])=>`<tr><td><b>${m}</b></td><td>${d.os}</td><td style="color:var(--gold-2)">${money(d.receita)}</td><td>${money(d.receita/d.os)}</td></tr>`).join('')}</tbody></table>
+     <tbody>${rank.map(([m,d])=>`<tr><td><b>${esc(m)}</b></td><td>${d.os}</td><td style="color:var(--gold-2)">${money(d.receita)}</td><td>${money(d.receita/d.os)}</td></tr>`).join('')}</tbody></table>
    </div>`;
 }
 
@@ -116,8 +116,8 @@ function alavCopiar(id){ const c=alavCombos().find(x=>x.id===id); if(!c)return;
   if(navigator.clipboard) navigator.clipboard.writeText(txt);
   toast('Oferta copiada!'); }
 function alavNovoCombo(){
-  const opts=`<optgroup label="Serviços">${WORK.servicos.map(s=>`<option value="s:${s.id}">${s.nome} — ${money(s.preco)}</option>`).join('')}</optgroup>
-   <optgroup label="Peças">${WORK.pecas.map(p=>`<option value="p:${p.id}">${p.nome} — ${money(p.preco)}</option>`).join('')}</optgroup>`;
+  const opts=`<optgroup label="Serviços">${WORK.servicos.map(s=>`<option value="s:${s.id}">${esc(s.nome)} — ${money(s.preco)}</option>`).join('')}</optgroup>
+   <optgroup label="Peças">${WORK.pecas.map(p=>`<option value="p:${p.id}">${esc(p.nome)} — ${money(p.preco)}</option>`).join('')}</optgroup>`;
   modal("Novo combo promocional","Selecione os itens (Ctrl para vários)",`
     <label>Nome</label><input id="cb_nome" placeholder="Ex.: Combo Revisão Completa">
     <label>Itens</label><select id="cb_itens" multiple size="7">${opts}</select>
@@ -141,13 +141,13 @@ function alavNovoCombo(){
 /* abrir detalhe do combo (clique no card) */
 function alavAbrir(id){ const c=alavCombos().find(x=>x.id===id); if(!c)return;
   const eco=(c.precoNormal||0)-(c.precoPromo||0);
-  const itens=(c.itens||[]).map(x=>`<div class="info-line"><span class="k">${x.nome}</span><span>${money(x.preco)}</span></div>`).join('');
-  modal(c.nome, c.periodo?('Combo · '+c.periodo):'Combo promocional', `
+  const itens=(c.itens||[]).map(x=>`<div class="info-line"><span class="k">${esc(x.nome)}</span><span>${money(x.preco)}</span></div>`).join('');
+  modal(esc(c.nome), c.periodo?('Combo · '+c.periodo):'Combo promocional', `
     ${itens}
     <div class="info-line"><span class="k">Preço normal</span><span style="text-decoration:line-through;color:var(--muted)">${money(c.precoNormal)}</span></div>
     <div class="info-line"><span class="k">Preço promocional</span><b style="color:var(--ok)">${money(c.precoPromo)}</b></div>
     ${eco>0?`<div class="info-line" style="border:none"><span class="k">Economia</span><span style="color:var(--ok)">${money(eco)}</span></div>`:''}
-    ${c.desc?`<div style="font-size:12.5px;color:var(--muted);margin-top:8px">${c.desc}</div>`:''}
+    ${c.desc?`<div style="font-size:12.5px;color:var(--muted);margin-top:8px">${esc(c.desc)}</div>`:''}
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
       <button class="b b-sm" onclick="alavEditar('${c.id}')">✏️ Editar</button>
       <button class="b b-ghost b-sm" onclick="alavCopiar('${c.id}')">📋 Copiar oferta</button>
@@ -160,15 +160,15 @@ window.alavAbrir=alavAbrir;
 /* editar combo existente (form pré-preenchido) */
 function alavEditar(id){ const c=alavCombos().find(x=>x.id===id); if(!c)return;
   const chosen={}; (c.itens||[]).forEach(x=>{chosen[x.nome]=true;});
-  const opt=(val,label,nome)=>`<option value="${val}"${chosen[nome]?' selected':''}>${label}</option>`;
+  const opt=(val,label,nome)=>`<option value="${val}"${chosen[nome]?' selected':''}>${esc(label)}</option>`;
   const opts=`<optgroup label="Serviços">${WORK.servicos.map(s=>opt('s:'+s.id,s.nome+' — '+money(s.preco),s.nome)).join('')}</optgroup>
    <optgroup label="Peças">${WORK.pecas.map(p=>opt('p:'+p.id,p.nome+' — '+money(p.preco),p.nome)).join('')}</optgroup>`;
   modal("Editar combo","Ajuste itens, preço e descrição",`
-    <label>Nome</label><input id="cb_nome" value="${(c.nome||'').replace(/"/g,'&quot;')}">
+    <label>Nome</label><input id="cb_nome" value="${esc(c.nome)}">
     <label>Itens (Ctrl para vários)</label><select id="cb_itens" multiple size="7">${opts}</select>
     <div class="frow"><div><label>Preço normal</label><input id="cb_normal" value="${(c.precoNormal||0).toFixed(2)}" readonly></div>
     <div><label>Preço promocional</label><input id="cb_promo" type="number" value="${c.precoPromo||0}"></div></div>
-    <label>Descrição</label><input id="cb_desc" value="${(c.desc||'').replace(/"/g,'&quot;')}" placeholder="Opcional">`,
+    <label>Descrição</label><input id="cb_desc" value="${esc(c.desc)}" placeholder="Opcional">`,
    ()=>{const sel=Array.prototype.slice.call(document.getElementById('cb_itens').selectedOptions);
      if(sel.length<1){toast('Selecione ao menos um item');return;}
      if(!document.getElementById('cb_nome').value){toast('Dê um nome');return;}

@@ -8,16 +8,16 @@
    ============================================================ */
 window.RP = {
   kpis:function(arr){ return '<div class="rp-kpis">'+arr.map(function(k){
-    return '<div class="rp-kpi"><div class="l">'+k[0]+'</div><div class="v">'+k[1]+'</div></div>';}).join('')+'</div>'; },
-  sec:function(t){ return '<h3 class="rp-sec">'+t+'</h3>'; },
+    return '<div class="rp-kpi"><div class="l">'+esc(k[0])+'</div><div class="v">'+esc(k[1])+'</div></div>';}).join('')+'</div>'; },
+  sec:function(t){ return '<h3 class="rp-sec">'+esc(t)+'</h3>'; },
   table:function(head,rows){ if(!rows||!rows.length)return '<div class="rp-empty">Sem registros.</div>';
-    return '<table><thead><tr>'+head.map(function(h){return '<th>'+h+'</th>';}).join('')+
-      '</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>'; }
+    return '<table><thead><tr>'+head.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+
+      '</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+esc(c)+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>'; }
 };
 
 function relatorioPDF(opts){
   opts=opts||{};
-  var brand=(window.BRAND_NAME||'Vizio Motors');
+  var brand=esc(window.BRAND_NAME||'Vizio Motors');
   /* Relatório é impresso em papel branco: a logo tem de ser a ESCURA (§5). */
   var rawLogo=(window.BRAND_LOGO&&window.__brandCustom)?window.BRAND_LOGO:'vizio-symbol-dark.png';
   var logo; try{ logo=(/^https?:|^data:/.test(rawLogo))?rawLogo:new URL(rawLogo,document.baseURI).href; }catch(e){ logo=rawLogo; }
@@ -50,13 +50,13 @@ function relatorioPDF(opts){
    ".rp-foot{margin-top:28px;border-top:1px solid #e6eaf0;padding-top:12px;font-size:10px;color:#93a0b2;text-align:center;letter-spacing:.3px}"+
    "@page{margin:15mm}@media print{.rp{padding:0}.rp-noprint{display:none}}";
   var doc=
-   "<!doctype html><html lang='pt-BR'><head><meta charset='utf-8'><title>"+(opts.titulo||'Relatório')+" — "+brand+"</title><style>"+css+"</style></head><body><div class='rp'>"+
-   "<div class='rp-head'><img src='"+logo+"' alt=''><div class='rp-brand'>"+brand+"<small>por INPERSON</small></div>"+
-   "<div class='rp-meta'>"+(opts.titulo||'Relatório')+"<br>Emitido em "+now+"</div></div>"+
-   "<div class='rp-title'>"+(opts.titulo||'Relatório')+"</div>"+
-   (opts.subtitulo?"<div class='rp-sub'>"+opts.subtitulo+"</div>":"")+
+   "<!doctype html><html lang='pt-BR'><head><meta charset='utf-8'><title>"+esc(opts.titulo||'Relatório')+" — "+brand+"</title><style>"+css+"</style></head><body><div class='rp'>"+
+   "<div class='rp-head'><img src='"+esc(logo)+"' alt=''><div class='rp-brand'>"+brand+"<small>por INPERSON</small></div>"+
+   "<div class='rp-meta'>"+esc(opts.titulo||'Relatório')+"<br>Emitido em "+now+"</div></div>"+
+   "<div class='rp-title'>"+esc(opts.titulo||'Relatório')+"</div>"+
+   (opts.subtitulo?"<div class='rp-sub'>"+esc(opts.subtitulo)+"</div>":"")+
    (opts.corpo||"")+
-   "<div class='rp-foot'>"+(opts.rodape?opts.rodape+" · ":"")+brand+" — sua oficina virou sistema inteligente · um produto INPERSON</div>"+
+   "<div class='rp-foot'>"+(opts.rodape?esc(opts.rodape)+" · ":"")+brand+" — sua oficina virou sistema inteligente · um produto INPERSON</div>"+
    "</div><script>window.onload=function(){setTimeout(function(){window.focus();window.print();},350);}<\/script></body></html>";
   w.document.open(); w.document.write(doc); w.document.close();
 }

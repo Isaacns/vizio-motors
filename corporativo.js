@@ -69,7 +69,7 @@ function viewPontoInovar(inov){
       <button class="b b-ghost b-sm" onclick="limparPontoInovar()">Limpar</button></div>
      <div style="overflow:auto"><table class="tbl"><thead>
        <tr><th>Nº</th><th>Nome</th><th>Departamento</th><th>Atrasos (qtd/min)</th><th>Saídas antecip. (qtd/min)</th><th>Horas extras</th><th>Dias</th></tr></thead>
-       <tbody>${R.map(r=>`<tr><td>${r.num}</td><td><b>${r.nome}</b></td><td style="color:var(--muted)">${r.depto||'—'}</td>
+       <tbody>${R.map(r=>`<tr><td>${r.num}</td><td><b>${esc(r.nome)}</b></td><td style="color:var(--muted)">${esc(r.depto)||'—'}</td>
          <td>${r.atrasoFreq||0} / ${linhaMin(r.atrasoMin)}</td>
          <td>${r.cedoFreq||0} / ${linhaMin(r.cedoMin)}</td>
          <td>${r.extra?('<span style="color:var(--ok)">'+r.extra+'</span>'):'—'}</td>
@@ -78,9 +78,9 @@ function viewPontoInovar(inov){
   const reg=inov.registro||[];
   const registroBlk=reg.length?`<div class="panel"><h3>🕐 Registro de presença (batidas por dia)</h3>
      ${reg.map(c=>{ const dias=(c.batidas||[]).filter(b=>b.horas&&b.horas.length);
-       return `<details style="margin-bottom:8px"><summary style="cursor:pointer;padding:8px 0;font-weight:600">${c.nome||('Colab. '+c.numero)} <span style="color:var(--muted);font-weight:400">· ${dias.length} dia(s) com batidas</span></summary>
+       return `<details style="margin-bottom:8px"><summary style="cursor:pointer;padding:8px 0;font-weight:600">${esc(c.nome||('Colab. '+c.numero))} <span style="color:var(--muted);font-weight:400">· ${dias.length} dia(s) com batidas</span></summary>
          ${dias.length?`<table class="tbl" style="margin-top:6px"><thead><tr><th style="width:70px">Dia</th><th>Batidas</th></tr></thead>
-           <tbody>${dias.map(b=>`<tr><td>${b.dia}</td><td style="font-variant-numeric:tabular-nums">${b.horas.join('  ·  ')}</td></tr>`).join('')}</tbody></table>`
+           <tbody>${dias.map(b=>`<tr><td>${b.dia}</td><td style="font-variant-numeric:tabular-nums">${esc(b.horas.join('  ·  '))}</td></tr>`).join('')}</tbody></table>`
            :'<div style="color:var(--muted);font-size:12px;padding:6px 0">Sem batidas registradas.</div>'}
        </details>`;}).join('')}
    </div>`:'';
@@ -108,9 +108,9 @@ function viewPontoManual(){
      <div class="panel"><div class="head"><h3>⏱ Registros manuais</h3><div class="sp"></div>
         <button class="b b-sm" onclick="registrarPonto()">+ Registrar</button></div>
         <table class="tbl"><thead><tr><th>Colaborador</th><th>Data</th><th>Entrada</th><th>Saída</th><th>Horas</th></tr></thead>
-        <tbody>${reg.slice().reverse().map(r=>`<tr><td>${r.funcionario}</td><td>${fmtFull(r.data)}</td>
+        <tbody>${reg.slice().reverse().map(r=>`<tr><td>${esc(r.funcionario)}</td><td>${fmtFull(r.data)}</td>
           <td>${r.entrada||'—'}</td><td>${r.saida||'—'}</td>
-          <td style="color:${(r.horas||0)>JORNADA?'var(--ok)':'var(--txt)'};font-weight:600">${(r.horas||0).toFixed(1)}h ${r.obs?'· '+r.obs:''}</td></tr>`).join('')}</tbody></table>
+          <td style="color:${(r.horas||0)>JORNADA?'var(--ok)':'var(--txt)'};font-weight:600">${(r.horas||0).toFixed(1)}h ${r.obs?'· '+esc(r.obs):''}</td></tr>`).join('')}</tbody></table>
      </div>
      <div class="panel"><h3>🏦 Banco de horas (hoje)</h3>
         ${banco.map(b=>`<div class="info-line"><span class="k">${b[0]}</span>
@@ -239,7 +239,7 @@ function viewProd(){
   const rank=Object.entries(prod).sort((a,b)=>b[1].receita-a[1].receita);
   return `<div class="panel"><h3>🏅 Produtividade por mecânico</h3>
     <table class="tbl"><thead><tr><th>Mecânico</th><th>OS</th><th>Receita</th><th>Tempo produtivo</th><th>Receita/OS</th></tr></thead>
-    <tbody>${rank.map(([m,d])=>`<tr><td><b>${m}</b></td><td>${d.os}</td><td style="color:var(--gold-2)">${money(d.receita)}</td><td>${(d.tempo/60).toFixed(1)}h</td><td>${money(d.receita/d.os)}</td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted)">Sem dados.</td></tr>'}</tbody></table>
+    <tbody>${rank.map(([m,d])=>`<tr><td><b>${esc(m)}</b></td><td>${d.os}</td><td style="color:var(--gold-2)">${money(d.receita)}</td><td>${(d.tempo/60).toFixed(1)}h</td><td>${money(d.receita/d.os)}</td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted)">Sem dados.</td></tr>'}</tbody></table>
   </div>`;
 }
 
@@ -258,8 +258,8 @@ function viewBem(){
    <div class="panel"><div class="head"><h3>😊 Pesquisa de bem-estar</h3><div class="sp"></div>
        <button class="b b-sm" onclick="salvarBemestar()">+ Registrar humor</button></div>
      <table class="tbl"><thead><tr><th>Colaborador</th><th>Data</th><th>Humor</th><th>Clima</th><th>Observação</th></tr></thead>
-     <tbody>${reg.slice().reverse().map(r=>`<tr><td>${r.funcionario}</td><td>${fmtFull(r.data)}</td>
-       <td>${emoji(r.humor)} ${r.humor}/5</td><td>${emoji(r.clima)} ${r.clima}/5</td><td style="color:var(--muted)">${r.obs||'—'}</td></tr>`).join('')}</tbody></table>
+     <tbody>${reg.slice().reverse().map(r=>`<tr><td>${esc(r.funcionario)}</td><td>${fmtFull(r.data)}</td>
+       <td>${emoji(r.humor)} ${r.humor}/5</td><td>${emoji(r.clima)} ${r.clima}/5</td><td style="color:var(--muted)">${esc(r.obs)||'—'}</td></tr>`).join('')}</tbody></table>
    </div>`;
 }
 function salvarBemestar(){
@@ -291,12 +291,12 @@ function viewAlav(){
        <button class="b b-sm" onclick="salvarMeta()">+ Meta</button></div>
      ${M.map(m=>{const pct=Math.min(100,Math.round(m.atual/m.alvo*100));
        return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px">
-         <span>${m.titulo}</span><span style="color:var(--gold-2)">${m.unidade==='R$'?money(m.atual):m.atual} / ${m.unidade==='R$'?money(m.alvo):m.alvo+' '+m.unidade} · ${pct}%</span></div>
+         <span>${esc(m.titulo)}</span><span style="color:var(--gold-2)">${m.unidade==='R$'?money(m.atual):m.atual} / ${m.unidade==='R$'?money(m.alvo):m.alvo+' '+m.unidade} · ${pct}%</span></div>
          <div class="bar"><i style="width:${pct}%"></i></div></div>`;}).join('')}
    </div>
    <div class="panel"><h3>🏅 Produtividade por mecânico</h3>
      <table class="tbl"><thead><tr><th>Mecânico</th><th>OS</th><th>Receita</th><th>Tempo produtivo</th><th>Receita/OS</th></tr></thead>
-     <tbody>${rank.map(([m,d])=>`<tr><td><b>${m}</b></td><td>${d.os}</td><td style="color:var(--gold-2)">${money(d.receita)}</td>
+     <tbody>${rank.map(([m,d])=>`<tr><td><b>${esc(m)}</b></td><td>${d.os}</td><td style="color:var(--gold-2)">${money(d.receita)}</td>
        <td>${(d.tempo/60).toFixed(1)}h</td><td>${money(d.receita/d.os)}</td></tr>`).join('')}</tbody></table>
    </div>`;
 }

@@ -76,7 +76,7 @@ function renderCRM(){
       <button class="b b-sm" onclick="gerarCampanha('revisao')">Campanha: revisão vencida</button>
       <button class="b b-ghost b-sm" onclick="relCRM_pdf()">📄 Relatório</button></div>
       <table class="tbl"><thead><tr><th>Cliente</th><th>Última troca de óleo</th><th>Revisão</th><th>Visitas</th><th>Gasto total</th><th>Ação</th></tr></thead>
-      <tbody>${D.map(d=>`<tr><td><b>${d.c.nome}</b><br><span style="color:var(--muted);font-size:11px">${d.c.tel||''}</span></td>
+      <tbody>${D.map(d=>`<tr><td><b>${esc(d.c.nome)}</b><br><span style="color:var(--muted);font-size:11px">${esc(d.c.tel)}</span></td>
         <td>${badge(d.oleo)}</td><td>${badge(d.rev)}</td><td>${d.visitas}</td>
         <td style="color:var(--gold-2)">${money(d.gasto)}</td>
         <td>${acoes(d.c, `Olá ${d.c.nome.split(' ')[0]}! Aqui é a ${window.BRAND_NAME||'nossa oficina'}. Notamos que seu veículo pode estar precisando de revisão/troca de óleo. Quer agendar? 🔧`)}</td></tr>`).join('')}</tbody></table>
@@ -84,13 +84,13 @@ function renderCRM(){
 
    <div class="grid2">
      <div class="panel"><h3>🎂 Aniversariantes do mês</h3>
-       ${aniver.length?aniver.map(c=>`<div class="veh"><div class="info"><div class="t">${c.nome}</div>
-         <div class="s">${fmtFull(c.nasc)} · ${c.tel||''}</div></div>
+       ${aniver.length?aniver.map(c=>`<div class="veh"><div class="info"><div class="t">${esc(c.nome)}</div>
+         <div class="s">${fmtFull(c.nasc)} · ${esc(c.tel)}</div></div>
          ${waBtn(c.tel,`Feliz aniversário, ${c.nome.split(' ')[0]}! 🎉 A ${window.BRAND_NAME||'nossa oficina'} deseja tudo de bom. Passe aqui e ganhe uma revisão de cortesia no seu veículo!`,'Parabenizar')}</div>`).join('')
          :'<div style="color:var(--muted);font-size:13px">Ninguém faz aniversário este mês.</div>'}
      </div>
      <div class="panel"><h3>😴 Clientes inativos</h3>
-       ${inativos.length?inativos.map(d=>`<div class="veh"><div class="info"><div class="t">${d.c.nome}</div>
+       ${inativos.length?inativos.map(d=>`<div class="veh"><div class="info"><div class="t">${esc(d.c.nome)}</div>
          <div class="s">Sem visita há ~${d.ultMes} meses · ${d.visitas} OS no histórico</div></div>
          ${waBtn(d.c.tel,`Olá ${d.c.nome.split(' ')[0]}! Sentimos sua falta. Que tal um check-up no seu veículo? Temos condição especial de retorno. 🚐`,'Reativar')}</div>`).join('')
          :'<div style="color:var(--muted);font-size:13px">Nenhum cliente inativo. 👏</div>'}
@@ -149,25 +149,25 @@ function crmDrill(tipo){
     titulo="🎂 Aniversariantes do mês";
     const L=WORK.clientes.filter(c=>c.nasc && new Date(c.nasc).getMonth()===mesAtual);
     head="<tr><th>Cliente</th><th>Nascimento</th><th>Telefone</th><th>Ação</th></tr>";
-    rows=L.map(c=>`<tr><td><b>${c.nome}</b></td><td>${fmtFull(c.nasc)}</td><td style="color:var(--muted)">${c.tel||''}</td><td>${wa(c,`Feliz aniversário, ${fn(c.nome)}! 🎉 A ${window.BRAND_NAME||'nossa oficina'} deseja tudo de bom. Passe aqui e ganhe uma revisão de cortesia no seu veículo!`)}</td></tr>`).join('');
+    rows=L.map(c=>`<tr><td><b>${esc(c.nome)}</b></td><td>${fmtFull(c.nasc)}</td><td style="color:var(--muted)">${esc(c.tel)}</td><td>${wa(c,`Feliz aniversário, ${fn(c.nome)}! 🎉 A ${window.BRAND_NAME||'nossa oficina'} deseja tudo de bom. Passe aqui e ganhe uma revisão de cortesia no seu veículo!`)}</td></tr>`).join('');
     vazio="Ninguém faz aniversário este mês.";
   } else if(tipo==='oleo'){
     titulo="🛢️ Óleo vencido";
     const L=D.filter(d=>d.oleo[0]==="Vencida");
     head="<tr><th>Cliente</th><th>Última troca</th><th>Telefone</th><th>Ação</th></tr>";
-    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td style="color:var(--bad)">há ~${d.mO} meses</td><td style="color:var(--muted)">${d.c.tel||''}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Seu veículo está com a troca de óleo vencida. Quer agendar? 🔧`)}</td></tr>`).join('');
+    rows=L.map(d=>`<tr><td><b>${esc(d.c.nome)}</b></td><td style="color:var(--bad)">há ~${d.mO} meses</td><td style="color:var(--muted)">${esc(d.c.tel)}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Seu veículo está com a troca de óleo vencida. Quer agendar? 🔧`)}</td></tr>`).join('');
     vazio="Nenhum óleo vencido. 👏";
   } else if(tipo==='revisao'){
     titulo="🔧 Revisão vencida";
     const L=D.filter(d=>d.rev[0]==="Vencida");
     head="<tr><th>Cliente</th><th>Última revisão</th><th>Telefone</th><th>Ação</th></tr>";
-    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td style="color:var(--bad)">há ~${d.mR} meses</td><td style="color:var(--muted)">${d.c.tel||''}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Seu veículo está com a revisão vencida. Vamos agendar? 🚐`)}</td></tr>`).join('');
+    rows=L.map(d=>`<tr><td><b>${esc(d.c.nome)}</b></td><td style="color:var(--bad)">há ~${d.mR} meses</td><td style="color:var(--muted)">${esc(d.c.tel)}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Seu veículo está com a revisão vencida. Vamos agendar? 🚐`)}</td></tr>`).join('');
     vazio="Nenhuma revisão vencida. 👏";
   } else if(tipo==='inativos'){
     titulo="😴 Clientes inativos";
     const L=D.filter(d=>d.inativo);
     head="<tr><th>Cliente</th><th>Sem visita</th><th style='text-align:center'>OS</th><th>Ação</th></tr>";
-    rows=L.map(d=>`<tr><td><b>${d.c.nome}</b></td><td>há ~${d.ultMes} meses</td><td style="text-align:center">${d.visitas}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Sentimos sua falta. Que tal um check-up no seu veículo? Temos condição especial de retorno. 🚐`)}</td></tr>`).join('');
+    rows=L.map(d=>`<tr><td><b>${esc(d.c.nome)}</b></td><td>há ~${d.ultMes} meses</td><td style="text-align:center">${d.visitas}</td><td>${wa(d.c,`Olá ${fn(d.c.nome)}! Sentimos sua falta. Que tal um check-up no seu veículo? Temos condição especial de retorno. 🚐`)}</td></tr>`).join('');
     vazio="Nenhum cliente inativo. 👏";
   } else if(tipo==='nps'){
     titulo="⭐ NPS — composição";
@@ -180,7 +180,7 @@ function crmDrill(tipo){
     titulo="👥 Base de clientes";
     sub="Ordenada por gasto acumulado";
     head="<tr><th>Cliente</th><th>Telefone</th><th style='text-align:center'>Visitas</th><th style='text-align:right'>Gasto total</th></tr>";
-    rows=D.slice().sort((a,b)=>b.gasto-a.gasto).map(d=>`<tr><td><b>${d.c.nome}</b></td><td style="color:var(--muted)">${d.c.tel||''}</td><td style="text-align:center">${d.visitas}</td><td style="text-align:right;color:var(--gold-2);font-weight:600">${money(d.gasto)}</td></tr>`).join('');
+    rows=D.slice().sort((a,b)=>b.gasto-a.gasto).map(d=>`<tr><td><b>${esc(d.c.nome)}</b></td><td style="color:var(--muted)">${esc(d.c.tel)}</td><td style="text-align:center">${d.visitas}</td><td style="text-align:right;color:var(--gold-2);font-weight:600">${money(d.gasto)}</td></tr>`).join('');
     vazio="Nenhum cliente cadastrado.";
   }
   const colspan=(head.match(/<th/g)||[]).length||2;
