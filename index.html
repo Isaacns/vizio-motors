@@ -12,7 +12,7 @@
 })();
 /* VERSÃO DO APP — bumpar a CADA deploy. É por este número que o push compara.
    §14.2: nunca `const` — colide com o escopo de script dos outros .js e derruba o arquivo. */
-window.APP_VERSION='1.0.91';
+window.APP_VERSION='1.0.93';
 </script>
 <html lang="pt-BR">
 <head>
@@ -215,7 +215,8 @@ td.acoes,th.acoes{white-space:nowrap;text-align:right}
 .pbig{text-align:center;padding:26px}
 .pbig .stt{font-family:var(--display);font-size:26px;color:var(--gold-2);font-weight:700;margin-bottom:4px}
 .pbar{height:12px;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden;margin:18px 0 6px}
-.pbar>i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,var(--gold-4),var(--gold-2));transition:width .8s}
+/* §20 — preenchimento por transform (nunca layout): o track .pbar tem overflow:hidden e cuida do arredondamento. */
+.pbar>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--gold-4),var(--gold-2));transform-origin:left;transform:scaleX(var(--p,0));transition:transform .8s}
 .pstep{display:flex;align-items:center;gap:12px;padding:11px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 .pstep .pd{width:22px;height:22px;border-radius:50%;flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-size:12px;background:#2a281f;border:1px solid #3a372d;color:var(--muted)}
 .pstep.done .pd{background:var(--gold-3);color:#ffffff;border-color:var(--gold-2)}
@@ -234,6 +235,17 @@ td.acoes,th.acoes{white-space:nowrap;text-align:right}
 }
 .menu-btn{display:none;background:none;border:1px solid var(--line);color:var(--gold-2);border-radius:10px;width:40px;height:40px;font-size:18px;cursor:pointer;align-items:center;justify-content:center}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* §20 — micro-animações tasteful (PADRAO-MOVIMENTO): entrada fade+subida com stagger nos KPIs
+   e rise suave nos painéis, ao montar cada view. Só transform/opacity; o guard de
+   prefers-reduced-motion acima desliga tudo automaticamente. */
+@keyframes vmRiseIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.kpis>.kpi{animation:vmRiseIn .42s ease-out both}
+.kpis>.kpi:nth-child(2){animation-delay:.05s}
+.kpis>.kpi:nth-child(3){animation-delay:.10s}
+.kpis>.kpi:nth-child(4){animation-delay:.15s}
+.kpis>.kpi:nth-child(5){animation-delay:.20s}
+.kpis>.kpi:nth-child(6){animation-delay:.25s}
+.panel{animation:vmRiseIn .42s ease-out both}
 footer{margin-top:26px;text-align:center;font-size:11px;color:var(--dim);letter-spacing:.5px}
 footer b{color:var(--gold-4)}
 </style>
@@ -331,12 +343,16 @@ footer b{color:var(--gold-4)}
 <div id="portal" style="display:none"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- §20 — Gráficos vivos: overlay líquido sobre o Chart.js. Visual-only, com fallback,
+     respeita prefers-reduced-motion, não toca em dados. DEPOIS do Chart.js e ANTES dos
+     scripts que criam os gráficos (dashboard.js, financeiro.js). -->
+<script src="app-charts-vivo.js?v=1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="esc.js?v=091"></script>
 <script src="config.js?v=091"></script>
 <script src="dados.js?v=091"></script>
-<script src="app.js?v=091"></script>
+<script src="app.js?v=092"></script>
 <script src="financeiro.js?v=091"></script>
 <script src="crm.js?v=091"></script>
 <script src="dashboard.js?v=091"></script>
@@ -346,12 +362,13 @@ footer b{color:var(--gold-4)}
 <script src="alavancagem-vm.js?v=091"></script>
 <script src="agenda-vm.js?v=091"></script>
 <script src="estoque-pred.js?v=091"></script>
-<script src="configuracoes.js?v=091"></script>
+<script src="configuracoes.js?v=093"></script>
 <script src="relatorio.js?v=091"></script>
 <script src="torque.js?v=091"></script>
 <script src="rbac.js?v=091"></script>
 <script src="theme.js?v=091"></script>
 <script src="supabase-mode.js?v=091"></script>
+<script src="motion-vm.js?v=092"></script>
 <script src="version-gate.js?v=091"></script>
 </body>
 </html>

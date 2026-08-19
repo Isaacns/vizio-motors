@@ -396,7 +396,7 @@ function renderPortal(token){
       <div class="plate" style="margin:8px 0;font-size:15px">${esc(v.placa)}</div>
       <div class="stt">${STATUS_FLOW[o.statusIdx]}</div>
       <div style="color:var(--muted);font-size:13px">${o.statusIdx>=8?'Seu veículo está pronto! 🎉':'Previsão de entrega: '+fmtFull(o.previsao||o.entrada)}</div>
-      <div class="pbar"><i style="width:${pct}%"></i></div>
+      <div class="pbar"><i style="--p:${(pct||0)/100}"></i></div>
       <div style="color:var(--muted);font-size:12px">${pct}% concluído</div>
     </div>
     <div class="card-glass" style="padding:14px 18px;margin-top:16px">

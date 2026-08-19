@@ -9,6 +9,12 @@
    inteiro. (Bug real, 19/07/2026: quebrou o módulo Configurações por completo.) */
 const APP_VERSION = window.APP_VERSION || "0.6.0";
 const CHANGELOG = [
+  ["1.0.93","Gráficos vivos: as barras do dashboard e do financeiro ganham uma superfície líquida que ondula suavemente, como se estivessem se enchendo — um toque sutil, sem pesar (respeita quem prefere menos animação)"],
+  ["1.0.92","Sistema com movimento vivo: os números principais contam até o valor, os cards entram com um leve deslize e o mouse ganha realces suaves — sem pesar (respeita quem prefere menos animação)"],
+  ["1.0.91","Mais segurança: todos os campos de cadastro passaram a ser protegidos contra conteúdo malicioso, inclusive no portal do cliente e nos relatórios em PDF"],
+  ["1.0.90","Arrastar-e-soltar da Agenda corrigido: mover uma atividade entre dias e períodos ficou preciso de verdade"],
+  ["1.0.89","Agenda do dono: título livre, categorias, cliente/veículo opcionais e concluir/reabrir atividades"],
+  ["1.0.87","Push de atualização em arquivo próprio, com aviso amigável na tela quando há versão nova (inclusive no login)"],
   ["1.0.85","Push de atualização conforme o playbook §14 e guarda de HTTPS com loopback"],
   ["1.0.84","RBAC no banco (perfis e usuários multiempresa com RLS) e ícone na aba"],
   ["1.0.83","Usuário no topo com foto, ficha ao clicar no registro e upload de avatar"],
