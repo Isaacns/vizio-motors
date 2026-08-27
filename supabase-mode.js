@@ -27,6 +27,10 @@
     agenda:    {tbl:"mt_agenda",    key:"agenda",
                 to:r=>({cliente_id:r.clienteId||null,veiculo_id:r.veiculoId||null,duracao_min:r.duracaoMin||null}),
                 from:r=>({clienteId:r.cliente_id||'',veiculoId:r.veiculo_id||'',duracaoMin:r.duracao_min||null})},
+    /* §16.5 quadro de tarefas: tempo cronometrado no cliente (status_desde + seg_*). */
+    tarefas:   {tbl:"mt_tarefas",   key:"tarefas",
+                to:r=>({status_desde:r.statusDesde||new Date().toISOString(),seg_pendente:r.segPendente||0,seg_andamento:r.segAndamento||0,cliente_id:r.clienteId||null,os_id:r.osId||null}),
+                from:r=>({statusDesde:r.status_desde,segPendente:r.seg_pendente||0,segAndamento:r.seg_andamento||0,clienteId:r.cliente_id||'',osId:r.os_id||'',descricao:r.descricao||''})},
     financeiro:{tbl:"mt_financeiro",key:"financeiro",to:r=>({descricao:r.desc,os_id:r.osId||null}),
                 from:r=>({desc:r.descricao,osId:r.os_id})},
     notas:     {tbl:"mt_nf",        key:"notas",     to:r=>({os_id:r.osId||null}), from:r=>({osId:r.os_id})},
@@ -34,8 +38,8 @@
     bemestar:  {tbl:"mt_bemestar",  key:"bemestar"},
     metas:     {tbl:"mt_metas",     key:"metas"}
   };
-  const DROP_DB   = ["org_id","created_at","updated_at","cliente_id","veiculo_id","status_idx","tempo_min","descricao","os_id","duracao_min"];
-  const DROP_WORK = ["clienteId","veiculoId","statusIdx","tempoMin","desc","osId","duracaoMin"];
+  const DROP_DB   = ["org_id","created_at","updated_at","cliente_id","veiculo_id","status_idx","tempo_min","descricao","os_id","duracao_min","status_desde","seg_pendente","seg_andamento"];
+  const DROP_WORK = ["clienteId","veiculoId","statusIdx","tempoMin","desc","osId","duracaoMin","statusDesde","segPendente","segAndamento"];
 
   function toDB(name,row){ const m=MAP[name],o={};
     for(const k in row){ if(DROP_WORK.includes(k))continue; o[k]=row[k]; }
@@ -125,7 +129,7 @@
   function subscribeRealtime(){
     if(_sub)return; _sub=true;
     _rt=SB.channel("mt_live_"+ORG);
-    ["mt_os","mt_financeiro","mt_clientes","mt_veiculos","mt_agenda","mt_pecas","mt_nf","mt_ponto","mt_bemestar","mt_metas"].forEach(tbl=>{
+    ["mt_os","mt_financeiro","mt_clientes","mt_veiculos","mt_agenda","mt_tarefas","mt_pecas","mt_nf","mt_ponto","mt_bemestar","mt_metas"].forEach(tbl=>{
       _rt.on("postgres_changes",{event:"*",schema:"public",table:tbl,filter:"org_id=eq."+ORG}, ()=>debouncedReload());
     });
     _rt.subscribe();
@@ -137,9 +141,10 @@
     window[name]=function(){ const r=o.apply(this,arguments); scheduleSync(); return r; }; }
   ["stepOS","toggleChk","toggleAprov","delItem","marcarPago","closeModal","gerarRecebiveis",
    "gerarCampanha","emitirNF","cancelarNF","registrarPonto","salvarBemestar","salvarMeta",
-   "agMover","agConcluir"].forEach(wrap);   /* §15: arrastar/concluir alteram dado -> sincronizam como qualquer save */
+   "agMover","agConcluir","tarMover"].forEach(wrap);   /* §15/§16.5: mover tarefa/agenda altera dado -> sincroniza como qualquer save */
   const _delOS=window.delOS; window.delOS=function(id){ sbDelete("mt_os",id); return _delOS(id); };
   const _delAg=window.delAg; if(_delAg)window.delAg=function(id){ sbDelete("mt_agenda",id); return _delAg(id); };
+  const _delTarefa=window.delTarefa; if(_delTarefa)window.delTarefa=function(id){ sbDelete("mt_tarefas",id); return _delTarefa(id); };
   const _delLanc=window.delLanc; if(_delLanc)window.delLanc=function(id){ sbDelete("mt_financeiro",id); return _delLanc(id); };
   const _delServico=window.delServico; if(_delServico)window.delServico=function(id){ sbDelete("mt_servicos",id); return _delServico(id); };
   /* §8 — quem está logado define o que o menu mostra. Guarda o e-mail da sessão para o

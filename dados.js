@@ -80,5 +80,13 @@ const DADOS = {
     {id:"A2", data:"2026-07-04", hora:"10:30", clienteId:"C5", veiculoId:"V5", tipo:"Retorno", obs:"Conferir freios"},
     {id:"A3", data:"2026-07-04", hora:"14:00", clienteId:"C3", veiculoId:"V3", tipo:"Diagnóstico", obs:"Elétrica"},
     {id:"A4", data:"2026-07-05", hora:"09:00", clienteId:"C4", veiculoId:"V4", tipo:"Revisão", obs:"Preventiva frota"}
+  ],
+  // §16.5 quadro de tarefas — cronometragem no cliente (statusDesde relativo a agora)
+  tarefas:[
+    {id:"T1", titulo:"Diagnóstico elétrico — Onix (ABC-2F10)", descricao:"Luz de injeção acesa; rodar scanner OBD.", status:"andamento", statusDesde:new Date(Date.now()-11*60000).toISOString(), segPendente:2400, segAndamento:300, ordem:0, prioridade:"alta", clienteId:"C3", osId:"OS3", historico:[]},
+    {id:"T3", titulo:"Aprovar orçamento da embreagem com o cliente", descricao:"Ligar para Transportes Bahia Log e confirmar aprovação.", status:"andamento", statusDesde:new Date(Date.now()-7*60000).toISOString(), segPendente:4200, segAndamento:180, ordem:1, prioridade:"alta", clienteId:"C1", osId:"OS1", historico:[]},
+    {id:"T2", titulo:"Separar peças — Saveiro (RJZ-1D23)", descricao:"Kit de embreagem + óleo; conferir estoque.", status:"pendente", statusDesde:new Date(Date.now()-25*60000).toISOString(), segPendente:0, segAndamento:0, ordem:0, prioridade:"normal", clienteId:"C1", osId:"OS1", historico:[]},
+    {id:"T5", titulo:"Ligar para fornecedor FrenaBR (discos)", descricao:"Repor disco de freio (par) — abaixo do mínimo.", status:"pendente", statusDesde:new Date(Date.now()-5*60000).toISOString(), segPendente:0, segAndamento:0, ordem:1, prioridade:"baixa", clienteId:"", osId:"", historico:[]},
+    {id:"T4", titulo:"Lavagem final — Corolla (GHT-3B77)", descricao:"Higienização e entrega; pronto para retirada.", status:"concluida", statusDesde:new Date(Date.now()-2*3600000).toISOString(), segPendente:900, segAndamento:2100, ordem:0, prioridade:"normal", clienteId:"C5", osId:"OS5", historico:[]}
   ]
 };

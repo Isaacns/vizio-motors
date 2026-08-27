@@ -9,6 +9,7 @@
    inteiro. (Bug real, 19/07/2026: quebrou o módulo Configurações por completo.) */
 const APP_VERSION = window.APP_VERSION || "0.6.0";
 const CHANGELOG = [
+  ["1.0.94","Quadro de tarefas da oficina na Agenda: organize o serviço em Pendente → Em andamento → Concluída arrastando os cartões, com o tempo de cada etapa cronometrado e guardado no histórico"],
   ["1.0.93","Gráficos vivos: as barras do dashboard e do financeiro ganham uma superfície líquida que ondula suavemente, como se estivessem se enchendo — um toque sutil, sem pesar (respeita quem prefere menos animação)"],
   ["1.0.92","Sistema com movimento vivo: os números principais contam até o valor, os cards entram com um leve deslize e o mouse ganha realces suaves — sem pesar (respeita quem prefere menos animação)"],
   ["1.0.91","Mais segurança: todos os campos de cadastro passaram a ser protegidos contra conteúdo malicioso, inclusive no portal do cliente e nos relatórios em PDF"],
@@ -121,8 +122,12 @@ window.novoServico=novoServico; window.editServico=editServico; window.delServic
 
 function trocarSenha(){
   modal("Alterar minha senha","A nova senha vale para o seu login (Supabase Auth)",`
-    <label>Nova senha</label><input id="ns1" type="password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
-    <label>Confirmar nova senha</label><input id="ns2" type="password" placeholder="repita a nova senha" autocomplete="new-password">
+    <label>Nova senha</label>
+    <div style="position:relative"><input id="ns1" type="password" placeholder="mínimo 8 caracteres" autocomplete="new-password" style="padding-right:44px">
+      <button type="button" class="pw-eye" onclick="var p=document.getElementById('ns1');p.type=(p.type==='password'?'text':'password');this.textContent=(p.type==='password'?'👁':'🙈')" aria-label="Mostrar/ocultar senha">👁</button></div>
+    <label>Confirmar nova senha</label>
+    <div style="position:relative"><input id="ns2" type="password" placeholder="repita a nova senha" autocomplete="new-password" style="padding-right:44px">
+      <button type="button" class="pw-eye" onclick="var p=document.getElementById('ns2');p.type=(p.type==='password'?'text':'password');this.textContent=(p.type==='password'?'👁':'🙈')" aria-label="Mostrar/ocultar senha">👁</button></div>
     <div style="font-size:11.5px;color:var(--muted);margin-top:8px">Use uma senha forte e única. Após salvar, ela substitui a anterior imediatamente.</div>`,
    async ()=>{
      const a=(document.getElementById('ns1')||{}).value||"", b=(document.getElementById('ns2')||{}).value||"";

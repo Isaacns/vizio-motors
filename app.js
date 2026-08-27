@@ -428,6 +428,8 @@ window.addEventListener('pointerleave',()=>glow.style.opacity=0);
 document.getElementById('emblemLogin').innerHTML=emblemSVG();
 document.getElementById('emblemLogin').firstElementChild.style.maxWidth='120px';
 (function boot(){const h=location.hash;
+  /* footer lê a versão única (§14.2) — nunca mais uma 2ª verdade fixa no HTML */
+  const fv=document.getElementById('footVer'); if(fv)fv.textContent='v'+(window.APP_VERSION||'');
   if(h.indexOf('#p=')===0){renderPortal(h.slice(3));}
   setInterval(checkAgendaAlerts,30000);
 })();
