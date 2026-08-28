@@ -17,13 +17,57 @@ function brandSigla(){
   return (ini||'VM').slice(0,3);
 }
 /* AURA ORBI — logo redonda animada (pulseLogo + halo pulsante), CSS/SVG.
-   Parametrizavel pelo Camaleao (usa os tokens de acento --gold e --accent2 e BRAND_NAME). */
+   Parametrizavel pelo Camaleao (usa os tokens de acento --gold e --accent2 e BRAND_NAME).
+   LOGO EM IMAGEM por identidade: quando a marca tem imagem própria (BRAND_LOGO_IMG — ex.:
+   Oficina R3), a AURA envolve a IMAGEM (halos pulsantes + respiração), em vez do emblema
+   gerado com a sigla. Sem imagem (padrão VIZIO), mantém a AURA gerada. */
 function emblemSVG(size){ size=+size||120;
+  var img=window.BRAND_LOGO_IMG;
+  if(img){
+    return '<div class="aura aura-img" style="width:'+size+'px;height:'+size+'px">'+
+      '<span class="halo"></span><span class="halo two"></span>'+
+      '<span class="core img"><img src="'+esc(img)+'" alt="'+esc(window.BRAND_NAME||'')+'" '+
+        'onerror="this.style.display=\'none\';this.parentNode.innerHTML=\'<b style=&quot;font-size:'+Math.round(size*0.34)+'px&quot;>'+esc(brandSigla())+'</b>\'"></span></div>';
+  }
   return '<div class="aura" style="width:'+size+'px;height:'+size+'px">'+
     '<span class="halo"></span><span class="halo two"></span><span class="ring"></span>'+
     '<span class="core"><b style="font-size:'+Math.round(size*0.34)+'px">'+esc(brandSigla())+'</b></span></div>';
 }
 window.emblemSVG=emblemSVG;
+
+/* Paleta categórica coerente com a MARCA (§ bug 2): gera N cores distintas a partir dos
+   tokens --gold-2 (acento) e --accent2, girando o matiz em torno do acento e variando a
+   leveza. Para a identidade R3 (ouro) sai um leque quente ouro→âmbar→bronze; para a VIZIO
+   (azul) sai um leque de azuis/turquesas. Sempre acompanha o Camaleão. */
+function _hexToRgb(h){ h=String(h||'').trim().replace('#',''); if(h.length===3)h=h.split('').map(c=>c+c).join('');
+  var n=parseInt(h||'5b8cff',16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
+function _rgbToHsl(r,g,b){ r/=255;g/=255;b/=255; var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0,s=0,l=(mx+mn)/2;
+  if(d){ s=l>0.5?d/(2-mx-mn):d/(mx+mn); h=mx===r?((g-b)/d+(g<b?6:0)):mx===g?((b-r)/d+2):((r-g)/d+4); h*=60; }
+  return {h:h,s:s,l:l}; }
+function _hslToHex(h,s,l){ h=((h%360)+360)%360; s=Math.max(0,Math.min(1,s)); l=Math.max(0,Math.min(1,l));
+  var c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2, r=0,g=0,b=0;
+  if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
+  return '#'+[r,g,b].map(v=>Math.round((v+m)*255).toString(16).padStart(2,'0')).join(''); }
+function vmChartColors(n){ n=Math.max(1,n|0);
+  var cs=getComputedStyle(document.documentElement);
+  var a1=(cs.getPropertyValue('--gold-2').trim())||'#5b8cff';
+  var a2=(cs.getPropertyValue('--accent2').trim())||'';
+  var h1=_rgbToHsl(_hexToRgb(a1).r,_hexToRgb(a1).g,_hexToRgb(a1).b);
+  var h2=a2?_rgbToHsl(_hexToRgb(a2).r,_hexToRgb(a2).g,_hexToRgb(a2).b):null;
+  // amplitude do leque de matiz: pequena para acentos quentes (ouro), maior p/ frios (azul)
+  var warm=(h1.h<70||h1.h>330), span=warm?46:120, base=h1.h-span/2;
+  var out=[];
+  for(var i=0;i<n;i++){ var t=n>1?i/(n-1):0.5;
+    var hue=base+span*t + Math.sin(t*6.28)*6;
+    var sat=Math.max(.42,Math.min(.86,h1.s*(0.9+0.25*Math.cos(t*3.14))));
+    var lit=0.60 - 0.12*Math.cos(t*3.14);   // 0.48..0.72, legível no escuro
+    out.push(_hslToHex(hue,sat,lit));
+  }
+  // garante que o acento da marca lidere a série
+  out[0]=a1; if(h2&&n>2)out[Math.min(n-1,2)]=a2;
+  return out;
+}
+window.vmChartColors=vmChartColors;
 
 /* ===== estado ===== */
 let WORK = JSON.parse(JSON.stringify(DADOS));
@@ -163,17 +207,22 @@ function renderHome(){
 let _liqRaf=null,_liqPhase=0;
 function vmLiquidChart(id,pairs){
   const cv=document.getElementById(id); if(!cv||!pairs||!pairs.length) return;
-  if(_liqRaf)cancelAnimationFrame(_liqRaf);
+  if(_liqRaf)cancelAnimationFrame(_liqRaf);   /* rAF ÚNICO: cancela o loop líquido anterior (troca de tela) */
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
   const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-  const accent=css('--gold-2')||'#5b8cff', primary=css('--gold-4')||'#2a4fb0';
   const muted=css('--muted')||'#79838f', line=css('--line')||'rgba(255,255,255,.06)';
   const labels=pairs.map(p=>{const n=String(p[0]);return n.length>10?n.slice(0,10)+'…':n;});
   const vals=pairs.map(p=>p[1]);
+  /* CADA BARRA COM SUA COR — paleta categórica derivada dos tokens da marca (Camaleão). */
+  const cols=(typeof vmChartColors==='function')?vmChartColors(vals.length):vals.map(()=>css('--gold-2')||'#5b8cff');
   const hexa=(hex,a)=>{const c=(hex||'').replace('#','');if(c.length!==6)return hex;const n=parseInt(c,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;};
+  const dark=(hex,f)=>{const c=(hex||'').replace('#','');if(c.length!==6)return hex;const n=parseInt(c,16);return `rgb(${Math.round((n>>16&255)*f)},${Math.round((n>>8&255)*f)},${Math.round((n&255)*f)})`;};
   const rr=(ctx,x,y,w,h,r)=>{r=Math.min(r,w/2,Math.abs(h)/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();};
   const max=Math.max(...vals)*1.15||1, fill=vals.map(()=>0);
   function frame(){
+    /* CUR guard: um canvas de tela fechada/removida nunca continua animando.
+       (Aba oculta não precisa de guard: o rAF já é suspenso pelo navegador — e o último
+        quadro desenhado permanece; um guard aqui só impediria o 1º desenho.) */
     if(!document.body.contains(cv)){cancelAnimationFrame(_liqRaf);_liqRaf=null;return;}
     const dpr=Math.min(2,devicePixelRatio||1), w=cv.clientWidth, h=cv.clientHeight;
     if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
@@ -183,13 +232,14 @@ function vmLiquidChart(id,pairs){
     ctx.strokeStyle=line;ctx.lineWidth=1;
     for(let g=0;g<=3;g++){const y=pad+(h-pad*2-14)*g/3;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-pad,y);ctx.stroke();}
     vals.forEach((val,i)=>{
+      const col=cols[i%cols.length];               // cor própria da barra (paleta da marca)
       const target=val/max; fill[i]+=(target-fill[i])*(reduce?1:0.08);
       const x=pad+gap*i+(gap-bw)/2, base=h-pad-6, top=base-(h-pad*2-14)*fill[i];
-      ctx.fillStyle=hexa(accent,.08); rr(ctx,x,pad+8,bw,base-pad-2,6); ctx.fill();
+      ctx.fillStyle=hexa(col,.09); rr(ctx,x,pad+8,bw,base-pad-2,6); ctx.fill();   // trilho da barra na própria cor
       ctx.save(); rr(ctx,x,top,bw,base-top,6); ctx.clip();
-      for(let L=0;L<2;L++){ctx.beginPath();const amp=L?2.2:2.4,ph=_liqPhase+(L?1.6:0),col=L?hexa(primary,.55):accent;
+      for(let L=0;L<2;L++){ctx.beginPath();const amp=L?2.2:2.4,ph=_liqPhase+(L?1.6:0),wcol=L?hexa(dark(col,.62),.55):col;
         ctx.moveTo(x,base);for(let px=0;px<=bw;px++){const yy=top+Math.sin((px/bw*6.28)+ph)*amp;ctx.lineTo(x+px,yy);}
-        ctx.lineTo(x+bw,base);ctx.closePath();ctx.fillStyle=col;ctx.fill();}
+        ctx.lineTo(x+bw,base);ctx.closePath();ctx.fillStyle=wcol;ctx.fill();}
       ctx.restore();
       ctx.fillStyle=muted;ctx.font='10px Inter,sans-serif';ctx.textAlign='center';
       ctx.fillText(labels[i],x+bw/2,h-8);

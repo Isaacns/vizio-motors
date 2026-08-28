@@ -27,8 +27,8 @@ if(REDUCE) return; // sem onda contínua no modo reduzido
 /* ---- helpers ---- */
 function rr(c,x,y,w,h,r){ r=Math.max(0,Math.min(r,w/2,h/2)); c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
 function accent(){ var s=getComputedStyle(document.documentElement), v;
-  ["--orange","--acento","--accent","--primary","--brand","--cor-acento"].some(function(k){ var x=s.getPropertyValue(k); if(x&&x.trim()){v=x.trim();return true;} return false; });
-  return v||"#FF5A00"; }
+  ["--gold-2","--orange","--acento","--accent","--primary","--brand","--cor-acento"].some(function(k){ var x=s.getPropertyValue(k); if(x&&x.trim()){v=x.trim();return true;} return false; });
+  return v||"#5b8cff"; }
 function hexA(hex,a){ var h=String(hex||"").trim().replace("#","");
   if(h.length===3)h=h.split("").map(function(c){return c+c;}).join("");
   var r=parseInt(h.slice(0,2),16)||0,g=parseInt(h.slice(2,4),16)||0,b=parseInt(h.slice(4,6),16)||0;
@@ -62,7 +62,13 @@ function bgOf(node){ // cor de fundo SÓLIDA atrás do gráfico (sobe até achar
   return null; // sem fundo sólido -> usa o fallback (onda sutil, independente de fundo)
 }
 
-var phase=0, raf=0, playing=false;
+var phase=0, raf=0, playing=false, _last=0;
+/* Throttle do overlay: a onda é sutil; 30 fps basta e corta pela metade o custo de
+   composição sobre as superfícies glass (o "travamento" vinha de rAF a 60 fps varrendo
+   6 gráficos com leitura de layout a cada quadro). A GEOMETRIA das barras é recapturada
+   só a cada ~180 ms (muda devagar); a onda é redesenhada em cada quadro com os retângulos
+   já em cache — desacopla o caro (layout) do barato (canvas). */
+var FRAME_MS=32, CAP_MS=180;
 
 function overlayFor(chart){
   var cv=chart.canvas, parent=cv&&cv.parentNode; if(!parent)return null;
@@ -159,15 +165,23 @@ function inView(o){
 }
 
 function frame(force){
-  phase+=0.05;
+  phase+=0.08;
+  var now=(window.performance&&performance.now)?performance.now():Date.now();
   var insts=[]; try{ var m=Chart.instances||{}; for(var k in m){ if(m[k]&&m[k].canvas)insts.push(m[k]); } }catch(_){}
   for(var i=0;i<insts.length;i++){
     var rec=overlayFor(insts[i]); if(!rec)continue;
-    if(force||inView(rec.over)){ capture(insts[i],rec); draw(rec); }
-    else if(rec.octx&&rec._w){ rec.octx.setTransform(rec._dpr,0,0,rec._dpr,0,0); rec.octx.clearRect(0,0,rec._w,rec._h); }
+    if(force||inView(rec.over)){
+      if(force || !rec._capAt || (now-rec._capAt)>CAP_MS){ capture(insts[i],rec); rec._capAt=now; }
+      draw(rec);
+    }
+    else if(rec.octx&&rec._w){ rec.octx.setTransform(rec._dpr,0,0,rec._dpr,0,0); rec.octx.clearRect(0,0,rec._w,rec._h); rec._capAt=0; }
   }
 }
-function loop(){ frame(false); if(playing) raf=requestAnimationFrame(loop); }
+function loop(ts){ if(playing) raf=requestAnimationFrame(loop);
+  ts=ts||((window.performance&&performance.now)?performance.now():Date.now());
+  if(ts-_last<FRAME_MS) return;      /* gate ~30 fps */
+  _last=ts; frame(false);
+}
 function start(){ if(playing||REDUCE)return; playing=true; raf=requestAnimationFrame(loop); }
 function stop(){ playing=false; cancelAnimationFrame(raf); }
 

@@ -11,6 +11,12 @@
    (`vizio-symbol.png` é o nome legado; mantido no repositório para não quebrar
     quem ainda estiver rodando JS antigo em cache — Lei de Postel, §14.4.) */
 const VIZIO_BRAND={nome:"Vizio Motors",accent:"#5aa0ff",logo:"vizio-symbol-light.png"};
+/* Identidade Oficina R3 (preto + ouro) — assets reais em assets/r3-emblem.svg.
+   É a identidade ATIVA da oficina demonstração (org a1a1a1a1…0001) e a semente do
+   modo demo. Reversível pela tela Identidade (Restaurar VIZIO). */
+const VM_R3_BRAND={nome:"Oficina R3",accent:"#E6B325",accent2:"#C6892B",radius:14,
+                   logo:"assets/r3-emblem.svg",tema:"custom"};
+window.VM_R3_BRAND=VM_R3_BRAND;
 /* logo VIZIO por tema: clara (traços claros) no escuro; navy no fundo branco */
 function vizioLogo(){ return document.documentElement.classList.contains('theme-light')?'vizio-symbol-dark.png':'vizio-symbol-light.png'; }
 function _emSize(id){ return id==='emblemSide'?44:id==='emblemP'?104:120; }
@@ -42,8 +48,16 @@ function applyTheme(b){
   var acc2=b.accent2||b.cor_secundaria||(bk&&bk.accent2); rs.setProperty('--accent2', acc2||shade(acc,28));
   var rad=(b.radius!=null&&b.radius!=='')?b.radius:(bk?bk.radius:null); if(rad!=null)rs.setProperty('--radius', rad+'px');
   window.__brandKit={accent:acc,accent2:acc2||shade(acc,28),radius:rad};
-  var custom=(b&&(b.logo||b.logo_url)); window.__brandCustom=!!custom;
+  var custom=(b&&(b.logo||b.logo_url));
+  /* O símbolo VIZIO padrão (vizio-symbol*) NÃO conta como logo próprio: a marca VIZIO
+     mantém a AURA gerada (emblema com sigla). Só uma imagem de marca própria (R3, upload
+     do cliente) veste a AURA com a imagem. */
+  var isDefaultSym=!custom||/vizio-symbol/.test(String(custom));
+  window.__brandCustom=!!custom && !isDefaultSym;
   window.BRAND_LOGO=custom||vizioLogo();
+  /* LOGO EM IMAGEM por identidade (§ bug 3): a imagem só aparece no emblema/AURA quando é
+     uma marca própria; senão fica vazio e emblemSVG desenha a AURA gerada. */
+  window.BRAND_LOGO_IMG=window.__brandCustom?window.BRAND_LOGO:'';
   window.BRAND_NAME=b.nome||b.nome_exibicao||VIZIO_BRAND.nome;
   ['emblemLogin','emblemSide','emblemP'].forEach(function(id){
     var e=document.getElementById(id);
@@ -88,6 +102,25 @@ window.brandExtract=brandExtract;
 function _bkLoad(){ try{return JSON.parse(localStorage.getItem('vm_brandkit')||'null');}catch(e){return null;} }
 function _bkSave(o){ try{localStorage.setItem('vm_brandkit',JSON.stringify(o));}catch(e){} }
 window._bkLoad=_bkLoad;
+/* Persistência TOTAL da identidade (§4 do passe): a marca inteira — nome, cores, raio e
+   logo em imagem — fica no localStorage para PERMANECER até ser revertida (o nível da org
+   no Supabase é a outra metade, aplicada no login por fetchBrand). Boot reaplica antes do
+   login para a tela de entrada já vestir a identidade ativa. */
+function _brandFullSave(b){ try{ if(b) localStorage.setItem('vm_brand_full',JSON.stringify(b));
+  else localStorage.removeItem('vm_brand_full'); }catch(e){} }
+function _brandFullLoad(){ try{ return JSON.parse(localStorage.getItem('vm_brand_full')||'null'); }catch(e){ return null; } }
+window._brandFullSave=_brandFullSave; window._brandFullLoad=_brandFullLoad;
+/* Aplica a identidade R3 (preto+ouro) a TODO o sistema e persiste. */
+function aplicarR3(){ applyTheme(VM_R3_BRAND); _bkSave({accent:VM_R3_BRAND.accent,accent2:VM_R3_BRAND.accent2,radius:VM_R3_BRAND.radius,org:window.__ORG||'demo'});
+  _brandFullSave(VM_R3_BRAND); if(typeof vmRefreshCharts==='function')vmRefreshCharts(); }
+window.aplicarR3=aplicarR3;
+/* Re-renderiza a view atual quando ela tem gráficos, para o acento categórico acompanhar a marca. */
+function vmRefreshCharts(){ var t=(document.getElementById('pageTitle')||{}).textContent;
+  if(t==='Dashboard Executivo'&&typeof renderDash==='function')renderDash();
+  else if(t==='Financeiro'&&typeof renderFinanceiro==='function')renderFinanceiro();
+  else if(t==='Serviços'&&typeof renderServicos==='function')renderServicos();
+  else if((t==='Início'||t==='')&&typeof renderHome==='function')renderHome(); }
+window.vmRefreshCharts=vmRefreshCharts;
 
 /* ---------- tela de Identidade / White-label (admin master) ---------- */
 function abrirMarca(){
@@ -125,7 +158,9 @@ function renderMarca(){
        '<div style="width:88px;height:88px;border:1px solid var(--line);border-radius:16px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25)"><img id="mk_prev" src="'+logo+'" style="max-width:70px;max-height:70px"></div>'+
        '<div style="font-size:12px;color:var(--muted)" id="mk_hint">Prévia da logo. Ao subir uma logo, as cores são extraídas e aplicadas ao vivo.</div>'+
      '</div>'+
-     '<div class="mact" style="justify-content:space-between;margin-top:20px"><button class="b b-ghost" onclick="resetMarca()">Restaurar VIZIO</button>'+
+     '<div class="mact" style="justify-content:space-between;margin-top:20px;flex-wrap:wrap;gap:10px">'+
+       '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="b b-ghost" onclick="resetMarca()">Restaurar VIZIO</button>'+
+       '<button class="b b-ghost" onclick="aplicarR3();renderMarca()" title="Aplicar a identidade preto+ouro da Oficina R3">🛠 Aplicar Oficina R3</button></div>'+
        '<button class="b" onclick="salvarMarca()">Salvar identidade</button></div>'+
    '</div></div>';
   var f=document.getElementById('mk_logo');
@@ -142,7 +177,9 @@ function renderMarca(){
 window.renderMarca=renderMarca;
 
 function resetMarca(){ applyTheme(VIZIO_BRAND);
-  if(window.__SB&&window.__ORG){ window.__SB.from('mt_orgs').update({cor_primaria:null,logo_url:null,tema:'vizio'}).eq('id',window.__ORG); }
+  if(window.__SB&&window.__ORG){ window.__SB.from('mt_orgs').update({cor_primaria:null,cor_secundaria:null,radius:null,logo_url:null,tema:'vizio'}).eq('id',window.__ORG); }
+  _bkSave({accent:VIZIO_BRAND.accent,org:window.__ORG||'demo'}); _brandFullSave(null);
+  if(typeof vmRefreshCharts==='function')vmRefreshCharts();
   toast('Identidade padrão VIZIO restaurada'); renderMarca(); }
 window.resetMarca=resetMarca;
 
@@ -167,7 +204,10 @@ async function salvarMarca(){
       radius:radius,logo_url:logo_url,tema:'custom'}).eq('id',ORG);
     if(r.error){ toast('Erro ao salvar: '+r.error.message); return; } }
   _bkSave({accent:accent,accent2:accent2,radius:radius,org:ORG||'demo'});   // cache local (resposta imediata)
-  applyTheme({nome:nome,accent:accent,accent2:accent2,radius:radius,logo:logo_url});
+  var brand={nome:nome,accent:accent,accent2:accent2,radius:radius,logo:logo_url,tema:'custom'};
+  applyTheme(brand);
+  _brandFullSave(brand);                 // §4 — persiste a identidade inteira até ser revertida
+  if(typeof vmRefreshCharts==='function')vmRefreshCharts();
   toast('Identidade da oficina aplicada ✓');
   renderMarca();
 }
@@ -190,5 +230,9 @@ function toggleTheme(){
 window.toggleTheme=toggleTheme;
 (function initTheme(){ try{ var lit=localStorage.getItem('vm_theme')==='light';
   if(lit)document.documentElement.classList.add('theme-light'); _themeGlyph(lit);
-  if(!window.__brandCustom){ window.BRAND_LOGO=vizioLogo(); reRenderEmblems(); }
+  /* §4 — reaplica a identidade PERSISTIDA (localStorage) já no boot, antes do login,
+     para a tela de entrada vestir a marca ativa. No LIVE, fetchBrand confirma pela org. */
+  var saved=_brandFullLoad();
+  if(saved){ applyTheme(saved); }
+  else if(!window.__brandCustom){ window.BRAND_LOGO=vizioLogo(); reRenderEmblems(); }
 }catch(e){} })();

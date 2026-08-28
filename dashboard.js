@@ -98,18 +98,21 @@ function drawDash(d){
     plugins:{legend:{display:false}},
     scales:{y:{ticks:{color:tick,font:{family:'Inter',size:10},callback:v=>money?'R$ '+(v/1000)+'k':v},grid:{color:grid,drawBorder:false},border:{display:false}},
       x:{ticks:{color:tick,font:{family:'Inter',size:10}},grid:{display:false},border:{display:false}}}});
+  /* CADA BARRA COM SUA COR — paleta categórica derivada dos tokens da marca (Camaleão).
+     Fallback para a PALETTE fixa se vmChartColors não existir. */
+  const pal=n=>(typeof vmChartColors==='function')?vmChartColors(n):Array.from({length:n},(_,i)=>PALETTE[i%PALETTE.length]);
   function bar(id,pairs,money,color){const c=el(id);if(!c)return;
     _dashCharts.push(new Chart(c,{type:'bar',data:{labels:pairs.map(p=>p[0]),
-      datasets:[{data:pairs.map(p=>p[1]),backgroundColor:color||pairs.map((p,i)=>PALETTE[i%PALETTE.length]),borderRadius:6,borderSkipped:false,maxBarThickness:26}]},options:baseOpts(money)}));}
+      datasets:[{data:pairs.map(p=>p[1]),backgroundColor:color||pal(pairs.length),borderRadius:6,borderSkipped:false,maxBarThickness:26}]},options:baseOpts(money)}));}
   bar('c_recserv',agg(d.recServ).slice(0,7),true);
   const cs=el('c_status');
   if(cs)_dashCharts.push(new Chart(cs,{type:'doughnut',
-    data:{labels:STATUS_FLOW,datasets:[{data:d.porStatus,backgroundColor:['#5b8cff','#7fa3ff','#a9c1ff','#6ee2c0','#e6b566','#b7a6ff','#7fbfd6','#8894a6','#54d1a6'],borderWidth:0}]},
+    data:{labels:STATUS_FLOW,datasets:[{data:d.porStatus,backgroundColor:pal(STATUS_FLOW.length),borderWidth:0}]},
     options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,cutout:'72%',plugins:{legend:{position:'right',labels:{color:tick,font:{family:'Inter',size:10},boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'}}}}}));
-  bar('c_mec',agg(d.mec),true,PALETTE);
-  bar('c_serv',agg(d.servCount).slice(0,7),false,'#5aa0ff');
-  bar('c_peca',agg(d.pecaCount).slice(0,7),false,'#4ecb8f');
-  bar('c_cli',agg(d.cliRec).slice(0,7),true,'#7fbfd6');
+  bar('c_mec',agg(d.mec),true);
+  bar('c_serv',agg(d.servCount).slice(0,7),false);
+  bar('c_peca',agg(d.pecaCount).slice(0,7),false);
+  bar('c_cli',agg(d.cliRec).slice(0,7),true);
 }
 
 /* drill-down: lista os registros por trás do indicador */

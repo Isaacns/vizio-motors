@@ -12,7 +12,7 @@
 })();
 /* VERSÃO DO APP — bumpar a CADA deploy. É por este número que o push compara.
    §14.2: nunca `const` — colide com o escopo de script dos outros .js e derruba o arquivo. */
-window.APP_VERSION='1.0.97';
+window.APP_VERSION='1.0.98';
 </script>
 <html lang="pt-BR">
 <head>
@@ -28,7 +28,7 @@ window.APP_VERSION='1.0.97';
 <meta name="theme-color" content="#070809">
 <!-- PWA instalável (§ redesign 1.0.95): manifest + ícones. O service worker (sw.js) é
      network-first no index e NÃO cacheia o HTML — preserva o version-gate (rota 2). -->
-<link rel="manifest" href="manifest.json?v=097">
+<link rel="manifest" href="manifest.json?v=098">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -44,13 +44,20 @@ window.APP_VERSION='1.0.97';
   --font:'Inter',system-ui,sans-serif;--display:'Sora',var(--font);
   --ok:#54d1a6;--warn:#e6b566;--bad:#e77b7b;--info:#5b8cff;
   --radius:18px;--accent2:#8fb0ff;
-  /* moldura Ateliê (cartões flutuantes) em paleta Motors */
-  --sidebar:rgba(13,17,22,.62);--topbar:rgba(9,12,16,.72);
+  /* moldura Ateliê (cartões flutuantes) em paleta Motors.
+     Bug 1 — topbar/sidebar OPACAS o bastante para mascarar o conteúdo que rola sob elas
+     (fim do "vaza através do glass"); blur menor no sticky = sem lag de compositing na rolagem. */
+  --sidebar:rgba(11,14,19,.9);--topbar:rgba(9,12,16,.94);
+  --maskbar:#0a0d13;   /* cor do topo do #bg — máscara opaca do gap acima da topbar (sem vazamento) */
   --shadow-card:0 10px 34px rgba(0,0,0,.42);--shadow-lg:0 24px 70px rgba(0,0,0,.6);
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
+/* Bug 1 — offset de rolagem: âncoras/scrollIntoView param ABAIXO da topbar fixa,
+   nunca escondendo títulos sob ela. A topbar ocupa ~92px do topo (top:16 + altura). */
+html{scroll-padding-top:100px}
 body{font-family:var(--font);color:var(--txt);background:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased;letter-spacing:.1px}
+.panel,.topbar h1,.kpis,.greet,#view>*{scroll-margin-top:100px}
 a{color:inherit}
 /* scrollbar invisível (a rolagem continua funcionando) */
 *::-webkit-scrollbar{width:0;height:0;background:transparent}
@@ -60,7 +67,7 @@ a{color:inherit}
 html.theme-light{
   --ink:#eef2f8;--panel:#ffffff;--panel-2:#f6f8fc;--line:rgba(18,32,60,.10);
   --txt:#101a2b;--muted:#5a6675;--dim:#93a0b2;--platinum:#16233c;--glass:rgba(255,255,255,.7);
-  --sidebar:rgba(255,255,255,.78);--topbar:rgba(255,255,255,.84);
+  --sidebar:rgba(255,255,255,.94);--topbar:rgba(255,255,255,.96);--maskbar:#f4f7fc;
   --shadow-card:0 10px 30px rgba(30,50,90,.12);--shadow-lg:0 24px 60px rgba(30,50,90,.18);
 }
 html.theme-light #bg{background:linear-gradient(180deg,#f4f7fc 0%,var(--ink) 60%)}
@@ -100,6 +107,12 @@ html.theme-light .plate{background:#0f1826;color:#cdd6e2}
 .aura .ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 210deg,var(--accent2),var(--gold-2),var(--gold-4),var(--accent2));animation:spin 16s linear infinite;box-shadow:0 6px 20px rgba(0,0,0,.35)}
 .aura .core{position:absolute;inset:7%;border-radius:50%;background:radial-gradient(120% 120% at 30% 25%,var(--panel-2),var(--ink));display:grid;place-items:center;animation:breathe 3.4s ease-in-out infinite}
 .aura .core b{font-family:var(--display);font-weight:700;letter-spacing:.01em;color:var(--gold-2);line-height:1}
+/* AURA com LOGO EM IMAGEM (identidade da oficina, ex.: R3): halos pulsantes + respiração
+   envolvem a imagem própria da marca, sem o anel cônico gerado. */
+.aura-img .core{inset:0;background:transparent;overflow:visible;box-shadow:none}
+.aura-img .core.img{display:grid;place-items:center}
+.aura-img .core img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 6px 16px rgba(0,0,0,.55))}
+.aura-img .halo{border-color:color-mix(in srgb,var(--gold-2) 55%,transparent)}
 @keyframes orbi{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.6);opacity:0}}
 /* ===== LOGIN ===== */
 .wrap{position:relative;z-index:2;min-height:100%}
@@ -115,14 +128,17 @@ input,select,textarea{width:100%;padding:11px 13px;border-radius:11px;border:1px
 textarea{resize:vertical;min-height:66px}
 input:focus,select:focus,textarea:focus{border-color:var(--gold-2);box-shadow:0 0 0 3px rgba(91,140,255,.14)}
 .pw-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--muted);padding:4px;line-height:1}
-.btn{width:100%;margin-top:22px;padding:13px;border:none;border-radius:12px;cursor:pointer;font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:.5px;color:#ffffff;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));transition:.2s}
+.btn{width:100%;margin-top:22px;padding:13px;border:none;border-radius:12px;cursor:pointer;font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:.5px;color:#ffffff;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));box-shadow:inset 0 1px 0 rgba(255,255,255,.2);transition:.2s}
 .btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(0,0,0,.4)}
 .hint{margin-top:16px;font-size:11.5px;color:var(--muted)}
 /* ===== APP ===== */
 #app{display:none;min-height:100vh}
 /* Moldura Ateliê em paleta Motors: sidebar e topbar como CARTÕES FLUTUANTES sobre o fundo vivo. */
 .layout{display:grid;grid-template-columns:236px 1fr;gap:20px;width:min(1440px,100%);margin:0 auto;padding:20px;min-height:100vh;align-items:start}
-.side{align-self:start;position:sticky;top:20px;height:calc(100vh - 40px);display:flex;flex-direction:column;padding:18px 12px;background:var(--sidebar);backdrop-filter:blur(18px) saturate(1.1);-webkit-backdrop-filter:blur(18px) saturate(1.1);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow-card);overflow:auto;transition:background .4s,border-color .3s}
+/* Sem backdrop-filter nos elementos STICKY: o fundo é quase opaco (mascara o conteúdo),
+   e reblur por quadro em camada sticky = lag de compositing na rolagem (topbar/sidebar
+   "descolando"). Removê-lo elimina o lag e ainda alivia o custo dos gráficos vivos. */
+.side{align-self:start;position:sticky;top:20px;height:calc(100vh - 40px);display:flex;flex-direction:column;padding:18px 12px;background:var(--sidebar);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow-card),inset 0 1px 0 rgba(255,255,255,.05);overflow:auto;transition:background .4s,border-color .3s}
 .side .logo-row{display:flex;align-items:center;gap:10px;padding:6px 8px 16px;border-bottom:1px solid var(--line);margin-bottom:2px}
 .side .logo-row .nm{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.5px;color:var(--gold-2)}
 .side .logo-row .sb{font-size:9.5px;color:var(--muted);letter-spacing:2px}
@@ -132,7 +148,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold-2);box-shadow:0 
 .nav a:hover{background:rgba(90,160,255,.06);color:var(--txt)}
 .nav a.active{background:linear-gradient(90deg,rgba(37,99,235,.16),transparent);color:var(--gold-2);box-shadow:inset 2px 0 0 var(--gold-3)}
 .main{min-width:0;display:flex;flex-direction:column;padding:0 0 30px}
-.topbar{display:flex;align-items:center;gap:14px;position:sticky;top:20px;z-index:12;background:var(--topbar);backdrop-filter:blur(18px) saturate(1.1);-webkit-backdrop-filter:blur(18px) saturate(1.1);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-card);padding:11px 16px;margin-bottom:20px;transition:background .4s,border-color .3s}
+/* z-index 30: acima do conteúdo (que rola sob a barra) e abaixo do modal (50)/banner.
+   Hairline superior (brushed premium) + separação inferior discreta. */
+.topbar{display:flex;align-items:center;gap:14px;position:sticky;top:20px;z-index:30;background:var(--topbar);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-card),inset 0 1px 0 rgba(255,255,255,.07);padding:11px 16px;margin-bottom:20px;transition:background .4s,border-color .3s}
+/* Máscara do gap: extensão da topbar para cima (mesmo contexto de empilhamento, z30 —
+   que já cobre os painéis com backdrop-filter) que sela os ~22px entre o topo do viewport
+   e a topbar flutuante. Cor = topo do #bg, então some contra o fundo; o conteúdo rola SOB. */
+.topbar::before{content:"";position:absolute;left:-1px;right:-1px;bottom:100%;height:24px;background:var(--maskbar);pointer-events:none}
 .topbar h1{font-family:var(--display);font-weight:600;font-size:21px;margin:0;letter-spacing:.4px}
 .topbar .sp{flex:1}
 .search{background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:11px;padding:9px 14px;color:var(--txt);font-size:13px;width:220px;outline:none}
@@ -181,7 +203,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold-2);box-shadow:0 
 .panel .head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .panel .head h3{margin:0}
 .panel .head .sp{flex:1}
-.b{border:none;border-radius:10px;cursor:pointer;font-family:var(--display);font-weight:600;font-size:13.5px;letter-spacing:.4px;padding:9px 15px;color:#ffffff;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));transition:.18s;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;vertical-align:middle;flex:none;line-height:1.15}
+/* Aresta de metal escovado (premium/F1): highlight interno NEUTRO no topo — sem glow colorido. */
+.b{border:none;border-radius:10px;cursor:pointer;font-family:var(--display);font-weight:600;font-size:13.5px;letter-spacing:.4px;padding:9px 15px;color:#ffffff;background:linear-gradient(180deg,var(--gold-2),var(--gold-4));box-shadow:inset 0 1px 0 rgba(255,255,255,.18);transition:.18s;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;vertical-align:middle;flex:none;line-height:1.15}
 .b:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.35)}
 .b-ghost{background:transparent;color:var(--gold-2);border:1px solid var(--line)}
 .b-ghost:hover{background:rgba(90,160,255,.08);box-shadow:none}
@@ -432,7 +455,7 @@ footer b{color:var(--gold-4)}
         </div>
       </div>
       <div id="view"></div>
-      <footer>Vizio Motors <b id="footVer">v1.0.96</b> · Sua oficina virou sistema inteligente. — by <b>VIZIO</b></footer>
+      <footer>Vizio Motors <b id="footVer">v1.0.98</b> · Sua oficina virou sistema inteligente. — by <b>VIZIO</b></footer>
     </main>
    </div>
   </section>
@@ -444,32 +467,32 @@ footer b{color:var(--gold-4)}
 <!-- §20 — Gráficos vivos: overlay líquido sobre o Chart.js. Visual-only, com fallback,
      respeita prefers-reduced-motion, não toca em dados. DEPOIS do Chart.js e ANTES dos
      scripts que criam os gráficos (dashboard.js, financeiro.js). -->
-<script src="app-charts-vivo.js?v=1"></script>
+<script src="app-charts-vivo.js?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="esc.js?v=097"></script>
-<script src="config.js?v=097"></script>
-<script src="dados.js?v=097"></script>
-<script src="app.js?v=097"></script>
-<script src="financeiro.js?v=097"></script>
-<script src="crm.js?v=097"></script>
-<script src="dashboard.js?v=097"></script>
-<script src="nfe.js?v=097"></script>
-<script src="corporativo.js?v=097"></script>
-<script src="bemestar-vm.js?v=097"></script>
-<script src="alavancagem-vm.js?v=097"></script>
-<script src="agenda-vm.js?v=097"></script>
-<script src="estoque-pred.js?v=097"></script>
-<script src="configuracoes.js?v=097"></script>
-<script src="servicos.js?v=097"></script>
-<script src="relatorio.js?v=097"></script>
-<script src="torque.js?v=097"></script>
-<script src="rbac.js?v=097"></script>
-<script src="theme.js?v=097"></script>
-<script src="supabase-mode.js?v=097"></script>
-<script src="motion-vm.js?v=097"></script>
-<script src="app-ajuda-vm.js?v=097"></script>
-<script src="version-gate.js?v=097"></script>
-<script src="pwa-vm.js?v=097"></script>
+<script src="esc.js?v=098"></script>
+<script src="config.js?v=098"></script>
+<script src="dados.js?v=098"></script>
+<script src="app.js?v=098"></script>
+<script src="financeiro.js?v=098"></script>
+<script src="crm.js?v=098"></script>
+<script src="dashboard.js?v=098"></script>
+<script src="nfe.js?v=098"></script>
+<script src="corporativo.js?v=098"></script>
+<script src="bemestar-vm.js?v=098"></script>
+<script src="alavancagem-vm.js?v=098"></script>
+<script src="agenda-vm.js?v=098"></script>
+<script src="estoque-pred.js?v=098"></script>
+<script src="configuracoes.js?v=098"></script>
+<script src="servicos.js?v=098"></script>
+<script src="relatorio.js?v=098"></script>
+<script src="torque.js?v=098"></script>
+<script src="rbac.js?v=098"></script>
+<script src="theme.js?v=098"></script>
+<script src="supabase-mode.js?v=098"></script>
+<script src="motion-vm.js?v=098"></script>
+<script src="app-ajuda-vm.js?v=098"></script>
+<script src="version-gate.js?v=098"></script>
+<script src="pwa-vm.js?v=098"></script>
 </body>
 </html>

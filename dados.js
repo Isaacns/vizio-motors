@@ -9,7 +9,7 @@ const STATUS_FLOW = [
 ];
 
 const DADOS = {
-  _cfg:{ produto:"Vizio Motors", oficina:"Oficina Demonstração",
+  _cfg:{ produto:"Vizio Motors", oficina:"Oficina R3",
          especialidade:"Multimarcas", perfil:"admin", tel:"71 3333-4040" },
 
   servicos:[

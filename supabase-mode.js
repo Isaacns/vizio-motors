@@ -8,7 +8,12 @@
 (function(){
   const LIVE = !!(window.SB_URL && window.SB_KEY && window.SB_ORG && window.supabase);
   window.VIZIO_LIVE = LIVE;
-  if(!LIVE){ console.log("Vizio Motors: modo DEMONSTRAÇÃO (sem Supabase configurado)."); return; }
+  if(!LIVE){ console.log("Vizio Motors: modo DEMONSTRAÇÃO (sem Supabase configurado).");
+    /* A oficina demonstração É a Oficina R3 (preto+ouro). No LIVE isso vem da org
+       (mt_orgs) por fetchBrand; no demo aplicamos o preset para o sistema inteiro
+       nascer vestido de R3, coerente com o portal e a apresentação. Reversível. */
+    try{ if(typeof aplicarR3==='function'){ aplicarR3(); } }catch(e){}
+    return; }
 
   const SB  = window.supabase.createClient(window.SB_URL, window.SB_KEY);
   let   ORG = window.SB_ORG;                 // resolvida por usuário após login
