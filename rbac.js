@@ -172,8 +172,10 @@ window.rbacAplicarNav=function(){
     document.querySelectorAll('a[data-perm]').forEach(function(a){
       a.style.display = window.rbacCan(a.getAttribute('data-perm')) ? '' : 'none';
     });
-    /* Gate super-admin: só ESCONDE (nunca revela algo que a permissão já negou). */
-    if(!window.vmIsSuperAdmin()){
+    /* Gate super-admin: só ESCONDE (nunca revela algo que a permissão já negou).
+       Em domínio dedicado (HOST_BRAND_LOCK) a Identidade fica escondida mesmo para
+       o super-admin — a marca é fixa por host, não há seletor de marca. */
+    if(window.__brandLocked || !window.vmIsSuperAdmin()){
       document.querySelectorAll('[data-super]').forEach(function(el){ el.style.display='none'; });
     }
     document.querySelectorAll('nav[data-grp-nav]').forEach(function(nav){

@@ -17,6 +17,31 @@ const VIZIO_BRAND={nome:"Vizio Motors",accent:"#5aa0ff",logo:"vizio-symbol-light
 const VM_R3_BRAND={nome:"Oficina R3",accent:"#E6B325",accent2:"#C6892B",radius:14,
                    logo:"assets/r3-emblem.svg",tema:"custom"};
 window.VM_R3_BRAND=VM_R3_BRAND;
+
+/* ============================================================
+   HOST_BRAND_LOCK — trava de identidade por HOSTNAME (fonte única)
+   ------------------------------------------------------------
+   O MESMO código de 02_Sistema é publicado em vários domínios. Quando ele é
+   servido de um DOMÍNIO DEDICADO de cliente, a identidade é FIXA: veste a marca
+   do cliente no boot (antes do login), aponta a org de produção do cliente e
+   NÃO mostra o seletor de marca nem "Restaurar VIZIO" — sem fork de código.
+   • motors.viziostudio.com.br e localhost NÃO estão no mapa → comportamento
+     ATUAL 100% preservado (marca VIZIO/demo, tela Identidade disponível ao super-admin).
+   • Adicionar um cliente dedicado = só uma linha aqui (marca + org de produção).
+   A org resolvida no login (mt_members) continua valendo; o `org` do lock é o
+   alvo/fallback (pré-login e usuário sem membership), e o `brand` veste a tela
+   de entrada antes de o fetchBrand confirmar pela org no Supabase.
+   ============================================================ */
+const HOST_BRAND_LOCK = {
+  "r3.viziostudio.com.br": {
+    /* identidade R3 preto+ouro (mesmo preset do Camaleão), nome de produção */
+    brand: Object.assign({}, VM_R3_BRAND, {nome:"R3 Centro Automotivo"}),
+    org:   "f64ba3f3-045e-49bd-97c9-6c739b3940ab",  // org de PRODUÇÃO da R3 (mt_orgs)
+    oficina: "R3 Centro Automotivo"
+  }
+};
+function vmHostLock(){ try{ return HOST_BRAND_LOCK[location.hostname] || null; }catch(e){ return null; } }
+window.vmHostLock=vmHostLock;
 /* logo VIZIO por tema: clara (traços claros) no escuro; navy no fundo branco */
 function vizioLogo(){ return document.documentElement.classList.contains('theme-light')?'vizio-symbol-dark.png':'vizio-symbol-light.png'; }
 function _emSize(id){ return id==='emblemSide'?44:id==='emblemP'?104:120; }
@@ -124,6 +149,8 @@ window.vmRefreshCharts=vmRefreshCharts;
 
 /* ---------- tela de Identidade / White-label (admin master) ---------- */
 function abrirMarca(){
+  /* Host dedicado: identidade travada — nem abre a tela de marca. */
+  if(window.__brandLocked){ if(typeof toast==='function')toast('Identidade fixa neste domínio.'); return; }
   document.querySelectorAll('.nav a').forEach(function(x){x.classList.remove('active');});
   document.getElementById('pageTitle').textContent="Identidade da oficina";
   document.getElementById('side').classList.remove('open');
@@ -176,7 +203,9 @@ function renderMarca(){
 }
 window.renderMarca=renderMarca;
 
-function resetMarca(){ applyTheme(VIZIO_BRAND);
+function resetMarca(){
+  if(window.__brandLocked){ if(typeof toast==='function')toast('Identidade fixa neste domínio.'); return; }
+  applyTheme(VIZIO_BRAND);
   if(window.__SB&&window.__ORG){ window.__SB.from('mt_orgs').update({cor_primaria:null,cor_secundaria:null,radius:null,logo_url:null,tema:'vizio'}).eq('id',window.__ORG); }
   _bkSave({accent:VIZIO_BRAND.accent,org:window.__ORG||'demo'}); _brandFullSave(null);
   if(typeof vmRefreshCharts==='function')vmRefreshCharts();
@@ -230,6 +259,16 @@ function toggleTheme(){
 window.toggleTheme=toggleTheme;
 (function initTheme(){ try{ var lit=localStorage.getItem('vm_theme')==='light';
   if(lit)document.documentElement.classList.add('theme-light'); _themeGlyph(lit);
+  /* HOST_BRAND_LOCK — domínio dedicado: identidade FIXA no boot e org de produção
+     apontada ANTES do supabase-mode ler window.SB_ORG (config.js já rodou; supabase-mode
+     roda depois deste arquivo). Ignora a persistência local (a marca não é escolha do host). */
+  var lock=vmHostLock();
+  if(lock){
+    window.__brandLocked=true;
+    if(lock.org) window.SB_ORG=lock.org;   // alvo/fallback da org resolvida
+    applyTheme(lock.brand);
+    return;
+  }
   /* §4 — reaplica a identidade PERSISTIDA (localStorage) já no boot, antes do login,
      para a tela de entrada vestir a marca ativa. No LIVE, fetchBrand confirma pela org. */
   var saved=_brandFullLoad();
