@@ -1,0 +1,17 @@
+{
+  "name": "Vizio Motors — ERP inteligente para oficinas",
+  "short_name": "Vizio Motors",
+  "description": "Ordens de serviço, agenda, quadro de tarefas, estoque, financeiro e portal do cliente para a sua oficina.",
+  "lang": "pt-BR",
+  "start_url": "./?src=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070809",
+  "theme_color": "#070809",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "vizio-symbol-light.png?v=095", "sizes": "600x600", "type": "image/png", "purpose": "any" },
+    { "src": "medallion.png?v=095", "sizes": "528x528", "type": "image/png", "purpose": "maskable" }
+  ]
+}

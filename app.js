@@ -45,6 +45,9 @@ function onSearch(){const q=document.getElementById('q').value;
   if(CUR==='clientes')renderClientes(q);else if(CUR==='os')renderOS(q);else if(CUR==='estoque')renderEstoque(q);}
 
 /* ===== HOME ===== */
+function saudacao(){const h=new Date().getHours();return h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';}
+function primeiroNome(n){return (n||'').trim().split(/\s+/)[0]||'';}
+const HUES=['#5b8cff','#7fa3ff','#a9c1ff','#6ee2c0','#e6b566','#b7a6ff','#7fbfd6','#8894a6','#54d1a6'];
 function renderHome(){
   const emExec=WORK.os.filter(o=>o.statusIdx<8);
   const concl=WORK.os.filter(o=>o.statusIdx>=7);
@@ -52,13 +55,15 @@ function renderHome(){
   const aprov=WORK.os.filter(o=>o.aprovado);
   const fat=aprov.reduce((s,o)=>s+osTotal(o),0);
   const ticket=aprov.length?fat/aprov.length:0;
+  const prontas=WORK.os.filter(o=>o.statusIdx===8).length;
+  /* KPIs com count-up: [rótulo, valor-alvo numérico, money?, dt-classe, dt-texto] */
   const kpis=[
-    ['Faturamento (aprovado)',money(fat),'up','▲ OS aprovadas no período'],
-    ['OS em execução',emExec.length,'up',WORK.os.filter(o=>o.statusIdx===2).length+' aguardando aprovação'],
-    ['Prontas p/ retirada',WORK.os.filter(o=>o.statusIdx===8).length,'up','concluídas: '+concl.length],
-    ['Clientes ativos',WORK.clientes.length,'up','▲ base cadastrada'],
-    ['Estoque crítico',critico.length,critico.length?'down':'up','itens abaixo do mínimo'],
-    ['Ticket médio',money(ticket),'up','▲ por OS aprovada'],
+    ['Faturamento (aprovado)',fat,1,'up','▲ OS aprovadas no período'],
+    ['OS em execução',emExec.length,0,'up',WORK.os.filter(o=>o.statusIdx===2).length+' aguardando aprovação'],
+    ['Prontas p/ retirada',prontas,0,'up','concluídas: '+concl.length],
+    ['Clientes ativos',WORK.clientes.length,0,'up','▲ base cadastrada'],
+    ['Estoque crítico',critico.length,0,critico.length?'down':'up','itens abaixo do mínimo'],
+    ['Ticket médio',ticket,1,'up','▲ por OS aprovada'],
   ];
   const alertas=[
     ['📦', critico.length?`<b>${critico.length} peça(s)</b> abaixo do mínimo: ${critico.map(p=>esc(p.nome)).join(', ')} — sugerir compra.`:'Estoque saudável — nenhuma peça abaixo do mínimo.'],
@@ -66,20 +71,93 @@ function renderHome(){
     ['⭐','<b>João Pereira</b> está há 8 meses sem revisão e tem histórico de aceitar preventiva.'],
     ['📉','Margem do serviço <b>“Revisão 40k”</b> caiu <b>18%</b> — custo de peça subiu no fornecedor atual.'],
   ];
+  /* Resumo do Dashboard Executivo embutido na Início — reaproveita dashData() (não duplica lógica) */
+  const D=(typeof dashData==='function')?dashData():null;
+  const nome=primeiroNome((window.rbacUsuarioAtual?rbacUsuarioAtual().nome:'')||'');
+  const oficina=(WORK._cfg&&WORK._cfg.oficina)||window.BRAND_NAME||'sua oficina';
+  let resumo='';
+  if(D){
+    const topServ=Object.entries(D.recServ).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const statusList=STATUS_FLOW.map((s,i)=>[s,D.porStatus[i],i]).filter(x=>x[1]>0);
+    const rankMec=Object.entries(D.mec).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    resumo=`
+     <div class="grid2">
+       <div class="panel"><div class="head"><h3>💰 Receita por serviço</h3><div class="sp"></div>
+         <button class="b b-ghost b-sm" onclick="abrirDash()">Dashboard →</button></div>
+         <div class="hchart"><canvas id="homeChart"></canvas></div>
+       </div>
+       <div class="panel"><h3>📊 Resumo operacional</h3>
+         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">OS por status</div>
+         ${statusList.map(x=>`<div class="hstat"><div class="sk"><span class="sd" style="background:${HUES[x[2]%HUES.length]}"></span><b>${esc(x[0])}</b></div><span class="sv">${x[1]}</span></div>`).join('')||'<div style="color:var(--muted);font-size:12px">Sem OS.</div>'}
+         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 6px">Receita por mecânico</div>
+         ${rankMec.map((m,i)=>`<div class="hstat"><div class="sk"><span class="sd" style="background:${HUES[i%HUES.length]}"></span><b>${esc(m[0])}</b></div><span class="sv">${money(m[1])}</span></div>`).join('')||'<div style="color:var(--muted);font-size:12px">Sem dados.</div>'}
+       </div>
+     </div>`;
+    window.__homeServPairs=topServ;
+  }
   document.getElementById('view').innerHTML=`
-   <div class="kpis">${kpis.map(k=>`<div class="kpi"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div><div class="dt ${k[2]}">${k[3]}</div></div>`).join('')}</div>
+   <div class="greet">
+     <div class="g-ic">🔧</div>
+     <div><h3>${saudacao()}${nome?', '+esc(nome):''} — a oficina está a todo vapor.</h3>
+       <p>Panorama da ${esc(oficina)} · ${emExec.length} em serviço · ${prontas} prontas p/ retirada.</p></div>
+   </div>
+   <div class="kpis">${kpis.map(k=>`<div class="kpi"><div class="lbl">${k[0]}</div><div class="val">${k[2]?money(k[1]):(k[1]||0).toLocaleString('pt-BR')}</div><div class="dt ${k[3]}">${k[4]}</div></div>`).join('')}</div>
    <div class="grid2">
      <div class="panel"><div class="head"><h3>🚐 Veículos em execução</h3><div class="sp"></div><button class="b b-sm" onclick="go('os')">Ver todas</button></div>
        ${emExec.map(o=>{const v=veh(o.veiculoId),pct=Math.round(o.statusIdx/8*100);return `
         <div class="veh" onclick="openOS('${o.id}')"><div class="plate">${esc(v.placa)}</div>
-          <div class="info"><div class="t">${esc(v.modelo)}</div><div class="s">OS #${o.numero} · ${esc(cli(o.clienteId).nome)}</div>
+          <div class="info"><div class="t">${esc(v.modelo)}</div><div class="s">OS #${o.numero} · ${esc(cli(o.clienteId).nome)}${o.responsavel?' · '+esc(primeiroNome(o.responsavel)):''}</div>
             <div class="bar"><i style="width:${pct}%"></i></div></div>
           <div class="stage">${STATUS_FLOW[o.statusIdx]}<br><span style="color:var(--dim);font-weight:400">${pct}%</span></div></div>`;}).join('')||'<div style="color:var(--muted);font-size:13px">Nenhum veículo em execução.</div>'}
      </div>
      <div class="panel"><h3>⚡ Motor Torque <span class="torque-badge">IA · RECOMENDA</span></h3>
        ${alertas.map(a=>`<div class="alert"><div class="ai">${a[0]}</div><div class="at">${a[1]}</div></div>`).join('')}
      </div>
-   </div>`;
+   </div>
+   ${resumo}`;
+  /* KPIs: o count-up é do motion-vm.js (MutationObserver central em #view). */
+  if(D) vmLiquidChart('homeChart', window.__homeServPairs);
+}
+
+/* Gráfico líquido (canvas) — barras que se enchem com onda. Reaproveitado da moldura Ateliê,
+   em paleta Motors (lê os tokens --gold-*). Visual-only; para em prefers-reduced-motion. */
+let _liqRaf=null,_liqPhase=0;
+function vmLiquidChart(id,pairs){
+  const cv=document.getElementById(id); if(!cv||!pairs||!pairs.length) return;
+  if(_liqRaf)cancelAnimationFrame(_liqRaf);
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const accent=css('--gold-2')||'#5b8cff', primary=css('--gold-4')||'#2a4fb0';
+  const muted=css('--muted')||'#79838f', line=css('--line')||'rgba(255,255,255,.06)';
+  const labels=pairs.map(p=>{const n=String(p[0]);return n.length>10?n.slice(0,10)+'…':n;});
+  const vals=pairs.map(p=>p[1]);
+  const hexa=(hex,a)=>{const c=(hex||'').replace('#','');if(c.length!==6)return hex;const n=parseInt(c,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;};
+  const rr=(ctx,x,y,w,h,r)=>{r=Math.min(r,w/2,Math.abs(h)/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();};
+  const max=Math.max(...vals)*1.15||1, fill=vals.map(()=>0);
+  function frame(){
+    if(!document.body.contains(cv)){cancelAnimationFrame(_liqRaf);_liqRaf=null;return;}
+    const dpr=Math.min(2,devicePixelRatio||1), w=cv.clientWidth, h=cv.clientHeight;
+    if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
+    const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+    _liqPhase+=reduce?0:0.06;
+    const pad=26, gap=(w-pad*2)/vals.length, bw=gap*0.54;
+    ctx.strokeStyle=line;ctx.lineWidth=1;
+    for(let g=0;g<=3;g++){const y=pad+(h-pad*2-14)*g/3;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-pad,y);ctx.stroke();}
+    vals.forEach((val,i)=>{
+      const target=val/max; fill[i]+=(target-fill[i])*(reduce?1:0.08);
+      const x=pad+gap*i+(gap-bw)/2, base=h-pad-6, top=base-(h-pad*2-14)*fill[i];
+      ctx.fillStyle=hexa(accent,.08); rr(ctx,x,pad+8,bw,base-pad-2,6); ctx.fill();
+      ctx.save(); rr(ctx,x,top,bw,base-top,6); ctx.clip();
+      for(let L=0;L<2;L++){ctx.beginPath();const amp=L?2.2:2.4,ph=_liqPhase+(L?1.6:0),col=L?hexa(primary,.55):accent;
+        ctx.moveTo(x,base);for(let px=0;px<=bw;px++){const yy=top+Math.sin((px/bw*6.28)+ph)*amp;ctx.lineTo(x+px,yy);}
+        ctx.lineTo(x+bw,base);ctx.closePath();ctx.fillStyle=col;ctx.fill();}
+      ctx.restore();
+      ctx.fillStyle=muted;ctx.font='10px Inter,sans-serif';ctx.textAlign='center';
+      ctx.fillText(labels[i],x+bw/2,h-8);
+    });
+    _liqRaf=requestAnimationFrame(frame);
+  }
+  frame();
 }
 
 /* ===== ORDENS DE SERVIÇO ===== */
@@ -141,10 +219,12 @@ function openOS(id){const o=byId(WORK.os,id);const v=veh(o.veiculoId),c=cli(o.cl
        </div>
      </div>
      <div class="panel">
-       <h3>📲 Portal do Cliente</h3>
-       <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Link de acompanhamento (sem login) para enviar ao cliente:</div>
+       <h3>📲 Acompanhamento do cliente</h3>
+       <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Link público (sem login, só leitura) — o cliente vê o status e a linha do tempo da própria OS:</div>
        <input readonly value="${link}" onclick="this.select()" style="font-size:11.5px">
-       <div style="margin-top:10px;display:flex;gap:8px"><button class="b b-sm" onclick="copyLink('${link}')">Copiar link</button>
+       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+         <button class="b b-sm" onclick="copyLink('${link}')">Copiar link do cliente</button>
+         ${window.waBtn?waBtn(c.tel,`Olá ${(c.nome||'').split(' ')[0]}! Acompanhe em tempo real o serviço do seu ${(v.modelo||'veículo')} (placa ${v.placa}) por este link: ${link}`,'Enviar no WhatsApp'):''}
          <button class="b b-ghost b-sm" onclick="abrirPortal('${o.token}')">Abrir portal</button></div>
      </div>
      <div class="panel"><h3>Observações</h3><div style="font-size:13px;color:var(--txt);line-height:1.5">${esc(o.obs)||'—'}</div></div>

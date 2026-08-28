@@ -18,19 +18,28 @@ function abrirDash(){
 }
 function agg(map){ return Object.entries(map).sort((a,b)=>b[1]-a[1]); }
 
-function renderDash(){
+/* Fonte única das agregações do Dashboard — reaproveitada pelo resumo da Início (§2 redesign).
+   Não duplicar esta lógica em outro módulo: consumir dashData(). */
+function dashData(){
   const os=WORK.os;
   const aprov=os.filter(o=>o.aprovado);
   const fat=aprov.reduce((s,o)=>s+osTotal(o),0);
   const ticket=aprov.length?fat/aprov.length:0;
   const critico=WORK.pecas.filter(p=>p.estoque<p.minimo).length;
-
   const recServ={}; os.forEach(o=>(o.itens||[]).forEach(i=>{if(i.tipo==='servico'){const n=svc(i.refId).nome||i.refId;recServ[n]=(recServ[n]||0)+i.valor;}}));
   const porStatus=STATUS_FLOW.map((s,idx)=>os.filter(o=>o.statusIdx===idx).length);
   const mec={}; os.forEach(o=>{const m=(o.responsavel||'—').split(' ')[0];mec[m]=(mec[m]||0)+osTotal(o);});
   const servCount={}; os.forEach(o=>(o.itens||[]).forEach(i=>{if(i.tipo==='servico'){const n=svc(i.refId).nome||i.refId;servCount[n]=(servCount[n]||0)+i.qtd;}}));
   const pecaCount={}; os.forEach(o=>(o.itens||[]).forEach(i=>{if(i.tipo==='peca'){const n=prt(i.refId).nome||i.refId;pecaCount[n]=(pecaCount[n]||0)+i.qtd;}}));
   const cliRec={}; os.forEach(o=>{const n=cli(o.clienteId).nome||o.clienteId;cliRec[n]=(cliRec[n]||0)+osTotal(o);});
+  return {os,aprov,fat,ticket,critico,recServ,porStatus,mec,servCount,pecaCount,cliRec};
+}
+window.dashData=dashData;
+
+function renderDash(){
+  const D=dashData();
+  const os=D.os, fat=D.fat, ticket=D.ticket, critico=D.critico;
+  const recServ=D.recServ, porStatus=D.porStatus, mec=D.mec, servCount=D.servCount, pecaCount=D.pecaCount, cliRec=D.cliRec;
 
   // KPIs clicáveis (drill)
   const kpis=[
@@ -43,8 +52,8 @@ function renderDash(){
   ];
   document.getElementById('view').innerHTML=`
    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--muted)">Clique em qualquer indicador para ver os detalhes.</div><div style="flex:1"></div><button class="b b-ghost b-sm" onclick="relDashboard()">📄 Gerar relatório</button></div>
-   <div class="kpis">${kpis.map(k=>`<div class="kpi" style="cursor:pointer;border-left:3px solid ${k[3]}" onclick="dashDrill('${k[2]}')">
-       <div class="lbl">${k[0]}</div><div class="val">${k[1]}</div><div class="dt" style="color:${k[3]};font-size:11px">ver detalhes →</div></div>`).join('')}</div>
+   <div class="kpis">${kpis.map(k=>`<div class="kpi" style="cursor:pointer" onclick="dashDrill('${k[2]}')">
+       <div class="lbl">${k[0]}</div><div class="val" style="color:${k[3]}">${k[1]}</div><div class="dt" style="color:${k[3]};font-size:11px">ver detalhes →</div></div>`).join('')}</div>
 
    <div class="panel"><h3>💰 Receita por serviço</h3><canvas id="c_recserv" height="150"></canvas></div>
 

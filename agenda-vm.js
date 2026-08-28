@@ -194,25 +194,30 @@ window.delTarefa=function(id){ confirmar('Excluir esta tarefa?', function(){
 window.formTarefa=function(t){
   t=t||{}; var ed=!!t.id; var prio=t.prioridade||'normal';
   var PRIOS=[['baixa','Baixa'],['normal','Normal'],['alta','Alta']];
+  var eq=(window.equipeMotors?window.equipeMotors():[]);
+  var respAtual=(t.responsavel||''); if(respAtual && eq.indexOf(respAtual)<0) eq=[respAtual].concat(eq);
+  var optResp='<option value="">— sem responsável —</option>'+eq.map(function(n){return '<option value="'+esc(n)+'"'+(n===respAtual?' selected':'')+'>'+esc(n)+'</option>';}).join('');
   modal(ed?'Editar tarefa':'Nova tarefa da oficina','',
     '<label>Título</label><input id="t_titulo" placeholder="Ex.: Separar peças do Corolla · Ligar para fornecedor" value="'+esc(t.titulo||'')+'">'+
     '<div class="frow"><div><label>Prioridade</label><select id="t_prio">'+
       PRIOS.map(function(p){return '<option value="'+p[0]+'"'+(prio===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+'</select></div>'+
-    '<div><label>Cliente <i style="color:var(--muted);font-style:normal">(opcional)</i></label>'+
+    '<div><label>Responsável <i style="color:var(--muted);font-style:normal">(mecânico)</i></label>'+
+      '<select id="t_resp">'+optResp+'</select></div></div>'+
+    '<label>Cliente <i style="color:var(--muted);font-style:normal">(opcional)</i></label>'+
       '<select id="t_cli"><option value="">— sem cliente —</option>'+
-      (WORK.clientes||[]).map(function(c){return '<option value="'+c.id+'"'+(t.clienteId===c.id?' selected':'')+'>'+esc(c.nome)+'</option>';}).join('')+'</select></div></div>'+
+      (WORK.clientes||[]).map(function(c){return '<option value="'+c.id+'"'+(t.clienteId===c.id?' selected':'')+'>'+esc(c.nome)+'</option>';}).join('')+'</select>'+
     '<label>Descrição</label><textarea id="t_desc" rows="2" placeholder="Detalhe o que precisa ser feito">'+esc(t.descricao||'')+'</textarea>',
    function(){
      var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
      var titulo=(g('t_titulo')||'').trim();
      if(!titulo){ toast('Dê um título à tarefa'); return; }
-     if(ed){ t.titulo=titulo; t.prioridade=g('t_prio'); t.clienteId=g('t_cli'); t.descricao=g('t_desc'); }
+     if(ed){ t.titulo=titulo; t.prioridade=g('t_prio'); t.clienteId=g('t_cli'); t.descricao=g('t_desc'); t.responsavel=g('t_resp'); }
      else{
        if(!WORK.tarefas) WORK.tarefas=[];
        WORK.tarefas.push({id:uid('T'), titulo:titulo, descricao:g('t_desc'),
          status:'pendente', statusDesde:new Date().toISOString(),
          segPendente:0, segAndamento:0, ordem:(WORK.tarefas.length),
-         prioridade:g('t_prio'), clienteId:g('t_cli'), osId:'', historico:[]});
+         prioridade:g('t_prio'), clienteId:g('t_cli'), responsavel:g('t_resp'), osId:'', historico:[]});
      }
      closeModal(); renderAgenda(); toast('Tarefa salva ✓');
    });
@@ -230,19 +235,30 @@ window.tarHistorico=function(id){
     '<div class="info-line"><span class="k">Total cronometrado</span><span><b>'+fmtDur(tarSeg(t,'pendente')+tarSeg(t,'andamento'))+'</b></span></div>'+linhas, null);
 };
 
+var _PROX={pendente:'Iniciar →',andamento:'Concluir →'};
 function tarCard(t){
   var c=(t.clienteId?cli(t.clienteId):null)||{};
   var apoio=[]; if(c.nome) apoio.push(esc(c.nome));
   if(t.prioridade==='alta') apoio.push('<span class="tarPrio">alta</span>');
+  /* delegação (item 3): o mecânico responsável aparece no cartão */
+  var resp=(t.responsavel||'').trim();
+  var respLinha = resp
+    ? '<div class="tarResp">👤 '+esc(resp)+'</div>'
+    : '<div class="tarResp tarSemResp">👤 sem responsável</div>';
+  /* §16.5 item 4: botão CLARO "Avançar" (descoberto), além das setas ‹ › */
+  var avancar = (t.status!=='concluida')
+    ? '<button draggable="false" class="b b-sm tarNext" title="Avançar para a próxima etapa" onclick="tarAvancar(\''+t.id+'\')">'+(_PROX[t.status]||'Avançar →')+'</button>'
+    : '';
   return '<div class="tarCard'+(t.status==='concluida'?' tarFeito':'')+'" draggable="true" data-tarid="'+t.id+'" '+
       'onclick="editTarefa(\''+t.id+'\')" title="Clique para editar · arraste entre as colunas">'+
     '<div class="tarTop"><b>'+esc(t.titulo)+'</b></div>'+
     (apoio.length?'<div class="tarApoio">'+apoio.join(' · ')+'</div>':'')+
+    respLinha+
     '<div class="tarCron" data-cron="'+t.id+'">'+cronTexto(t)+'</div>'+
+    avancar+
     '<div class="tarAcoes" draggable="false" onclick="event.stopPropagation()">'+
-      '<button draggable="false" class="b b-ghost b-sm" title="Voltar etapa" onclick="tarVoltar(\''+t.id+'\')">‹</button>'+
-      '<button draggable="false" class="b b-ghost b-sm" title="Avançar etapa" onclick="tarAvancar(\''+t.id+'\')">›</button>'+
-      '<button draggable="false" class="b b-ghost b-sm" title="Histórico" onclick="tarHistorico(\''+t.id+'\')">⏱</button>'+
+      '<button draggable="false" class="b b-ghost b-sm" title="Voltar etapa" onclick="tarVoltar(\''+t.id+'\')">‹ Voltar</button>'+
+      '<button draggable="false" class="b b-ghost b-sm" title="Histórico e tempo" onclick="tarHistorico(\''+t.id+'\')">⏱</button>'+
       '<button draggable="false" class="b b-ghost b-sm" title="Excluir" onclick="delTarefa(\''+t.id+'\')">🗑</button>'+
     '</div></div>';
 }
@@ -557,7 +573,10 @@ function injectCSS(){
    '.tarPrio{color:var(--warn);font-weight:600;text-transform:uppercase;font-size:9.5px;letter-spacing:.5px}'+
    '.tarCron{font-size:10.5px;color:var(--gold-2);margin-top:6px;font-variant-numeric:tabular-nums}'+
    '.tarCard.tarFeito .tarCron{color:var(--muted)}'+
-   '.tarAcoes{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}'+
+   '.tarResp{font-size:10.5px;color:var(--gold-2);margin-top:5px;font-weight:600}'+
+   '.tarResp.tarSemResp{color:var(--dim);font-weight:500}'+
+   '.tarNext{width:100%;margin-top:8px;justify-content:center}'+          /* §16.5 item 4: ação descoberta */
+   '.tarAcoes{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}'+
    '@media(max-width:860px){.tarBoard{grid-template-columns:1fr}}'+
    '@media(prefers-reduced-motion:reduce){.agCard,.agPer,.tarCard,.tarCol{transition:none;animation:none}}';
   document.head.appendChild(s);

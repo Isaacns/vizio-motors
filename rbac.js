@@ -8,7 +8,7 @@
 (function(){
 "use strict";
 var RKEY="vm_rbac_v1";
-var MODULOS=[["os","Ordens de Serviço"],["agenda","Agenda"],["clientes","Clientes & Veículos"],
+var MODULOS=[["os","Ordens de Serviço"],["servicos","Serviços"],["agenda","Agenda"],["clientes","Clientes & Veículos"],
   ["estoque","Estoque"],["financeiro","Financeiro"],["nfe","Nota Fiscal"],["dashboard","Dashboard"],
   ["torque","Motor Torque"],["crm","CRM & Receita"],["alavancagem","Alavancagem"],
   ["ponto","Ponto & Equipe"],["bemestar","Bem-estar"],["config","Configurações"],["usuarios","Usuários & Acessos"]];
@@ -20,14 +20,14 @@ function defaults(){
     perfis:[
       {id:"admin",nome:"Administrador",nivel:1,fixo:true,desc:"Acesso total ao sistema e às configurações.",perm:perm('*','*')},
       {id:"gerente",nome:"Gerente",nivel:2,desc:"Operação, gestão e relatórios; sem configurações críticas.",
-        perm:perm(['os','agenda','clientes','estoque','financeiro','nfe','dashboard','torque','crm','alavancagem','ponto','bemestar','config'],
-                  ['os','agenda','clientes','estoque','financeiro','nfe','crm','alavancagem','ponto'])},
+        perm:perm(['os','servicos','agenda','clientes','estoque','financeiro','nfe','dashboard','torque','crm','alavancagem','ponto','bemestar','config'],
+                  ['os','servicos','agenda','clientes','estoque','financeiro','nfe','crm','alavancagem','ponto'])},
       {id:"financeiro",nome:"Financeiro",nivel:3,desc:"Financeiro, notas fiscais e relatórios.",
         perm:perm(['financeiro','nfe','dashboard','crm','clientes'],['financeiro','nfe'])},
       {id:"recepcao",nome:"Recepção",nivel:3,desc:"Ordens de serviço, agenda e clientes.",
-        perm:perm(['os','agenda','clientes','dashboard'],['os','agenda','clientes'])},
+        perm:perm(['os','servicos','agenda','clientes','dashboard'],['os','servicos','agenda','clientes'])},
       {id:"mecanico",nome:"Mecânico",nivel:4,desc:"Suas OS, checklist e status; controle de ponto.",
-        perm:perm(['os','ponto','bemestar'],['os','ponto'])},
+        perm:perm(['os','servicos','ponto','bemestar'],['os','servicos','ponto'])},
       {id:"estoque",nome:"Estoque",nivel:4,desc:"Estoque, compras e fornecedores.",
         perm:perm(['estoque','dashboard'],['estoque'])},
       {id:"visualizador",nome:"Visualizador",nivel:5,desc:"Somente leitura.",
@@ -155,6 +155,16 @@ window.abrirMeuPerfil=function(){ var u=usuarioAtual(load()); if(u&&u.id&&u.id!=
 window.rbacCan=function(mod,edit){ try{ var s=load(); var u=usuarioAtual(s); var p=perfilById(s,u.perfil);
   var pm=p.perm[mod]; if(!pm)return true; return edit?!!pm.e:!!pm.a; }catch(e){ return true; } };
 
+/* Super-admin INPERSON/dev × admin do cliente. Alguns ajustes são só da operadora
+   (ex.: modo camaleão/white-label de terceiros). O admin do CLIENTE não deve vê-los.
+   Identificado pelo e-mail da sessão; em modo demo/local (sem sessão) mostra tudo. */
+var SUPERADMINS=["isaacn.ti@outlook.com"];
+window.vmIsSuperAdmin=function(){
+  var e=(window.__vmUserEmail||"").toLowerCase();
+  if(!e) return true;                       /* demo/piloto local: sem gate */
+  return SUPERADMINS.indexOf(e)>=0;
+};
+
 /* §8 dos Padrões — o menu reflete a permissão. Esconde item sem acesso e o título do grupo
    que ficar vazio. Não substitui RLS: é conforto de UI; o bloqueio real é no backend. */
 window.rbacAplicarNav=function(){
@@ -162,6 +172,10 @@ window.rbacAplicarNav=function(){
     document.querySelectorAll('a[data-perm]').forEach(function(a){
       a.style.display = window.rbacCan(a.getAttribute('data-perm')) ? '' : 'none';
     });
+    /* Gate super-admin: só ESCONDE (nunca revela algo que a permissão já negou). */
+    if(!window.vmIsSuperAdmin()){
+      document.querySelectorAll('[data-super]').forEach(function(el){ el.style.display='none'; });
+    }
     document.querySelectorAll('nav[data-grp-nav]').forEach(function(nav){
       var visiveis=[].slice.call(nav.querySelectorAll('a')).filter(function(a){return a.style.display!=='none';});
       var titulo=nav.previousElementSibling;

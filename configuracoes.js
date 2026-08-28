@@ -9,6 +9,7 @@
    inteiro. (Bug real, 19/07/2026: quebrou o módulo Configurações por completo.) */
 const APP_VERSION = window.APP_VERSION || "0.6.0";
 const CHANGELOG = [
+  ["1.0.95","Sistema com a nova moldura (menu e topo flutuantes), Início com resumo do painel (receita por serviço, status e mecânicos), novo módulo Serviços para delegar cada OS/tarefa ao mecânico responsável, botão “Avançar →” no quadro, link de acompanhamento do cliente por WhatsApp e o app agora é instalável no celular"],
   ["1.0.94","Quadro de tarefas da oficina na Agenda: organize o serviço em Pendente → Em andamento → Concluída arrastando os cartões, com o tempo de cada etapa cronometrado e guardado no histórico"],
   ["1.0.93","Gráficos vivos: as barras do dashboard e do financeiro ganham uma superfície líquida que ondula suavemente, como se estivessem se enchendo — um toque sutil, sem pesar (respeita quem prefere menos animação)"],
   ["1.0.92","Sistema com movimento vivo: os números principais contam até o valor, os cards entram com um leve deslize e o mouse ganha realces suaves — sem pesar (respeita quem prefere menos animação)"],
@@ -52,8 +53,15 @@ function abrirConfig(){
 function renderConfig(){
   const cfg=(WORK._cfg)||{oficina:'Oficina Demonstração',especialidade:'Multimarcas'};
   const live=!!window.VIZIO_LIVE;
+  /* White-label "camaleão" (branding de terceiros) é ajuste da operadora INPERSON/dev.
+     O admin do CLIENTE não vê este painel (item 7 do redesign). */
+  const sa=window.vmIsSuperAdmin?window.vmIsSuperAdmin():true;
+  const idPanel = sa ? `<div class="panel"><h3>🦎 Identidade / White-label <span class="torque-badge" style="background:rgba(90,160,255,.14);color:var(--gold-2)">SUPER-ADMIN</span></h3>
+       <div style="font-size:13px;color:var(--muted);line-height:1.6">Como operadora (INPERSON), carregue a marca de cada oficina (logo, cor e nome) e o sistema veste a identidade daquele cliente — modo camaleão. Padrão: VIZIO.</div>
+       <div style="margin-top:14px"><button class="b b-sm" onclick="abrirMarca()">Abrir identidade</button></div>
+     </div>` : '';
   document.getElementById('view').innerHTML=`
-   <div class="grid2">
+   <div class="${sa?'grid2':''}">
      <div class="panel"><h3>🏢 Dados da oficina</h3>
        <div class="info-line"><span class="k">Nome</span><span id="cf_nome_v">${esc(cfg.oficina)||'—'}</span></div>
        <div class="info-line"><span class="k">Especialidade</span><span>${esc(cfg.especialidade)||'—'}</span></div>
@@ -61,10 +69,7 @@ function renderConfig(){
        <div class="info-line" style="border:none"><span class="k">Backend</span><span>${live?'Supabase (ao vivo)':'Demonstração'}</span></div>
        <div style="margin-top:14px"><button class="b b-sm" onclick="editarOficina()">Editar dados</button></div>
      </div>
-     <div class="panel"><h3>🦎 Identidade / White-label <span class="torque-badge" style="background:rgba(90,160,255,.14);color:var(--gold-2)">ATIVO</span></h3>
-       <div style="font-size:13px;color:var(--muted);line-height:1.6">Como admin master, carregue a marca de cada oficina (logo, cor e nome) e o sistema veste a identidade daquele cliente — modo camaleão. Padrão: VIZIO.</div>
-       <div style="margin-top:14px"><button class="b b-sm" onclick="abrirMarca()">Abrir identidade</button></div>
-     </div>
+     ${idPanel}
    </div>
 
    <div class="panel"><div class="head"><h3>🛠️ Catálogo de serviços</h3><div class="sp"></div>
@@ -113,11 +118,14 @@ function formServico(s){ s=s||{}; const ed=!!s.id;
        tempoMin:+document.getElementById('sv_tempo').value||0,categoria:document.getElementById('sv_cat').value};
      if(!WORK.servicos)WORK.servicos=[];
      if(ed){Object.assign(s,rec);}else{WORK.servicos.push(Object.assign({id:uid('S')},rec));}
-     closeModal(); renderConfig(); toast(ed?'Serviço atualizado ✓':'Serviço adicionado ✓'); });
+     closeModal(); _afterServ(); toast(ed?'Serviço atualizado ✓':'Serviço adicionado ✓'); });
 }
+/* O catálogo aparece tanto em Configurações quanto no módulo Serviços — re-renderiza o que estiver aberto. */
+function _afterServ(){ var t=(document.getElementById('pageTitle')||{}).textContent;
+  if(t==='Serviços'&&window.renderServicos) return renderServicos(); renderConfig(); }
 function novoServico(){formServico();}
 function editServico(id){formServico(byId(WORK.servicos,id));}
-function delServico(id){confirmar("Excluir este serviço do catálogo?",()=>{WORK.servicos=(WORK.servicos||[]).filter(s=>s.id!==id);closeModal();renderConfig();});}
+function delServico(id){confirmar("Excluir este serviço do catálogo?",()=>{WORK.servicos=(WORK.servicos||[]).filter(s=>s.id!==id);closeModal();_afterServ();});}
 window.novoServico=novoServico; window.editServico=editServico; window.delServico=delServico;
 
 function trocarSenha(){

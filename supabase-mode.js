@@ -83,6 +83,7 @@
   function refreshView(){
     if(document.getElementById('modal-root').innerHTML.trim())return;
     const t=document.getElementById('pageTitle').textContent;
+    if(t==="Serviços")return renderServicos();
     if(t==="Financeiro")return renderFinanceiro();
     if(t==="CRM & Recuperação")return renderCRM();
     if(t==="Dashboard Executivo")return renderDash();
@@ -141,7 +142,7 @@
     window[name]=function(){ const r=o.apply(this,arguments); scheduleSync(); return r; }; }
   ["stepOS","toggleChk","toggleAprov","delItem","marcarPago","closeModal","gerarRecebiveis",
    "gerarCampanha","emitirNF","cancelarNF","registrarPonto","salvarBemestar","salvarMeta",
-   "agMover","agConcluir","tarMover"].forEach(wrap);   /* §15/§16.5: mover tarefa/agenda altera dado -> sincroniza como qualquer save */
+   "agMover","agConcluir","tarMover","osDelegar","tarefaDelegar"].forEach(wrap);   /* §15/§16.5: mover/delegar altera dado -> sincroniza como qualquer save */
   const _delOS=window.delOS; window.delOS=function(id){ sbDelete("mt_os",id); return _delOS(id); };
   const _delAg=window.delAg; if(_delAg)window.delAg=function(id){ sbDelete("mt_agenda",id); return _delAg(id); };
   const _delTarefa=window.delTarefa; if(_delTarefa)window.delTarefa=function(id){ sbDelete("mt_tarefas",id); return _delTarefa(id); };
