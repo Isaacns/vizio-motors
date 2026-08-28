@@ -13,10 +13,10 @@
 const VIZIO_BRAND={nome:"Vizio Motors",accent:"#5aa0ff",logo:"vizio-symbol-light.png"};
 /* logo VIZIO por tema: clara (traços claros) no escuro; navy no fundo branco */
 function vizioLogo(){ return document.documentElement.classList.contains('theme-light')?'vizio-symbol-dark.png':'vizio-symbol-light.png'; }
+function _emSize(id){ return id==='emblemSide'?44:id==='emblemP'?104:120; }
 function reRenderEmblems(){ ['emblemLogin','emblemSide','emblemP'].forEach(function(id){
   var e=document.getElementById(id);
-  if(e&&typeof emblemSVG==='function'&&(e.innerHTML||'').trim()){ e.innerHTML=emblemSVG();
-    var c=e.firstElementChild; if(c)c.style.maxWidth=(id==='emblemSide'?'44px':id==='emblemP'?'76px':'120px'); }}); }
+  if(e&&typeof emblemSVG==='function'&&(e.innerHTML||'').trim()){ e.innerHTML=emblemSVG(_emSize(id)); }}); }
 
 function shade(hex,pct){
   hex=(hex||'#5aa0ff').replace('#','');
@@ -48,8 +48,7 @@ function applyTheme(b){
   ['emblemLogin','emblemSide','emblemP'].forEach(function(id){
     var e=document.getElementById(id);
     if(e&&typeof emblemSVG==='function'&&(e.innerHTML||'').trim()){
-      e.innerHTML=emblemSVG();
-      var c=e.firstElementChild; if(c)c.style.maxWidth=(id==='emblemSide'?'44px':id==='emblemP'?'76px':'120px');
+      e.innerHTML=emblemSVG(_emSize(id));
     }});
   var bn=document.querySelector('.brand-name'); if(bn)bn.textContent=(window.BRAND_NAME||'Vizio Motors').toUpperCase();
   var nm=document.querySelector('.side .logo-row .nm'); if(nm)nm.textContent=window.BRAND_NAME||'Vizio Motors';

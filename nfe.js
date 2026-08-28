@@ -72,7 +72,7 @@ function renderNFe(){
            '<button class="b b-ghost b-sm" onclick="excluirNota(\''+n.id+'\')">🗑</button></td></tr>';}).join('')+'</tbody></table>'
        :'<div style="color:var(--muted);font-size:13px">Nenhuma nota registrada. Prepare os dados de uma OS acima e registre o número emitido no portal.</div>')+
    '</div>'+
-   '<div style="font-size:11.5px;color:var(--dim);text-align:center;margin-top:6px">NFS-e pelo Emissor Nacional (gratuito). Sem gateway, sem custo. Um padrão INPERSON.</div>'+
+   '<div style="font-size:11.5px;color:var(--dim);text-align:center;margin-top:6px">NFS-e pelo Emissor Nacional (gratuito). Sem gateway, sem custo. by VIZIO.</div>'+
    '</div>';
 }
 

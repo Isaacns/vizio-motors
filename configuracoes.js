@@ -9,6 +9,8 @@
    inteiro. (Bug real, 19/07/2026: quebrou o módulo Configurações por completo.) */
 const APP_VERSION = window.APP_VERSION || "0.6.0";
 const CHANGELOG = [
+  ["1.0.97","Novo Portal do Cliente: a página pública de acompanhamento foi reconstruída com a identidade da própria oficina (logo redonda animada e cores da marca). O cliente entra com o CPF ou a placa — validados de forma segura no servidor — e vê o status do serviço em destaque, uma linha do tempo animada das etapas, a previsão de entrega, as observações da oficina e botões para falar no WhatsApp ou ligar. Link de outro cliente/veículo é recusado sem expor dados de terceiros"],
+  ["1.0.96","Quadro da Oficina: as Ordens de Serviço viraram um quadro de cartões com foto do veículo, mecânico responsável e mini-linha do tempo — avance a etapa com um clique sem abrir a OS. Serviços virou um catálogo inteligente (peças, garantia, mecânicos habilitados) com painel de desempenho. Cadastro de cliente com endereço completo (busca por CEP), fotos do veículo/OS, logo redonda animada (AURA), guia “Como usar” em cada tela e aviso de “serviço pronto” pelo WhatsApp"],
   ["1.0.95","Sistema com a nova moldura (menu e topo flutuantes), Início com resumo do painel (receita por serviço, status e mecânicos), novo módulo Serviços para delegar cada OS/tarefa ao mecânico responsável, botão “Avançar →” no quadro, link de acompanhamento do cliente por WhatsApp e o app agora é instalável no celular"],
   ["1.0.94","Quadro de tarefas da oficina na Agenda: organize o serviço em Pendente → Em andamento → Concluída arrastando os cartões, com o tempo de cada etapa cronometrado e guardado no histórico"],
   ["1.0.93","Gráficos vivos: as barras do dashboard e do financeiro ganham uma superfície líquida que ondula suavemente, como se estivessem se enchendo — um toque sutil, sem pesar (respeita quem prefere menos animação)"],
@@ -103,19 +105,28 @@ function renderConfig(){
 
    <div class="panel" style="text-align:center;padding:24px">
      <div style="font-family:var(--display);color:var(--gold-2);font-size:18px">Vizio Motors</div>
-     <div style="color:var(--muted);font-size:13px;margin-top:4px">Sua oficina virou sistema inteligente. — um produto VIZIO / INPERSON</div>
+     <div style="color:var(--muted);font-size:13px;margin-top:4px">Sua oficina virou sistema inteligente. — by VIZIO</div>
    </div>`;
 }
 
 function formServico(s){ s=s||{}; const ed=!!s.id;
+  const eq=(window.equipeMotors?window.equipeMotors():[]);
+  const sel=Array.isArray(s.mecanicos)?s.mecanicos:[];
+  const checks=eq.length?eq.map(function(n){return '<label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;margin:0 10px 6px 0"><input type="checkbox" class="sv_mec" value="'+esc(n)+'"'+(sel.indexOf(n)>=0?' checked':'')+' style="width:auto"> '+esc(n)+'</label>';}).join('')
+    :'<span style="color:var(--muted);font-size:12px">Cadastre a equipe em Usuários & Acessos.</span>';
   modal(ed?"Editar serviço":"Novo serviço","",`
     <label>Nome</label><input id="sv_nome" value="${esc(s.nome)}" placeholder="Ex.: Alinhamento e balanceamento">
-    <div class="frow"><div><label>Preço (R$)</label><input id="sv_preco" type="number" step="0.01" value="${s.preco||0}"></div>
-    <div><label>Tempo (min)</label><input id="sv_tempo" type="number" value="${s.tempoMin||0}"></div></div>
-    <label>Categoria</label><input id="sv_cat" value="${esc(s.categoria)}" placeholder="Ex.: Freios, Motor, Revisão">`,
+    <div class="frow"><div><label>Preço base (R$)</label><input id="sv_preco" type="number" step="0.01" value="${s.preco||0}"></div>
+    <div><label>Tempo estimado (min)</label><input id="sv_tempo" type="number" value="${s.tempoMin||0}"></div></div>
+    <label>Categoria</label><input id="sv_cat" value="${esc(s.categoria)}" placeholder="Ex.: Freios, Motor, Revisão">
+    <label>Peças utilizadas <i style="color:var(--muted);font-style:normal">(opcional)</i></label><input id="sv_pecas" value="${esc(s.pecas)}" placeholder="Ex.: pastilhas · sensor de desgaste">
+    <label>Garantia <i style="color:var(--muted);font-style:normal">(opcional)</i></label><input id="sv_gar" value="${esc(s.garantia)}" placeholder="Ex.: 6 meses / 10.000 km">
+    <label>Mecânicos habilitados</label><div style="margin-top:4px">${checks}</div>`,
    ()=>{ if(!document.getElementById('sv_nome').value){toast('Informe o nome do serviço');return;}
+     const mecs=[].slice.call(document.querySelectorAll('.sv_mec:checked')).map(function(x){return x.value;});
      const rec={nome:document.getElementById('sv_nome').value,preco:+document.getElementById('sv_preco').value||0,
-       tempoMin:+document.getElementById('sv_tempo').value||0,categoria:document.getElementById('sv_cat').value};
+       tempoMin:+document.getElementById('sv_tempo').value||0,categoria:document.getElementById('sv_cat').value,
+       pecas:document.getElementById('sv_pecas').value,garantia:document.getElementById('sv_gar').value,mecanicos:mecs};
      if(!WORK.servicos)WORK.servicos=[];
      if(ed){Object.assign(s,rec);}else{WORK.servicos.push(Object.assign({id:uid('S')},rec));}
      closeModal(); _afterServ(); toast(ed?'Serviço atualizado ✓':'Serviço adicionado ✓'); });

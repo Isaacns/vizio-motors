@@ -12,7 +12,7 @@
 })();
 /* VERSÃO DO APP — bumpar a CADA deploy. É por este número que o push compara.
    §14.2: nunca `const` — colide com o escopo de script dos outros .js e derruba o arquivo. */
-window.APP_VERSION='1.0.95';
+window.APP_VERSION='1.0.97';
 </script>
 <html lang="pt-BR">
 <head>
@@ -28,7 +28,7 @@ window.APP_VERSION='1.0.95';
 <meta name="theme-color" content="#070809">
 <!-- PWA instalável (§ redesign 1.0.95): manifest + ícones. O service worker (sw.js) é
      network-first no index e NÃO cacheia o HTML — preserva o version-gate (rota 2). -->
-<link rel="manifest" href="manifest.json?v=095">
+<link rel="manifest" href="manifest.json?v=097">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -91,6 +91,16 @@ html.theme-light .plate{background:#0f1826;color:#cdd6e2}
 @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
 .emblem .gear{transform-box:fill-box;transform-origin:center;animation:spin 16s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* ===== AURA ORBI — logo redonda animada (pulseLogo + halo pulsante) =====
+   Parametrizavel pelo Camaleao: usa os tokens de acento (--gold e --accent2).
+   Preenchida por emblemSVG() em login, sidebar e portal. */
+.aura{position:relative;display:inline-block;flex:none}
+.aura .halo{position:absolute;inset:0;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--gold-2) 60%,transparent);animation:orbi 3.4s ease-out infinite;pointer-events:none}
+.aura .halo.two{animation-delay:1.7s}
+.aura .ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 210deg,var(--accent2),var(--gold-2),var(--gold-4),var(--accent2));animation:spin 16s linear infinite;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.aura .core{position:absolute;inset:7%;border-radius:50%;background:radial-gradient(120% 120% at 30% 25%,var(--panel-2),var(--ink));display:grid;place-items:center;animation:breathe 3.4s ease-in-out infinite}
+.aura .core b{font-family:var(--display);font-weight:700;letter-spacing:.01em;color:var(--gold-2);line-height:1}
+@keyframes orbi{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.6);opacity:0}}
 /* ===== LOGIN ===== */
 .wrap{position:relative;z-index:2;min-height:100%}
 #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
@@ -142,6 +152,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold-2);box-shadow:0 
 .fotoEdit .prev img{width:100%;height:100%;object-fit:cover;display:block}
 .theme-toggle{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:16px;cursor:pointer;transition:.18s;display:flex;align-items:center;justify-content:center}
 .theme-toggle:hover{color:var(--txt);border-color:var(--gold-2)}
+/* Botão "Como usar" (guia contextual por tela — padrão Inovar adaptado) */
+.help-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:15px;font-weight:700;cursor:pointer;transition:.18s;display:flex;align-items:center;justify-content:center;flex:none}
+.help-btn:hover{color:var(--gold-2);border-color:var(--gold-2)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
 .kpi{padding:22px 22px 20px;border-radius:var(--radius,18px);border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);position:relative;overflow:hidden;transition:.22s}
 .kpi:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.11)}
@@ -232,23 +245,78 @@ td.acoes,th.acoes{white-space:nowrap;text-align:right}
 .tot .v{font-family:var(--display);font-weight:700;font-size:24px;color:var(--gold-2)}
 .info-line{display:flex;justify-content:space-between;padding:7px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05)}
 .info-line .k{color:var(--muted)}
-#portal{position:relative;z-index:2;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:30px 18px}
-.pcard{width:100%;max-width:560px}
-.phead{text-align:center;margin-bottom:20px}
-.pbrand{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:1px;color:var(--gold-2);margin-top:8px}
-.pbig{text-align:center;padding:26px}
-.pbig .stt{font-family:var(--display);font-size:26px;color:var(--gold-2);font-weight:700;margin-bottom:4px}
-.pbar{height:12px;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden;margin:18px 0 6px}
-/* §20 — preenchimento por transform (nunca layout): o track .pbar tem overflow:hidden e cuida do arredondamento. */
-.pbar>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--gold-4),var(--gold-2));transform-origin:left;transform:scaleX(var(--p,0));transition:transform .8s}
-.pstep{display:flex;align-items:center;gap:12px;padding:11px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
-.pstep .pd{width:22px;height:22px;border-radius:50%;flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-size:12px;background:#2a281f;border:1px solid #3a372d;color:var(--muted)}
-.pstep.done .pd{background:var(--gold-3);color:#ffffff;border-color:var(--gold-2)}
-.pstep.cur{background:rgba(37,99,235,.06);border-radius:10px}
-.pstep.cur .pd{background:var(--gold-2);color:#ffffff;animation:pd 1.5s infinite}
-.pstep .pl{font-size:13.5px}
-.pstep.done .pl,.pstep.cur .pl{color:var(--txt)}
-.pstep .pl small{display:block;color:var(--muted);font-size:11px}
+/* ===== PORTAL DO CLIENTE (público) — mockup aprovado · tokens do Camaleão (marca = oficina) ===== */
+#portal{position:relative;z-index:2;min-height:100dvh;display:flex;justify-content:center;padding:26px 18px 60px}
+.pwrap{width:100%;max-width:560px;display:flex;flex-direction:column;flex:1}
+.pscreen{display:none}.pscreen.on{display:flex;flex-direction:column;flex:1}
+@keyframes prise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+#portal .an{animation:prise .5s cubic-bezier(.2,.7,.2,1) both}
+/* --- boas-vindas --- */
+.pwelcome{flex:1;display:flex;flex-direction:column;justify-content:center;gap:24px}
+.pbrand-hd{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px}
+.pbn{font-family:var(--display);font-weight:700;font-size:23px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-2)}
+.ptag{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+.phello{text-align:center}
+.phello h1{font-family:var(--display);font-weight:600;font-size:24px;letter-spacing:.01em}
+.phello p{color:var(--muted);font-size:14.5px;margin-top:8px;line-height:1.55}
+.phello b{color:var(--txt)}
+.pidcard{padding:22px}
+#portal .pidcard label{display:block;text-align:left;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 8px;letter-spacing:.02em}
+#portal .pidcard input{width:100%;height:52px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--txt);font-size:16px;padding:0 16px;letter-spacing:.02em}
+#portal .pidcard input:focus{outline:none;border-color:var(--gold-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold-2) 20%,transparent)}
+.pgo{width:100%;height:52px;margin-top:16px;border:none;border-radius:12px;cursor:pointer;font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:#141310;background:linear-gradient(160deg,var(--gold-1),var(--gold-2) 55%,var(--gold-4));box-shadow:0 10px 26px rgba(0,0,0,.4);transition:transform .15s}
+.pgo:hover{transform:translateY(-1px)}.pgo:disabled{opacity:.7;cursor:default;transform:none}
+.perr{display:none;margin-top:14px;padding:13px 15px;border-radius:12px;font-size:13px;line-height:1.45;background:rgba(231,123,123,.12);border:1px solid rgba(231,123,123,.35);color:#f0a9a9}
+.perr.on{display:block;animation:prise .3s both}
+.phint{text-align:center;color:var(--dim);font-size:12px}
+.pfoot{text-align:center;color:var(--dim);font-size:12px;margin-top:28px;padding-top:10px}
+.pfoot b{color:var(--muted)}
+/* --- acompanhamento --- */
+.pthead{display:flex;align-items:center;gap:13px;margin-bottom:16px}
+.pmini{width:44px;height:44px;flex:none}
+.ptt b{font-family:var(--display);letter-spacing:.04em;text-transform:uppercase;font-size:15px;color:var(--gold-2)}
+.ptt span{display:block;font-size:12.5px;color:var(--muted)}
+.phero{overflow:hidden}
+.pphoto{position:relative;height:158px;display:flex;align-items:flex-end;padding:14px 16px;background:radial-gradient(60% 90% at 70% 20%,color-mix(in srgb,var(--gold-2) 14%,transparent),transparent 60%),linear-gradient(180deg,var(--panel-2),var(--ink))}
+.pphoto>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pphoto .pshade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.5))}
+.pphoto .car{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:150px;height:auto;opacity:.8;color:var(--gold-2)}
+.pplate{font-family:var(--display);font-weight:700;letter-spacing:.08em;font-size:16px;padding:6px 12px;border-radius:9px;background:rgba(0,0,0,.55);border:1px solid color-mix(in srgb,var(--gold-2) 40%,transparent);position:relative;z-index:1;color:var(--txt)}
+.phbody{padding:18px}
+.pvname{font-family:var(--display);font-weight:600;font-size:22px}
+.pvsub{color:var(--muted);font-size:13.5px;margin-top:3px}
+.pstatusnow{display:flex;align-items:center;gap:12px;margin:16px 0 6px;padding:14px;border-radius:14px;background:color-mix(in srgb,var(--gold-2) 8%,transparent);border:1px solid color-mix(in srgb,var(--gold-2) 22%,transparent)}
+.pring{width:46px;height:46px;flex:none;position:relative}
+.pring .pu{position:absolute;inset:0;border-radius:50%;border:2px solid var(--gold-2);animation:orbi 2s ease-out infinite}
+.pring .co{position:absolute;inset:8px;border-radius:50%;background:linear-gradient(160deg,var(--gold-1),var(--gold-2) 55%,var(--gold-4))}
+.pstatusnow .stt b{font-family:var(--display);letter-spacing:.03em;font-size:17px;text-transform:uppercase;color:var(--gold-2)}
+.pstatusnow .stt span{display:block;color:var(--muted);font-size:12.5px}
+.ptl{margin:20px 4px 4px;position:relative}
+.ptl::before{content:"";position:absolute;left:15px;top:6px;bottom:6px;width:2px;background:var(--line)}
+/* preenche por transform:scaleY (nunca layout) — a linha ocupa o track e escala do topo */
+.ptl .pfill{position:absolute;left:15px;top:6px;width:2px;height:calc(100% - 12px);background:linear-gradient(180deg,var(--gold-1),var(--gold-4));transform:scaleY(0);transform-origin:top;transition:transform 1.4s cubic-bezier(.4,.9,.3,1)}
+.pstep2{position:relative;display:flex;gap:14px;padding:9px 0 12px;opacity:.34;transition:opacity .5s}
+.pstep2.done,.pstep2.cur{opacity:1}
+.pdot{width:32px;height:32px;flex:none;border-radius:50%;display:grid;place-items:center;z-index:1;background:var(--panel-2);border:2px solid var(--line);color:var(--dim);font-size:14px;transition:.4s}
+.pstep2.done .pdot{background:linear-gradient(160deg,var(--gold-1),var(--gold-2) 55%,var(--gold-4));border-color:transparent;color:#141310}
+.pstep2.cur .pdot{border-color:var(--gold-2);color:var(--gold-2);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold-2) 14%,transparent)}
+.plbl b{font-family:var(--display);letter-spacing:.03em;font-size:14.5px;text-transform:uppercase;display:block}
+.pstep2:not(.done):not(.cur) .plbl b{color:var(--muted)}
+.plbl span{font-size:12px;color:var(--muted)}
+.pstep2.cur .plbl b{color:var(--gold-2)}
+.pinfo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.pinfo .pbox{background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:14px;padding:14px}
+.pinfo .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.pinfo .v{font-family:var(--display);font-weight:600;font-size:17px;margin-top:5px}
+.pinfo .v.eta{color:var(--gold-2)}
+.pobs{margin-top:12px;background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.pobs .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.pobs p{font-size:14px;line-height:1.55;color:var(--platinum)}
+.pcta{display:flex;gap:10px;margin-top:16px}
+.pcta a{flex:1;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-weight:600;font-size:14px}
+.pcta .wa{background:linear-gradient(180deg,#25D366,#12A150);color:#fff}
+.pcta .call{background:rgba(255,255,255,.05);color:var(--txt);border:1px solid var(--line)}
+@media(prefers-reduced-motion:reduce){#portal .an,.pring .pu{animation:none!important}.pstep2{transition:none!important}.ptl .pfill{transition:none!important}}
 @media(max-width:860px){
   .layout{grid-template-columns:1fr;padding:14px;gap:14px}
   .side{position:fixed;left:14px;top:14px;bottom:14px;height:auto;width:236px;transform:translateX(-118%);transition:transform .25s;z-index:40}
@@ -308,7 +376,7 @@ footer b{color:var(--gold-4)}
         <div class="hint"><a onclick="document.getElementById('signup').style.display='none';document.getElementById('loginForm').style.display='block'" style="color:var(--gold-2);cursor:pointer">← Voltar ao login</a></div>
       </div>
       <div class="hint" id="signupToggle" style="display:none">Ainda não tem conta? <a onclick="document.getElementById('loginForm').style.display='none';document.getElementById('signup').style.display='block'" style="color:var(--gold-2);cursor:pointer">Criar minha oficina grátis</a></div>
-      <div class="seal">powered by <b>Vizio Motors</b> — um produto INPERSON</div>
+      <div class="seal">powered by <b>Vizio Motors</b> — by <b>VIZIO</b></div>
     </div>
   </section>
 
@@ -316,7 +384,7 @@ footer b{color:var(--gold-4)}
    <div class="layout">
     <aside class="side" id="side">
       <div class="logo-row"><div class="emblem" id="emblemSide" style="width:44px"></div>
-        <div><div class="nm">Vizio Motors</div><div class="sb">by INPERSON</div></div></div>
+        <div><div class="nm">Vizio Motors</div><div class="sb">by VIZIO</div></div></div>
       <div class="navgrp">Operação</div>
       <nav class="nav" id="nav">
         <a class="active" data-m="home"><span class="ic">◈</span>Início</a>
@@ -356,6 +424,7 @@ footer b{color:var(--gold-4)}
         <button class="menu-btn" onclick="document.getElementById('side').classList.toggle('open')">☰</button>
         <h1 id="pageTitle">Início</h1><div class="sp"></div>
         <input class="search" id="q" placeholder="Buscar…" oninput="onSearch()">
+        <button class="help-btn" id="helpBtn" onclick="vmAjudaAtual()" title="Como usar esta tela" aria-label="Como usar esta tela">?</button>
         <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Alternar tema claro/escuro" aria-label="Alternar tema">◐</button>
         <div class="user" id="userChip" onclick="abrirMeuPerfil()" title="Meu perfil">
           <div class="who"><b id="uName">—</b><span id="uRole"></span></div>
@@ -363,7 +432,7 @@ footer b{color:var(--gold-4)}
         </div>
       </div>
       <div id="view"></div>
-      <footer>Vizio Motors <b id="footVer">v1.0.95</b> · Sua oficina virou sistema inteligente. — um produto <b>INPERSON</b></footer>
+      <footer>Vizio Motors <b id="footVer">v1.0.96</b> · Sua oficina virou sistema inteligente. — by <b>VIZIO</b></footer>
     </main>
    </div>
   </section>
@@ -378,28 +447,29 @@ footer b{color:var(--gold-4)}
 <script src="app-charts-vivo.js?v=1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="esc.js?v=095"></script>
-<script src="config.js?v=095"></script>
-<script src="dados.js?v=095"></script>
-<script src="app.js?v=095"></script>
-<script src="financeiro.js?v=095"></script>
-<script src="crm.js?v=095"></script>
-<script src="dashboard.js?v=095"></script>
-<script src="nfe.js?v=095"></script>
-<script src="corporativo.js?v=095"></script>
-<script src="bemestar-vm.js?v=095"></script>
-<script src="alavancagem-vm.js?v=095"></script>
-<script src="agenda-vm.js?v=095"></script>
-<script src="estoque-pred.js?v=095"></script>
-<script src="configuracoes.js?v=095"></script>
-<script src="servicos.js?v=095"></script>
-<script src="relatorio.js?v=095"></script>
-<script src="torque.js?v=095"></script>
-<script src="rbac.js?v=095"></script>
-<script src="theme.js?v=095"></script>
-<script src="supabase-mode.js?v=095"></script>
-<script src="motion-vm.js?v=095"></script>
-<script src="version-gate.js?v=095"></script>
-<script src="pwa-vm.js?v=095"></script>
+<script src="esc.js?v=097"></script>
+<script src="config.js?v=097"></script>
+<script src="dados.js?v=097"></script>
+<script src="app.js?v=097"></script>
+<script src="financeiro.js?v=097"></script>
+<script src="crm.js?v=097"></script>
+<script src="dashboard.js?v=097"></script>
+<script src="nfe.js?v=097"></script>
+<script src="corporativo.js?v=097"></script>
+<script src="bemestar-vm.js?v=097"></script>
+<script src="alavancagem-vm.js?v=097"></script>
+<script src="agenda-vm.js?v=097"></script>
+<script src="estoque-pred.js?v=097"></script>
+<script src="configuracoes.js?v=097"></script>
+<script src="servicos.js?v=097"></script>
+<script src="relatorio.js?v=097"></script>
+<script src="torque.js?v=097"></script>
+<script src="rbac.js?v=097"></script>
+<script src="theme.js?v=097"></script>
+<script src="supabase-mode.js?v=097"></script>
+<script src="motion-vm.js?v=097"></script>
+<script src="app-ajuda-vm.js?v=097"></script>
+<script src="version-gate.js?v=097"></script>
+<script src="pwa-vm.js?v=097"></script>
 </body>
 </html>

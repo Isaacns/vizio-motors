@@ -51,12 +51,12 @@ function relatorioPDF(opts){
    "@page{margin:15mm}@media print{.rp{padding:0}.rp-noprint{display:none}}";
   var doc=
    "<!doctype html><html lang='pt-BR'><head><meta charset='utf-8'><title>"+esc(opts.titulo||'Relatório')+" — "+brand+"</title><style>"+css+"</style></head><body><div class='rp'>"+
-   "<div class='rp-head'><img src='"+esc(logo)+"' alt=''><div class='rp-brand'>"+brand+"<small>por INPERSON</small></div>"+
+   "<div class='rp-head'><img src='"+esc(logo)+"' alt=''><div class='rp-brand'>"+brand+"<small>by VIZIO</small></div>"+
    "<div class='rp-meta'>"+esc(opts.titulo||'Relatório')+"<br>Emitido em "+now+"</div></div>"+
    "<div class='rp-title'>"+esc(opts.titulo||'Relatório')+"</div>"+
    (opts.subtitulo?"<div class='rp-sub'>"+esc(opts.subtitulo)+"</div>":"")+
    (opts.corpo||"")+
-   "<div class='rp-foot'>"+(opts.rodape?esc(opts.rodape)+" · ":"")+brand+" — sua oficina virou sistema inteligente · um produto INPERSON</div>"+
+   "<div class='rp-foot'>"+(opts.rodape?esc(opts.rodape)+" · ":"")+brand+" — sua oficina virou sistema inteligente · by VIZIO</div>"+
    "</div><script>window.onload=function(){setTimeout(function(){window.focus();window.print();},350);}<\/script></body></html>";
   w.document.open(); w.document.write(doc); w.document.close();
 }

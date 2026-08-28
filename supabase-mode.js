@@ -115,6 +115,7 @@
 
   let _t=null;
   function scheduleSync(){ clearTimeout(_t); _t=setTimeout(syncAll,500); }
+  window.vmSync=scheduleSync;   /* mutações fora de form (fotos da OS, avançar etapa) pedem sync direto */
   async function syncAll(){
     /* Falha de gravação NÃO pode ser silenciosa. Antes era só console.warn: o registro
        aparecia na tela, o upsert falhava, o realtime recarregava do banco e o registro
@@ -191,24 +192,25 @@
     await loadAll();
   };
 
-  const _renderPortal=window.renderPortal;
-  let _ptimer=null;
-  async function portalFetch(token){
-    const {data,error}=await SB.rpc("get_portal",{t:token});
-    if(error||!data)return false;
-    WORK.os=[{id:"_p",numero:data.numero,statusIdx:data.status_idx,aprovado:data.aprovado,
-      previsao:data.previsao,entrada:data.entrada,responsavel:data.responsavel,obs:data.obs,
-      itens:data.itens||[],veiculoId:"_pv",token}];
-    WORK.veiculos=[{id:"_pv",placa:data.placa,modelo:data.modelo}];
-    return true;
-  }
-  window.renderPortal=async function(token){
-    if((WORK.os||[]).some(o=>o.token===token)) return _renderPortal(token);
-    const ok=await portalFetch(token); if(!ok) return _renderPortal(token);
-    _renderPortal(token);
-    clearInterval(_ptimer);
-    _ptimer=setInterval(async ()=>{ if(await portalFetch(token)) _renderPortal(token); }, 12000);
+  /* ===== Portal do cliente (LIVE) — RPC segura get_portal_validado (anon, read-only) =====
+     ident vazio  -> só o branding da oficina (tematiza a tela de boas-vindas);
+     ident dado   -> valida CPF/placa no servidor; retorna a OS+marca, null, ou {bloqueado}.
+     O get_portal antigo é preservado no banco (não é usado aqui). */
+  window.portalBrand=async function(token){
+    const {data,error}=await SB.rpc("get_portal_validado",{t:token,ident:""});
+    if(error){ console.warn("portalBrand",error.message); return undefined; }
+    return data||null; // null => token não existe
   };
+  window.portalValidar=async function(token,ident){
+    const {data,error}=await SB.rpc("get_portal_validado",{t:token,ident:ident||""});
+    if(error){ console.warn("portalValidar",error.message); return null; }
+    return data||null; // null => identificador não casou; {bloqueado:true} => rate-limit
+  };
+  /* O boot (app.js) roda ANTES deste override e renderiza o portal com o provedor demo.
+     Se estamos numa rota de portal, re-renderiza agora com os provedores LIVE (marca da oficina). */
+  if((location.hash||'').indexOf('#p=')===0 && typeof window.renderPortal==='function'){
+    window.renderPortal(location.hash.slice(3));
+  }
 
   try{
     const h=document.querySelector('#login .hint'); if(h)h.textContent="Acesso real (Supabase) — use sua senha";

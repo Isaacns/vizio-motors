@@ -10,17 +10,17 @@ const STATUS_FLOW = [
 
 const DADOS = {
   _cfg:{ produto:"Vizio Motors", oficina:"Oficina Demonstração",
-         especialidade:"Multimarcas", perfil:"admin" },
+         especialidade:"Multimarcas", perfil:"admin", tel:"71 3333-4040" },
 
   servicos:[
-    {id:"S1", nome:"Troca de óleo + filtros", preco:320, tempoMin:40, categoria:"Revisão"},
-    {id:"S2", nome:"Revisão 40.000 km", preco:890, tempoMin:150, categoria:"Revisão"},
-    {id:"S3", nome:"Revisão 60.000 km", preco:1240, tempoMin:210, categoria:"Revisão"},
-    {id:"S4", nome:"Troca de embreagem", preco:2600, tempoMin:480, categoria:"Motor/Transmissão"},
-    {id:"S5", nome:"Diagnóstico eletrônico", preco:180, tempoMin:60, categoria:"Injeção"},
-    {id:"S6", nome:"Suspensão dianteira", preco:1180, tempoMin:240, categoria:"Suspensão"},
-    {id:"S7", nome:"Freios (pastilhas + discos)", preco:940, tempoMin:150, categoria:"Freios"},
-    {id:"S8", nome:"Ar-condicionado (higienização + carga)", preco:390, tempoMin:90, categoria:"Ar-condicionado"}
+    {id:"S1", nome:"Troca de óleo + filtros", preco:320, tempoMin:40, categoria:"Revisão", pecas:"óleo 5W30 · filtro de óleo · filtro de ar", garantia:"6 meses / 10.000 km", mecanicos:["Carlos (mecânico)","André (mecânico)"]},
+    {id:"S2", nome:"Revisão 40.000 km", preco:890, tempoMin:150, categoria:"Revisão", pecas:"kit revisão · velas · fluidos", garantia:"1 ano", mecanicos:["André (mecânico)"]},
+    {id:"S3", nome:"Revisão 60.000 km", preco:1240, tempoMin:210, categoria:"Revisão", pecas:"kit revisão · correia · velas", garantia:"1 ano", mecanicos:["Carlos (mecânico)","André (mecânico)"]},
+    {id:"S4", nome:"Troca de embreagem", preco:2600, tempoMin:480, categoria:"Motor/Transmissão", pecas:"kit de embreagem · fluido", garantia:"1 ano / 20.000 km", mecanicos:["Carlos (mecânico)"]},
+    {id:"S5", nome:"Diagnóstico eletrônico", preco:180, tempoMin:60, categoria:"Injeção", pecas:"sob diagnóstico · scanner OBD-II", garantia:"90 dias", mecanicos:["André (mecânico)"]},
+    {id:"S6", nome:"Suspensão dianteira", preco:1180, tempoMin:240, categoria:"Suspensão", pecas:"par de amortecedores · kit batente · bieletas", garantia:"1 ano", mecanicos:["Carlos (mecânico)"]},
+    {id:"S7", nome:"Freios (pastilhas + discos)", preco:940, tempoMin:150, categoria:"Freios", pecas:"jogo de pastilhas · par de discos", garantia:"1 ano", mecanicos:["André (mecânico)","Carlos (mecânico)"]},
+    {id:"S8", nome:"Ar-condicionado (higienização + carga)", preco:390, tempoMin:90, categoria:"Ar-condicionado", pecas:"filtro de cabine · gás R134a", garantia:"6 meses", mecanicos:["Ana (recepção)"]}
   ],
   pecas:[
     {id:"P1", nome:"Kit de embreagem", custo:1150, preco:1720, estoque:2, minimo:3, fornecedor:"AutoParts"},
@@ -33,11 +33,11 @@ const DADOS = {
     {id:"P8", nome:"Gás R134a (kg)", custo:60, preco:130, estoque:8, minimo:4, fornecedor:"ClimaAuto"}
   ],
   clientes:[
-    {id:"C1", nome:"Transportes Bahia Log", tel:"71 99888-1010", email:"frota@bahialog.com", nasc:"2015-03-12", obs:"Frota de 12 utilitários. Fecha OS por e-mail."},
-    {id:"C2", nome:"João Pereira", tel:"71 99123-4567", email:"joao.p@gmail.com", nasc:"1984-07-22", obs:"Aceita revisão preventiva."},
-    {id:"C3", nome:"Maria Santos", tel:"71 99777-2233", email:"maria.s@outlook.com", nasc:"1990-11-05", obs:""},
-    {id:"C4", nome:"Delivery Express ME", tel:"71 99555-8080", email:"contato@deliveryexp.com", nasc:"2019-01-30", obs:"3 furgões utilitários."},
-    {id:"C5", nome:"Carlos Menezes", tel:"71 99444-1200", email:"carlosm@gmail.com", nasc:"1978-09-18", obs:"Cliente desde 2020."}
+    {id:"C1", nome:"Transportes Bahia Log", tel:"71 99888-1010", cpf:"11144477735", email:"frota@bahialog.com", nasc:"2015-03-12", obs:"Frota de 12 utilitários. Fecha OS por e-mail."},
+    {id:"C2", nome:"João Pereira", tel:"71 99123-4567", cpf:"52998224725", email:"joao.p@gmail.com", nasc:"1984-07-22", obs:"Aceita revisão preventiva.", cep:"41820-021", logradouro:"Av. Tancredo Neves", numero:"620", complemento:"Ap. 1203", bairro:"Caminho das Árvores", cidade:"Salvador", uf:"BA"},
+    {id:"C3", nome:"Maria Santos", tel:"71 99777-2233", cpf:"39053344705", email:"maria.s@outlook.com", nasc:"1990-11-05", obs:""},
+    {id:"C4", nome:"Delivery Express ME", tel:"71 99555-8080", cpf:"16899535009", email:"contato@deliveryexp.com", nasc:"2019-01-30", obs:"3 furgões utilitários."},
+    {id:"C5", nome:"Carlos Menezes", tel:"71 99444-1200", cpf:"64189220100", email:"carlosm@gmail.com", nasc:"1978-09-18", obs:"Cliente desde 2020."}
   ],
   veiculos:[
     {id:"V1", clienteId:"C1", placa:"RJZ-1D23", modelo:"Volkswagen Saveiro 1.6", ano:2021, km:78400, cor:"Branco", combustivel:"Flex"},
