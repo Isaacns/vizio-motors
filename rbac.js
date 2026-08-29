@@ -147,8 +147,8 @@ window.renderUserChip=function(){
     if(a) a.innerHTML=avatarHTML(u);
   }catch(e){}
 };
-/* Clicar no chip abre o próprio cadastro para edição. */
-window.abrirMeuPerfil=function(){ var u=usuarioAtual(load()); if(u&&u.id&&u.id!=='_desconhecido') formUser(u);
+/* Clicar no chip abre o próprio cadastro para edição (self=true → mostra "Alterar senha"). */
+window.abrirMeuPerfil=function(){ var u=usuarioAtual(load()); if(u&&u.id&&u.id!=='_desconhecido') formUser(u,true);
   else toast('Seu usuário ainda não está cadastrado em Usuários & Acessos'); };
 
 /* permissão do usuário logado */
@@ -304,7 +304,7 @@ async function subirFoto(userId){
   return SB.storage.from('avatars').getPublicUrl(path).data.publicUrl;
 }
 
-function formUser(u){ u=u||{}; var ed=!!u.id; var s=load(); _fotoNova=null;
+function formUser(u,self){ u=u||{}; var ed=!!u.id; var s=load(); _fotoNova=null;
   var prev=u.foto?'<img src="'+esc(u.foto)+'" alt="">':esc(iniciais(u.nome));
   modal(ed?"Editar usuário":"Novo usuário","",
     '<div class="fotoEdit"><div class="prev" id="ru_prev">'+prev+'</div>'+
@@ -315,7 +315,14 @@ function formUser(u){ u=u||{}; var ed=!!u.id; var s=load(); _fotoNova=null;
       '</div></div>'+
     '<label>Nome</label><input id="ru_nome" value="'+esc(u.nome)+'">'+
     '<label>E-mail</label><input id="ru_email" value="'+esc(u.email)+'" placeholder="nome@oficina.com">'+
-    '<label>Perfil</label><select id="ru_perfil">'+s.perfis.map(function(p){return '<option value="'+p.id+'"'+(u.perfil===p.id?' selected':'')+'>'+esc(p.nome)+'</option>';}).join('')+'</select>',
+    '<label>Perfil</label><select id="ru_perfil">'+s.perfis.map(function(p){return '<option value="'+p.id+'"'+(u.perfil===p.id?' selected':'')+'>'+esc(p.nome)+'</option>';}).join('')+'</select>'+
+    /* Só no próprio perfil (chip → Meu perfil): trocar a própria senha (Supabase Auth).
+       Não aparece ao admin editar OUTRO usuário — updateUser só troca a senha da sessão vigente. */
+    (self?'<div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(140,150,165,.18)">'+
+      '<label style="margin:0 0 8px">🔒 Segurança da conta</label>'+
+      '<button type="button" class="b b-ghost b-sm" onclick="if(window.trocarSenha)window.trocarSenha()">🔑 Alterar senha</button>'+
+      '<div style="font-size:11.5px;color:var(--muted);margin-top:6px">Troca a senha do seu login de acesso ao sistema.</div>'+
+    '</div>':''),
    async function(){ var nome=(document.getElementById('ru_nome').value||'').trim(); if(!nome){toast('Informe o nome');return;}
      var id = ed ? u.id : ('u_'+uid('u'));
      var foto = await subirFoto(id);               // undefined = manter a atual

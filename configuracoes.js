@@ -9,6 +9,7 @@
    inteiro. (Bug real, 19/07/2026: quebrou o módulo Configurações por completo.) */
 const APP_VERSION = window.APP_VERSION || "0.6.0";
 const CHANGELOG = [
+  ["1.0.102","Alterar minha senha no perfil: clique no seu nome (canto superior direito) → “Meu perfil” e use “🔑 Alterar senha” para trocar a senha do seu login sem sair do sistema. Campos com botão de olho (mostrar/ocultar), confirmação da nova senha e aviso claro de sucesso ou erro. A troca vale imediatamente para o seu próximo acesso."],
   ["1.0.101","Instância dedicada (ex.: r3.viziostudio.com.br): a identidade da oficina e a conta dela agora valem do login até dentro do sistema — a marca não volta mais para o azul do Vizio Motors após entrar, e os dados carregados são sempre os da oficina do domínio (mesmo que o administrador tenha acesso a mais de uma oficina). Se a conta não tiver acesso àquela oficina, aparece um aviso claro. No endereço padrão do Vizio Motors nada muda."],
   ["1.0.100","Correções: (1) Agenda — removido o traço que aparecia sobre o nome do serviço nos cartões concluídos (texto agora limpo e legível). (2) Quadro de tarefas — o cronômetro da demonstração voltou a mostrar tempos plausíveis (o relógio da oficina real continua exato). (3) Busca do topo — na tela Início a busca passou a funcionar: digite cliente, veículo, placa ou número de OS e o sistema leva direto ao resultado."],
   ["1.0.99","Instância dedicada por domínio: quando o sistema é aberto no endereço próprio de uma oficina (ex.: r3.viziostudio.com.br), ele já veste a identidade daquela oficina desde a tela de entrada e aponta para a conta dela — sem seletor de marca. No endereço padrão do Vizio Motors nada muda. Base para entregar cada cliente no seu próprio site com o mesmo sistema"],
@@ -157,7 +158,7 @@ function trocarSenha(){
      if(a.length<8){ toast('A senha precisa de ao menos 8 caracteres'); return; }
      if(a!==b){ toast('As senhas não coincidem'); return; }
      const SB=window.__SB;
-     if(!SB){ toast('Disponível apenas no modo online (Supabase)'); return; }
+     if(!SB){ toast('A troca de senha só funciona conectada ao sistema real (login). Indisponível no modo demonstração.'); return; }
      try{ const r=await SB.auth.updateUser({password:a});
        if(r.error){ toast('Erro: '+r.error.message); return; }
        closeModal(); toast('Senha alterada com sucesso ✓');
