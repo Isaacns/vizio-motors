@@ -19,6 +19,26 @@
   let   ORG = window.SB_ORG;                 // resolvida por usuário após login
   window.__SB = SB;
 
+  /* Org de DEMONSTRAÇÃO (apresentação): o seed do quadro §16.5 é fixo no banco e
+     "envelhece" — status_desde vai ficando velho e o cronômetro do cliente mostraria
+     tempos absurdos (73h/85h). Só nesta org reancoramos, EM MEMÓRIA (sem gravar), o
+     tempo das tarefas ativas para uma janela plausível, de modo que a demo fique boa
+     em qualquer dia. Produção real (outra org) mantém a cronometragem verdadeira. */
+  const DEMO_ORG = "a1a1a1a1-0000-4000-8000-000000000001";
+  const DEMO_LIVE_MAX = 3*3600;              // além de 3h "vivas" numa tarefa ativa = seed velho
+  function freshenDemoTarefas(){
+    if(ORG!==DEMO_ORG || !Array.isArray(WORK.tarefas)) return;
+    const now=Date.now();
+    WORK.tarefas.forEach(t=>{
+      if(t.status==='concluida') return;                 // terminal: não conta tempo vivo
+      const desde=t.statusDesde?new Date(t.statusDesde).getTime():now;
+      if(now-desde > DEMO_LIVE_MAX*1000){
+        const off=(t.status==='andamento'?9:16)*60000;   // reancora p/ minutos recentes
+        t.statusDesde=new Date(now-off).toISOString();
+      }
+    });
+  }
+
   const MAP = {
     clientes:  {tbl:"mt_clientes",  key:"clientes"},
     veiculos:  {tbl:"mt_veiculos",  key:"veiculos",  to:r=>({cliente_id:r.clienteId}), from:r=>({clienteId:r.cliente_id})},
@@ -83,6 +103,7 @@
       if(error){ console.warn("load "+name,error.message); continue; }
       WORK[name]=data.map(r=>fromDB(name,r));
     }
+    freshenDemoTarefas();   // só na org demo: mantém o cronômetro do quadro plausível
   }
   const LISTVIEWS={home:renderHome,os:renderOS,agenda:renderAgenda,clientes:renderClientes,estoque:renderEstoque};
   function refreshView(){

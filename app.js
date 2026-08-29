@@ -125,7 +125,29 @@ function go(m,t){CUR=m;document.getElementById('q').value='';
   ({home:renderHome,os:renderOS,agenda:renderAgenda,clientes:renderClientes,estoque:renderEstoque,stub:()=>renderStub(t)}[m]||renderHome)();
 }
 function onSearch(){const q=document.getElementById('q').value;
-  if(CUR==='clientes')renderClientes(q);else if(CUR==='os')renderOS(q);else if(CUR==='estoque')renderEstoque(q);}
+  if(CUR==='clientes')return renderClientes(q);
+  if(CUR==='os')return renderOS(q);
+  if(CUR==='estoque')return renderEstoque(q);
+  /* Início (e demais telas sem busca própria): busca GLOBAL e leva ao resultado. */
+  vmBuscaGlobal(q);}
+/* marca o item de menu ativo ao navegar por código (a busca não passa pelo click do nav) */
+function _navAtivo(m){document.querySelectorAll('.nav a').forEach(x=>x.classList.toggle('active',x.dataset.m===m));}
+/* Busca global a partir da Início: casa cliente (nome/tel/email), veículo (placa/modelo)
+   e OS (número), e navega para a tela mais adequada JÁ FILTRADA pelo termo. */
+function vmBuscaGlobal(q){
+  const t=(q||'').trim().toLowerCase(); if(t.length<2) return;   // não pula no 1º caractere
+  const inc=s=>String(s==null?'':s).toLowerCase().includes(t);
+  const veicOk=v=>v&&(inc(v.placa)||inc(v.modelo)||inc(v.marca));
+  const cliOk=c=>c&&(inc(c.nome)||inc(c.tel)||inc(c.email));
+  const osOk=o=>inc(o.numero)||veicOk(veh(o.veiculoId))||cliOk(cli(o.clienteId));
+  const temOS=WORK.os.some(osOk);
+  const temCli=WORK.clientes.some(c=>cliOk(c)||WORK.veiculos.some(v=>v.clienteId===c.id&&veicOk(v)));
+  const dest = temOS?'os' : (temCli?'clientes' : '');
+  if(!dest) return;                                              // nada casou: não navega
+  CUR=dest; _navAtivo(dest);
+  document.getElementById('pageTitle').textContent=TITLES[dest]||'';
+  if(dest==='os')renderOS(t); else renderClientes(t);           // #q mantém o termo visível
+}
 
 /* ===== HOME ===== */
 function saudacao(){const h=new Date().getHours();return h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';}
@@ -303,7 +325,7 @@ function renderOS(q){injectOSBoardCSS(); q=(q||'').toLowerCase();
   const F=window._osQuadroFiltro||'all';
   let list=WORK.os.slice().sort((a,b)=>b.numero-a.numero);
   if(q)list=list.filter(o=>{const v=veh(o.veiculoId),c=cli(o.clienteId);
-    return (o.numero+'').includes(q)||(v.placa||'').toLowerCase().includes(q)||(c.nome||'').toLowerCase().includes(q);});
+    return (o.numero+'').includes(q)||(v.placa||'').toLowerCase().includes(q)||(v.modelo||'').toLowerCase().includes(q)||(c.nome||'').toLowerCase().includes(q);});
   const counts=STATUS_FLOW.map((_,i)=>WORK.os.filter(o=>o.statusIdx===i).length);
   const chips=[`<button class="oschip ${F==='all'?'on':''}" onclick="osSetFiltro('all')">Todas <span class="ct">${WORK.os.length}</span></button>`]
     .concat(STATUS_FLOW.map((s,i)=>counts[i]?`<button class="oschip ${F===String(i)?'on':''}" onclick="osSetFiltro('${i}')"><span class="cd s${i}"></span>${esc(s)} <span class="ct">${counts[i]}</span></button>`:'')).join('');
@@ -541,7 +563,8 @@ function printOS(id){const o=byId(WORK.os,id),c=cli(o.clienteId),v=veh(o.veiculo
 
 /* ===== CLIENTES & VEÍCULOS ===== */
 function renderClientes(q){q=(q||'').toLowerCase();
-  let list=WORK.clientes.filter(c=>!q||c.nome.toLowerCase().includes(q)||(c.tel||'').includes(q));
+  let list=WORK.clientes.filter(c=>!q||c.nome.toLowerCase().includes(q)||(c.tel||'').includes(q)||(c.email||'').toLowerCase().includes(q)
+    ||WORK.veiculos.some(v=>v.clienteId===c.id&&((v.placa||'').toLowerCase().includes(q)||(v.modelo||'').toLowerCase().includes(q))));
   document.getElementById('view').innerHTML=`
    <div class="panel"><div class="head"><h3>🚐 Clientes</h3><div class="sp"></div>
      <button class="b b-ghost b-sm" onclick="novoVeic()">+ Veículo</button>

@@ -543,7 +543,7 @@ function injectCSS(){
      'background:var(--panel-2);cursor:grab;transition:.15s}'+
    '.agCard:hover{border-color:var(--gold-2)}'+
    '.agCard.dragging{opacity:.45;cursor:grabbing}'+          /* §15 feedback na origem */
-   '.agCard.agFeito .agInfo b{text-decoration:line-through;opacity:.55}'+
+   '.agCard.agFeito .agInfo b{opacity:.6}'+  /* concluído: só suaviza; sem risco por cima do texto (fica limpo/legível) */
    '.agCard.agFeito{opacity:.72}'+
    '.agHora{font-family:var(--display);font-size:12px;color:var(--gold-2);font-weight:600;flex:none}'+
    '.agInfo{display:flex;flex-direction:column;line-height:1.25;flex:1;min-width:0}'+
