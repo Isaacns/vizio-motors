@@ -86,14 +86,28 @@
 
   /* resolve a oficina (org) do usuário logado; provisiona se houver cadastro pendente */
   async function resolveOrg(){
+    window.__lockDenied=false;
+    const lock=(typeof vmHostLock==='function')?vmHostLock():null;
     try{
+      /* Host dedicado (HOST_BRAND_LOCK): a org é AUTORITATIVA — é sempre a org do cliente
+         (lock.org), NUNCA o default do mt_members. Isso resolve o caso do admin membro de
+         VÁRIAS orgs (INPERSON + demo + R3), em que o mt_members escolhia a demo. Segurança:
+         só entra se o usuário FOR membro da org do lock (a RLS depende do membership); se não
+         for, mensagem clara e para — não cai silenciosamente na org demo. */
+      if(lock && lock.org){
+        const {data,error}=await SB.from('mt_members').select('org_id').eq('org_id',lock.org).limit(1);
+        if(!error && data && data.length){ ORG=lock.org; return; }
+        window.__lockDenied=true;
+        toast('Sua conta não tem acesso a esta oficina. Fale com o administrador.');
+        throw new Error('sem acesso à org do domínio dedicado');
+      }
       const {data}=await SB.from('mt_members').select('org_id').limit(1);
       if(data && data.length){ ORG=data[0].org_id; return; }
       const pend=localStorage.getItem('vm_pending_oficina');
       if(pend){ const o=JSON.parse(pend);
         const {data:nid,error}=await SB.rpc('mt_onboard',{p_nome:o.nome,p_esp:o.esp});
         if(!error && nid){ ORG=nid; localStorage.removeItem('vm_pending_oficina'); toast('Oficina criada ✓'); return; } }
-    }catch(e){ console.warn('resolveOrg',e); }
+    }catch(e){ console.warn('resolveOrg',e); if(window.__lockDenied) throw e; }
     ORG = window.SB_ORG;  // fallback (piloto)
   }
 
@@ -120,8 +134,16 @@
   }
   /* carrega a identidade (white-label/camaleão) da oficina e a aplica */
   async function fetchBrand(){
+    window.__ORG=ORG;
+    /* Host dedicado (HOST_BRAND_LOCK): a marca é AUTORITATIVA. A org resolvida NÃO pode
+       reescrever a identidade do host — mantém sempre a marca do lock (R3 preto+ouro), do
+       boot até dentro do sistema. Em motors/localhost (lock null) o fluxo original vale. */
+    if(window.__brandLocked){
+      const lk=(typeof vmHostLock==='function')?vmHostLock():null;
+      if(lk && lk.brand && typeof applyTheme==='function') applyTheme(lk.brand);
+      return;
+    }
     try{
-      window.__ORG=ORG;
       const {data,error}=await SB.from('mt_orgs')
         .select('nome_exibicao,cor_primaria,cor_secundaria,radius,logo_url,tema').eq('id',ORG).single();
       if(error||!data){ if(typeof applyTheme==='function')applyTheme(); return; }
@@ -197,12 +219,16 @@
     catch(err){ return; }                       // sbLogin já avisou o motivo por toast
     try{ await resolveOrg(); _entrar({preventDefault(){}}); await aplicarPermissoes(); await loadAll(); }
     catch(err){
+      if(window.__lockDenied) return;   // host dedicado sem acesso: resolveOrg já avisou; fica no login
       console.error('entrar:',err);
       toast('Entrou, mas houve falha ao carregar: '+((err&&err.message)||err)+' — recarregue a página');
     } };
 
   /* cadastro self-service: cria conta + provisiona oficina */
   window.criarOficina=async function(){
+    /* Domínio dedicado (HOST_BRAND_LOCK): não se cria oficina NOVA aqui — a instância é
+       de UM cliente. Autocadastro criaria outra org (fora do lock). Bloqueia com aviso. */
+    if(window.__brandLocked){ toast('Este endereço é exclusivo desta oficina. Fale com o administrador para receber acesso.'); return; }
     const g=id=>((document.getElementById(id)||{}).value||"").trim();
     const nome=g('su_nome'),esp=g('su_esp'),email=g('su_email'),pass=g('su_pass');
     if(!nome||!email||!pass){ toast('Preencha oficina, e-mail e senha'); return; }
