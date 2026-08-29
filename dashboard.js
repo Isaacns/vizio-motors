@@ -5,8 +5,9 @@
    Depende de app.js (WORK, money, cli, veh, svc, prt, osTotal,
    STATUS_FLOW, modal, closeModal).
    ============================================================ */
-let _dashCharts=[];
-function dashDestroy(){ _dashCharts.forEach(c=>{try{c.destroy();}catch(e){}}); _dashCharts=[]; }
+/* instâncias Chart por ABA (init lazy: cada gráfico só nasce com a sua aba visível) */
+let _dashCharts={};
+function dashDestroy(){ Object.keys(_dashCharts).forEach(k=>_dashCharts[k].forEach(c=>{try{c.destroy();}catch(e){}})); _dashCharts={}; }
 const PALETTE=['#5b8cff','#7fa3ff','#a9c1ff','#6ee2c0','#e6b566','#b7a6ff','#7fbfd6','#8894a6'];
 
 function abrirDash(){
@@ -50,23 +51,36 @@ function renderDash(){
     ['Clientes ativos',WORK.clientes.length,'clientes','#7fbfd6'],
     ['Estoque crítico',critico,'estoque','#e77b7b'],
   ];
-  document.getElementById('view').innerHTML=`
-   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--muted)">Clique em qualquer indicador para ver os detalhes.</div><div style="flex:1"></div><button class="b b-ghost b-sm" onclick="relDashboard()">📄 Gerar relatório</button></div>
-   <div class="kpis">${kpis.map(k=>`<div class="kpi" style="cursor:pointer" onclick="dashDrill('${k[2]}')">
-       <div class="lbl">${k[0]}</div><div class="val" style="color:${k[3]}">${k[1]}</div><div class="dt" style="color:${k[3]};font-size:11px">ver detalhes →</div></div>`).join('')}</div>
-
+  /* ---- os painéis de gráficos antes empilhados viram ABAS (KPIs = cabeçalho; drill-down intacto).
+     Agrupamento coerente PRESERVANDO os pares grid2 originais — nenhum painel perdido. ---- */
+  const tabReceita=`
    <div class="panel"><h3>💰 Receita por serviço</h3><canvas id="c_recserv" height="150"></canvas></div>
-
+   <div class="panel"><h3>👥 Clientes por receita</h3><canvas id="c_cli" height="150"></canvas></div>`;
+  const tabOperacao=`
    <div class="grid2">
      <div class="panel"><h3>🔧 OS por status</h3><canvas id="c_status" height="200"></canvas></div>
      <div class="panel"><h3>🏅 Ranking de mecânicos (receita)</h3><canvas id="c_mec" height="200"></canvas></div>
-   </div>
+   </div>`;
+  const tabCatalogo=`
    <div class="grid2">
      <div class="panel"><h3>⭐ Serviços mais solicitados</h3><canvas id="c_serv" height="180"></canvas></div>
      <div class="panel"><h3>📦 Peças mais usadas</h3><canvas id="c_peca" height="180"></canvas></div>
-   </div>
-   <div class="panel"><h3>👥 Clientes por receita</h3><canvas id="c_cli" height="150"></canvas></div>`;
-  drawDash({recServ,porStatus,mec,servCount,pecaCount,cliRec});
+   </div>`;
+  dashDestroy();
+  const D2={recServ,porStatus,mec,servCount,pecaCount,cliRec};
+  document.getElementById('view').innerHTML=
+   `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--muted)">Clique em qualquer indicador para ver os detalhes.</div><div style="flex:1"></div><button class="b b-ghost b-sm" onclick="relDashboard()">📄 Gerar relatório</button></div>`+
+   `<div class="kpis">${kpis.map(k=>`<div class="kpi" style="cursor:pointer" onclick="dashDrill('${k[2]}')">
+       <div class="lbl">${k[0]}</div><div class="val" style="color:${k[3]}">${k[1]}</div><div class="dt" style="color:${k[3]};font-size:11px">ver detalhes →</div></div>`).join('')}</div>`+
+   vmTabs('dash',[
+     {key:'receita',label:'Receita',html:tabReceita},
+     {key:'operacao',label:'Operação',html:tabOperacao},
+     {key:'catalogo',label:'Catálogo',html:tabCatalogo}
+   ],{onShow:(tk,first)=>{
+     /* cada aba desenha os SEUS gráficos só quando visível; nas voltas, re-mede (resize). */
+     if(first) drawDashTab(tk,D2); else (_dashCharts[tk]||[]).forEach(c=>{try{c.resize();}catch(e){}});
+   }});
+  vmTabsReady('dash');
 }
 
 function relDashboard(){
@@ -88,9 +102,12 @@ function relDashboard(){
 }
 window.relDashboard=relDashboard;
 
-function drawDash(d){
+/* desenha SÓ os gráficos da aba `key` (canvas já visível → mede != 0). Guarda as instâncias
+   em _dashCharts[key] para o resize das voltas. Mesmos gráficos/dados de antes, agora por aba. */
+function drawDashTab(key,d){
   if(typeof Chart==="undefined")return;
-  dashDestroy();
+  if(_dashCharts[key])return;                          // já desenhada (idempotente)
+  const arr=_dashCharts[key]=[];
   const _cs=getComputedStyle(document.documentElement);
   const grid=(_cs.getPropertyValue('--line').trim())||'rgba(255,255,255,.045)', tick=(_cs.getPropertyValue('--muted').trim())||'#79838f';
   const el=id=>{const e=document.getElementById(id);return e&&e.getContext?e.getContext('2d'):null;};
@@ -102,17 +119,21 @@ function drawDash(d){
      Fallback para a PALETTE fixa se vmChartColors não existir. */
   const pal=n=>(typeof vmChartColors==='function')?vmChartColors(n):Array.from({length:n},(_,i)=>PALETTE[i%PALETTE.length]);
   function bar(id,pairs,money,color){const c=el(id);if(!c)return;
-    _dashCharts.push(new Chart(c,{type:'bar',data:{labels:pairs.map(p=>p[0]),
+    arr.push(new Chart(c,{type:'bar',data:{labels:pairs.map(p=>p[0]),
       datasets:[{data:pairs.map(p=>p[1]),backgroundColor:color||pal(pairs.length),borderRadius:6,borderSkipped:false,maxBarThickness:26}]},options:baseOpts(money)}));}
-  bar('c_recserv',agg(d.recServ).slice(0,7),true);
-  const cs=el('c_status');
-  if(cs)_dashCharts.push(new Chart(cs,{type:'doughnut',
-    data:{labels:STATUS_FLOW,datasets:[{data:d.porStatus,backgroundColor:pal(STATUS_FLOW.length),borderWidth:0}]},
-    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,cutout:'72%',plugins:{legend:{position:'right',labels:{color:tick,font:{family:'Inter',size:10},boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'}}}}}));
-  bar('c_mec',agg(d.mec),true);
-  bar('c_serv',agg(d.servCount).slice(0,7),false);
-  bar('c_peca',agg(d.pecaCount).slice(0,7),false);
-  bar('c_cli',agg(d.cliRec).slice(0,7),true);
+  if(key==='receita'){
+    bar('c_recserv',agg(d.recServ).slice(0,7),true);
+    bar('c_cli',agg(d.cliRec).slice(0,7),true);
+  }else if(key==='operacao'){
+    const cs=el('c_status');
+    if(cs)arr.push(new Chart(cs,{type:'doughnut',
+      data:{labels:STATUS_FLOW,datasets:[{data:d.porStatus,backgroundColor:pal(STATUS_FLOW.length),borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,cutout:'72%',plugins:{legend:{position:'right',labels:{color:tick,font:{family:'Inter',size:10},boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'}}}}}));
+    bar('c_mec',agg(d.mec),true);
+  }else if(key==='catalogo'){
+    bar('c_serv',agg(d.servCount).slice(0,7),false);
+    bar('c_peca',agg(d.pecaCount).slice(0,7),false);
+  }
 }
 
 /* drill-down: lista os registros por trás do indicador */

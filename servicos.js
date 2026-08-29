@@ -170,37 +170,46 @@ function renderServicos(){
     '</tr>';
   }).join('')||'<tr><td colspan="3" style="color:var(--muted)">Nenhuma tarefa ativa no quadro.</td></tr>';
 
+  /* pares p/ o gráfico líquido de receita por serviço (init lazy na aba Desempenho) */
+  var pares=Object.keys(D.rec).map(function(n){return [n,D.rec[n]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
+
+  /* ---- as 3 seções (antes empilhadas em .s-cols + painéis abaixo) viram ABAS, conteúdo idêntico ---- */
+  var tabCatalogo=
+    '<div class="s-catbar">'+catChips+'</div>'+
+    '<div class="head" style="margin-bottom:12px"><h3 style="font-family:var(--display);font-weight:600;font-size:16px;margin:0">Catálogo de serviços</h3><div class="sp" style="flex:1"></div>'+
+      '<button class="b b-sm" onclick="novoServico()">+ Novo serviço</button></div>'+catalogo;
+  var tabDesempenho=
+    '<div class="panel"><h3>💰 Receita por serviço</h3><div class="s-chart"><canvas id="servChart"></canvas></div></div>'+
+    '<div class="panel"><h3>📊 Desempenho por serviço</h3><div style="font-size:12px;color:var(--muted);margin:-6px 0 10px">Volume e receita no período.</div>'+perfRows+'</div>'+
+    '<div class="panel"><h3>⏱ Tempo real × estimado</h3><div style="font-size:12px;color:var(--muted);margin:-6px 0 12px">Real medido pelo Quadro de tarefas vinculado à OS.</div>'+tbars+'</div>';
+  var tabDelegacao=
+    '<div class="panel"><div class="head"><h3>🧑‍🔧 Delegar ordens de serviço</h3><div class="sp"></div>'+
+      '<span style="font-size:12px;color:var(--muted)">escolha o mecânico responsável por cada OS</span></div>'+
+      '<div style="overflow:auto"><table class="tbl"><thead><tr><th>OS</th><th>Placa</th><th>Serviços</th><th>Status</th><th>Responsável</th></tr></thead>'+
+      '<tbody>'+osRows+'</tbody></table></div></div>'+
+    '<div class="grid2">'+
+      '<div class="panel"><div class="head"><h3>🗂 Delegar tarefas do quadro</h3><div class="sp"></div>'+
+        '<button class="b b-sm" onclick="abrirAgendaQuadro()">Abrir quadro</button></div>'+
+        '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">O responsável aparece no cartão do Quadro de tarefas.</div>'+
+        '<table class="tbl"><thead><tr><th>Tarefa</th><th>Etapa</th><th>Responsável</th></tr></thead><tbody>'+tarRows+'</tbody></table></div>'+
+      '<div class="panel"><h3>👷 Carga da equipe</h3>'+
+        cargaRows.map(function(n){var c=carga[n];return '<div class="info-line"><span class="k">'+esc(n)+'</span>'+
+          '<span style="font-weight:600">'+c.os+' OS · '+c.tar+' tarefa(s)</span></div>';}).join('')+
+        '<div style="font-size:11.5px;color:var(--muted);margin-top:10px">Some OS abertas e tarefas ativas por responsável.</div></div>'+
+    '</div>';
+
   document.getElementById('view').innerHTML=
    '<div class="kpis">'+kpis.map(function(k){return '<div class="kpi"><div class="lbl">'+k[0]+'</div><div class="val">'+k[1]+'</div></div>';}).join('')+'</div>'+
    '<div class="s-def"><span class="s-di">🛠️</span><p><b class="vs">Serviços</b> = catálogo + inteligência — o que a oficina vende, a que preço, quem faz e quanto rende. · <b>Ordens de Serviço</b> = a execução em cada veículo.</p></div>'+
-   '<div class="s-catbar">'+catChips+'</div>'+
-   '<div class="s-cols">'+
-     '<div class="s-left"><div class="head" style="margin-bottom:12px"><h3 style="font-family:var(--display);font-weight:600;font-size:16px;margin:0">Catálogo de serviços</h3><div class="sp" style="flex:1"></div>'+
-       '<button class="b b-sm" onclick="novoServico()">+ Novo serviço</button></div>'+catalogo+'</div>'+
-     '<div class="s-rail">'+
-       '<div class="panel"><h3>💰 Receita por serviço</h3><div class="s-chart"><canvas id="servChart"></canvas></div></div>'+
-       '<div class="panel"><h3>📊 Desempenho por serviço</h3><div style="font-size:12px;color:var(--muted);margin:-6px 0 10px">Volume e receita no período.</div>'+perfRows+'</div>'+
-       '<div class="panel"><h3>⏱ Tempo real × estimado</h3><div style="font-size:12px;color:var(--muted);margin:-6px 0 12px">Real medido pelo Quadro de tarefas vinculado à OS.</div>'+tbars+'</div>'+
-     '</div>'+
-   '</div>'+
-   '<div class="panel"><div class="head"><h3>🧑‍🔧 Delegar ordens de serviço</h3><div class="sp"></div>'+
-     '<span style="font-size:12px;color:var(--muted)">escolha o mecânico responsável por cada OS</span></div>'+
-     '<div style="overflow:auto"><table class="tbl"><thead><tr><th>OS</th><th>Placa</th><th>Serviços</th><th>Status</th><th>Responsável</th></tr></thead>'+
-     '<tbody>'+osRows+'</tbody></table></div></div>'+
-   '<div class="grid2">'+
-     '<div class="panel"><div class="head"><h3>🗂 Delegar tarefas do quadro</h3><div class="sp"></div>'+
-       '<button class="b b-sm" onclick="abrirAgendaQuadro()">Abrir quadro</button></div>'+
-       '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">O responsável aparece no cartão do Quadro de tarefas.</div>'+
-       '<table class="tbl"><thead><tr><th>Tarefa</th><th>Etapa</th><th>Responsável</th></tr></thead><tbody>'+tarRows+'</tbody></table></div>'+
-     '<div class="panel"><h3>👷 Carga da equipe</h3>'+
-       cargaRows.map(function(n){var c=carga[n];return '<div class="info-line"><span class="k">'+esc(n)+'</span>'+
-         '<span style="font-weight:600">'+c.os+' OS · '+c.tar+' tarefa(s)</span></div>';}).join('')+
-       '<div style="font-size:11.5px;color:var(--muted);margin-top:10px">Some OS abertas e tarefas ativas por responsável.</div></div>'+
-   '</div>';
-
-  /* gráfico líquido de receita por serviço (reusa vmLiquidChart do app.js) */
-  var pares=Object.keys(D.rec).map(function(n){return [n,D.rec[n]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
-  if(typeof vmLiquidChart==='function' && pares.length) vmLiquidChart('servChart', pares);
+   vmTabs('svc',[
+     {key:'catalogo',label:'Catálogo',count:cat.length,html:tabCatalogo},
+     {key:'desempenho',label:'Desempenho',html:tabDesempenho},
+     {key:'delegacao',label:'Delegação',count:semResp.length,html:tabDelegacao}
+   ],{onShow:function(k){
+     /* gráfico líquido só desenha com a aba Desempenho VISÍVEL (canvas mede != 0). Idempotente. */
+     if(k==='desempenho' && typeof vmLiquidChart==='function' && pares.length) vmLiquidChart('servChart', pares);
+   }});
+  vmTabsReady('svc');
 }
 window.renderServicos=renderServicos;
 

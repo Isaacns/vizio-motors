@@ -271,6 +271,51 @@ function vmLiquidChart(id,pairs){
   frame();
 }
 
+/* ===== HELPER DE ABAS reutilizável (mesmo padrão nas 4 telas: Serviços, OS, Financeiro, Dashboard) =====
+   vmTabs(group,tabs,opts) devolve o HTML (barra + painéis) para injetar no innerHTML.
+     tabs = [{key,label,count,html}]  ·  opts = {active, onShow(key,firstTime)}
+   Estiliza por TOKENS (--gold-2/--accent2 → azul Motors / preto-ouro R3). Barra rola no mobile.
+   ⚠️ ARMADILHA DOS GRÁFICOS: um canvas criado dentro de um painel oculto (display:none) mede 0 e
+   quebra. Por isso NÃO desenhamos nada aqui — o desenho fica no callback onShow(key,firstTime),
+   disparado (a) para a aba ativa logo após montar (vmTabsReady) e (b) a cada troca de aba, sempre
+   com a aba VISÍVEL. firstTime=true só na 1ª ativação (init lazy); nas voltas, o caller re-mede/resize.
+   A aba ativa é lembrada por grupo (__vmTabLast) → re-render (#pageTitle/theme) restaura a última aba. */
+window.__vmTabState=window.__vmTabState||{};
+window.__vmTabLast=window.__vmTabLast||{};
+window.vmTabs=function(group,tabs,opts){
+  opts=opts||{};
+  var active=opts.active||window.__vmTabLast[group]||(tabs[0]&&tabs[0].key)||'';
+  if(!tabs.some(function(t){return t.key===active;})) active=(tabs[0]&&tabs[0].key)||'';
+  window.__vmTabLast[group]=active;
+  window.__vmTabState[group]={onShow:opts.onShow||null,active:active,shown:{}};
+  var bar='<div class="vmtabs" role="tablist" data-tg="'+group+'">'+tabs.map(function(t){
+    var on=t.key===active;
+    var c=(t.count!=null&&t.count!=='')?'<span class="vmtab-c">'+t.count+'</span>':'';
+    return '<button type="button" class="vmtab'+(on?' on':'')+'" role="tab" aria-selected="'+(on?'true':'false')+'"'+
+      ' data-tg="'+group+'" data-tk="'+t.key+'" onclick="vmTabGo(\''+group+'\',\''+t.key+'\')"><span>'+t.label+'</span>'+c+'</button>';
+  }).join('')+'</div>';
+  var panes='<div class="vmtabpanes" data-tg="'+group+'">'+tabs.map(function(t){
+    var on=t.key===active;
+    return '<div class="vmtabpane'+(on?' on':'')+'" role="tabpanel" data-tg="'+group+'" data-tk="'+t.key+'"'+(on?'':' hidden')+'>'+t.html+'</div>';
+  }).join('')+'</div>';
+  return bar+panes;
+};
+function _vmTabFire(group,key){
+  var st=window.__vmTabState[group]; if(!st)return;
+  st.active=key; window.__vmTabLast[group]=key;
+  if(st.onShow){ try{ st.onShow(key,!st.shown[key]); }catch(e){} }
+  st.shown[key]=true;
+}
+/* chama depois que o innerHTML já está no DOM → dispara o onShow da aba ativa (gráfico mede visível) */
+window.vmTabsReady=function(group){ var st=window.__vmTabState[group]; if(st)_vmTabFire(group,st.active); };
+window.vmTabGo=function(group,key){
+  var bar=document.querySelector('.vmtabs[data-tg="'+group+'"]'); if(!bar)return;
+  bar.querySelectorAll('.vmtab').forEach(function(b){var on=b.getAttribute('data-tk')===key;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');});
+  document.querySelectorAll('.vmtabpane[data-tg="'+group+'"]').forEach(function(p){var on=p.getAttribute('data-tk')===key;
+    p.classList.toggle('on',on); if(on)p.removeAttribute('hidden'); else p.setAttribute('hidden','');});
+  _vmTabFire(group,key);
+};
+
 /* ===== ORDENS DE SERVIÇO — QUADRO DA OFICINA (cards) ===== */
 /* Cada OS é um cartão: foto do veículo, mecânico responsável, mini-timeline das
    etapas (STATUS_FLOW real) e "Avançar →" inline (avança a etapa sem abrir a OS,
@@ -443,6 +488,9 @@ function injectOSBoardCSS(){ if(document.getElementById('osBoardCSS'))return;
 function fmtD(d){if(!d)return'—';const p=d.split('-');return `${p[2]}/${p[1]}`;}
 
 function openOS(id){injectOSBoardCSS();const o=byId(WORK.os,id);const v=veh(o.veiculoId),c=cli(o.clienteId);
+  /* abas da coluna de conteúdo: abrir uma OS DIFERENTE começa em "Acompanhamento"; ações na
+     MESMA OS (marcar checklist, +item, avançar etapa) re-renderizam mantendo a aba ativa. */
+  if(window.__osTabId!==o.id){ window.__osTabId=o.id; if(window.__vmTabLast) window.__vmTabLast['os']='acomp'; }
   document.getElementById('pageTitle').textContent="OS #"+o.numero;
   document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
   const link=location.origin+location.pathname+"#p="+o.token;
@@ -450,20 +498,25 @@ function openOS(id){injectOSBoardCSS();const o=byId(WORK.os,id);const v=veh(o.ve
    <button class="b-ghost b b-sm" onclick="go('os')">← Voltar</button>
    <div class="osgrid" style="margin-top:14px">
     <div>
-     <div class="panel">
-       <div class="head"><h3>Acompanhamento</h3><div class="sp"></div>
-         <button class="b b-ghost b-sm" onclick="stepOS('${o.id}',-1)">◀ Voltar etapa</button>
-         <button class="b b-sm" onclick="stepOS('${o.id}',1)">Avançar etapa ▶</button></div>
-       <div class="timeline">${STATUS_FLOW.map((s,i)=>`<div class="step ${i<o.statusIdx?'done':''} ${i===o.statusIdx?'cur':''}"><div class="dot"></div>${s}</div>`).join('')}</div>
-     </div>
-     <div class="panel"><h3>Itens (serviços & peças)</h3>
-       <div id="itens">${itensHTML(o)}</div>
-       <div style="margin-top:12px"><button class="b b-ghost b-sm" onclick="addItem('${o.id}')">+ Adicionar item</button></div>
-       <div class="tot"><div>Total da OS</div><div class="v">${money(osTotal(o))}</div></div>
-     </div>
-     <div class="panel"><h3>Checklist de entrada</h3>
-       ${(o.checklist||[]).map((ck,i)=>`<div class="chk ${ck.ok?'on':''}" onclick="toggleChk('${o.id}',${i})"><div class="box">${ck.ok?'✓':''}</div>${ck.item}</div>`).join('')||'<div style="color:var(--muted);font-size:13px">Sem itens.</div>'}
-     </div>
+     ${vmTabs('os',[
+       {key:'acomp',label:'Acompanhamento',html:
+         `<div class="panel">
+           <div class="head"><h3>Acompanhamento</h3><div class="sp"></div>
+             <button class="b b-ghost b-sm" onclick="stepOS('${o.id}',-1)">◀ Voltar etapa</button>
+             <button class="b b-sm" onclick="stepOS('${o.id}',1)">Avançar etapa ▶</button></div>
+           <div class="timeline">${STATUS_FLOW.map((s,i)=>`<div class="step ${i<o.statusIdx?'done':''} ${i===o.statusIdx?'cur':''}"><div class="dot"></div>${s}</div>`).join('')}</div>
+         </div>`},
+       {key:'itens',label:'Itens',count:(o.itens||[]).length,html:
+         `<div class="panel"><h3>Itens (serviços & peças)</h3>
+           <div id="itens">${itensHTML(o)}</div>
+           <div style="margin-top:12px"><button class="b b-ghost b-sm" onclick="addItem('${o.id}')">+ Adicionar item</button></div>
+           <div class="tot"><div>Total da OS</div><div class="v">${money(osTotal(o))}</div></div>
+         </div>`},
+       {key:'checklist',label:'Checklist',count:(o.checklist||[]).length,html:
+         `<div class="panel"><h3>Checklist de entrada</h3>
+           ${(o.checklist||[]).map((ck,i)=>`<div class="chk ${ck.ok?'on':''}" onclick="toggleChk('${o.id}',${i})"><div class="box">${ck.ok?'✓':''}</div>${ck.item}</div>`).join('')||'<div style="color:var(--muted);font-size:13px">Sem itens.</div>'}
+         </div>`}
+     ])}
     </div>
     <div>
      <div class="panel">

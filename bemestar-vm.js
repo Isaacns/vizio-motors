@@ -16,12 +16,14 @@ var TIPOS={
   movimento:{nome:"Movimento & Postura",emoji:"🪑",cor:"#c99a6a",intervalo:120,msgs:[
     "Hora de esticar as pernas! Levante-se e dê uma curta caminhada.",
     "Vamos alinhar a postura? Gire os ombros para trás e relaxe o pescoço.",
-    "Pausa de 1 minuto: entrelace os dedos e empurre as mãos para o teto."]},
+    "Pausa de 1 minuto: entrelace os dedos e empurre as mãos para o teto.",
+    "Seu corpo agradece: caminhe até a janela para ver o movimento lá fora."]},
   visual:{nome:"Descanso Visual (20-20-20)",emoji:"👁️",cor:"#b78bff",intervalo:40,msgs:[
     "Descanse os olhos! Olhe para algo distante por 20 segundos.",
     "Pisque algumas vezes e mude o foco da tela por um instante."]},
   mental:{nome:"Bem-estar Mental",emoji:"🧠",cor:"#ec4899",intervalo:90,msgs:[
     "Inspire fundo… segure… e expire devagar. Sinta o alívio.",
+    "Sorria! Sorrir libera endorfinas e reduz o estresse. Experimente! 😊",
     "Pausa mental: pense em três coisas pelas quais você é grato hoje.",
     "Feche os olhos por 30 segundos e apenas escute os sons ao seu redor."]}
 };
@@ -45,6 +47,7 @@ function injectCSS(){
   ".bemT .b button{flex:1;font-size:.76rem;font-weight:600;border-radius:8px;padding:7px 9px;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt)}"+
   ".bemT .b button.ok{background:var(--gold-3);border-color:var(--gold-3);color:#fff}"+
   ".bemPop{position:fixed;left:50%;top:28%;transform:translateX(-50%);z-index:200;background:rgba(27,26,23,.96);backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:20px;padding:24px 28px;text-align:center;box-shadow:0 26px 64px rgba(0,0,0,.5);max-width:310px;cursor:pointer;animation:bemPopIn .36s cubic-bezier(.2,.9,.3,1.5)}"+
+  ".bemPop.adi{border-top:4px solid var(--gold-2)}.bemPop.feito{border-top:4px solid #22c55e}"+
   ".bemPop .e{font-size:2.6rem;margin-bottom:6px;line-height:1}.bemPop .m{color:var(--txt);font-size:.98rem;font-weight:600;line-height:1.45}"+
   ".bemPop.out{animation:bemPopOut .3s ease forwards}"+
   "@keyframes bemPopIn{from{opacity:0;transform:translateX(-50%) scale(.8) translateY(12px)}to{opacity:1;transform:translateX(-50%) scale(1)}}"+
@@ -52,10 +55,10 @@ function injectCSS(){
   ".bemSw{position:relative;display:inline-block;width:46px;height:26px;flex:none}.bemSw input{display:none}.bemSw span{position:absolute;inset:0;background:rgba(140,150,165,.4);border-radius:999px;transition:.2s;cursor:pointer}.bemSw span:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.bemSw input:checked+span{background:#22c55e}.bemSw input:checked+span:before{transform:translateX(20px)}";
   var s=document.createElement("style");s.id="bem-css";s.textContent=c;document.head.appendChild(s);
 }
-var REC=["Boa! Seu corpo agradece. 🎉","Mandou bem! Pequenas pausas, grandes resultados. 💪","Isso! Você está cuidando de você. 🌟","Feito! Mente renovada para seguir. ☕"];
-var ADI=["Sem problema! Te lembro em 5 minutos. 💛","Tudo bem, sua tarefa vem primeiro. Volto já. 🙂","Combinado! Daqui a pouco a gente se vê. ⏰"];
+var REC=["Boa! Seu corpo agradece. 🎉","Mandou bem! Pequenas pausas, grandes resultados. 💪","Isso! Você está cuidando de você. 🌟","Feito! Mente renovada para seguir. ☕","Excelente! Cada pausa te deixa mais produtivo. ✨"];
+var ADI=["Sem problema! Te lembro em 5 minutos. 💛","Tudo bem, sua tarefa vem primeiro. Volto já. 🙂","Combinado! Daqui a pouco a gente se vê. ⏰","Respeito seu foco. Até daqui a pouquinho! 🌿"];
 function celebrar(tipo){injectCSS();var arr=(tipo==="adiar")?ADI:REC;var msg=arr[Math.floor(Math.random()*arr.length)];
-  var el=document.createElement("div");el.className="bemPop";el.innerHTML='<div class="e">'+(tipo==="adiar"?"⏰":"🎉")+'</div><div class="m">'+msg+'</div>';
+  var el=document.createElement("div");el.className="bemPop "+(tipo==="adiar"?"adi":"feito");el.innerHTML='<div class="e">'+(tipo==="adiar"?"⏰":"🎉")+'</div><div class="m">'+msg+'</div>';
   document.body.appendChild(el);var rem=function(){if(!el.parentNode)return;el.classList.add("out");setTimeout(function(){el.remove();},300);};
   el.onclick=rem;setTimeout(rem,(tipo==="adiar")?2600:3200);}
 function bwrap(){var w=document.getElementById("bemWrap");if(!w){w=document.createElement("div");w.id="bemWrap";document.body.appendChild(w);}return w;}

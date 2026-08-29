@@ -100,40 +100,37 @@ function renderFinanceiro(){
   const porCat=(tipo,cats)=>cats.map(c=>[c,f.filter(x=>x.tipo===tipo&&x.cat===c&&(x.data||'').slice(0,7)===curMonth()).reduce((s,x)=>s+x.valor,0)]).filter(r=>r[1]>0);
   const recCats=porCat("receita",CATS_REC), desCats=porCat("despesa",CATS_DES);
 
-  document.getElementById('view').innerHTML=`
-   <div class="kpis">${kpis.map(x=>`<div class="kpi"><div class="lbl">${x[0]}</div><div class="val">${x[1]}</div><div class="dt ${x[2]}">${x[3]}</div></div>`).join('')}</div>
-
-   <div class="grid2">
+  /* ---- painéis antes empilhados (grid2 + extrato) viram ABAS, conteúdo idêntico. KPIs = cabeçalho. ---- */
+  const tabFluxo=`
      <div class="panel"><div class="head"><h3>💳 Fluxo do mês</h3><div class="sp"></div>
         <button class="b b-ghost b-sm" onclick="gerarRecebiveis()">Gerar recebíveis das OS</button>
         <button class="b b-ghost b-sm" onclick="relFinanceiro_pdf()">📄 Relatório</button>
         <button class="b b-sm" onclick="novoLanc()">+ Lançamento</button></div>
         <canvas id="finChart" height="150"></canvas>
-     </div>
+     </div>`;
+  const tabDre=`
      <div class="panel"><h3>📋 DRE simplificado <span class="torque-badge">MÊS ATUAL</span></h3>
         ${recCats.map(r=>`<div class="info-line"><span class="k">＋ ${r[0]}</span><span style="color:var(--ok)">${brl(r[1])}</span></div>`).join('')||'<div class="info-line"><span class="k">Receitas</span><span>—</span></div>'}
         <div class="info-line"><span class="k" style="color:var(--txt);font-weight:600">Receita bruta</span><span style="color:var(--ok);font-weight:600">${brl(k.recMes)}</span></div>
         ${desCats.map(r=>`<div class="info-line"><span class="k">－ ${r[0]}</span><span style="color:var(--bad)">${brl(r[1])}</span></div>`).join('')}
         <div class="info-line"><span class="k" style="color:var(--txt);font-weight:600">Total de despesas</span><span style="color:var(--bad);font-weight:600">${brl(k.desMes)}</span></div>
         <div class="tot"><div>Resultado do mês</div><div class="v" style="color:${k.lucro>=0?'var(--ok)':'var(--bad)'}">${brl(k.lucro)}</div></div>
-     </div>
-   </div>
-
-   <div class="grid2">
+     </div>`;
+  const tabReceber=`
      <div class="panel"><h3>⬇ Contas a receber</h3>
        ${receber.length?`<table class="tbl"><tbody>${receber.map(x=>`<tr><td>${esc(x.desc)}</td><td style="color:var(--muted)">${finD(x.data)}</td>
          <td style="text-align:right;color:var(--ok);font-weight:600">${brl(x.valor)}</td>
          <td style="text-align:right"><button class="b b-sm" onclick="marcarPago('${x.id}')">Receber</button></td></tr>`).join('')}</tbody></table>`
          :'<div style="color:var(--muted);font-size:13px">Nada a receber. Use “Gerar recebíveis das OS”.</div>'}
-     </div>
+     </div>`;
+  const tabPagar=`
      <div class="panel"><h3>⬆ Contas a pagar</h3>
        ${pagar.length?`<table class="tbl"><tbody>${pagar.map(x=>`<tr><td>${esc(x.desc)}<br><span style="color:var(--muted);font-size:11px">${esc(x.cat)}</span></td>
          <td style="color:var(--muted)">${finD(x.data)}</td><td style="text-align:right;color:var(--bad);font-weight:600">${brl(x.valor)}</td>
          <td style="text-align:right"><button class="b b-danger b-sm" onclick="marcarPago('${x.id}')">Pagar</button></td></tr>`).join('')}</tbody></table>`
          :'<div style="color:var(--muted);font-size:13px">Nenhuma conta pendente.</div>'}
-     </div>
-   </div>
-
+     </div>`;
+  const tabExtrato=`
    <div class="panel"><div class="head"><h3>🧾 Extrato</h3><div class="sp"></div><button class="b b-sm" onclick="novoLanc()">+ Lançamento</button></div>
      <table class="tbl"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Forma</th><th>Status</th><th style="text-align:right">Valor</th><th></th></tr></thead>
      <tbody>${extrato.map(x=>`<tr style="cursor:pointer" onclick="editLanc('${x.id}')"><td>${finD(x.data)}</td><td>${esc(x.desc)}</td><td style="color:var(--muted)">${esc(x.cat)}</td>
@@ -143,7 +140,19 @@ function renderFinanceiro(){
        <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()"><button class="b b-ghost b-sm" title="Editar" onclick="editLanc('${x.id}')">✏️</button> <button class="b b-ghost b-sm" title="Excluir" onclick="delLanc('${x.id}')">🗑</button></td></tr>`).join('')}</tbody></table>
    </div>`;
 
-  drawFinChart(k);
+  document.getElementById('view').innerHTML=
+   `<div class="kpis">${kpis.map(x=>`<div class="kpi"><div class="lbl">${x[0]}</div><div class="val">${x[1]}</div><div class="dt ${x[2]}">${x[3]}</div></div>`).join('')}</div>`+
+   vmTabs('fin',[
+     {key:'fluxo',label:'Fluxo do mês',html:tabFluxo},
+     {key:'dre',label:'DRE',html:tabDre},
+     {key:'receber',label:'A receber',count:receber.length,html:tabReceber},
+     {key:'pagar',label:'A pagar',count:pagar.length,html:tabPagar},
+     {key:'extrato',label:'Extrato',count:extrato.length,html:tabExtrato}
+   ],{onShow:(tk,first)=>{
+     /* finChart (Chart.js) só nasce com a aba Fluxo VISÍVEL; nas voltas, re-mede (resize). */
+     if(tk==='fluxo'){ if(first) drawFinChart(k); else if(_finChart) try{_finChart.resize();}catch(e){} }
+   }});
+  vmTabsReady('fin');
 }
 function finD(d){if(!d)return'—';const p=d.split('-');return `${p[2]}/${p[1]}`;}
 
