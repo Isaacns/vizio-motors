@@ -539,17 +539,20 @@ function injectCSS(){
    '.agSlot{display:flex;flex-direction:column;gap:6px;min-height:34px}'+
    '.agSlot.agFechado{display:none}'+
    '.agVazio{font-size:11px;color:var(--dim);text-align:center;padding:6px 0}'+
-   '.agCard{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;border:1px solid var(--line);'+
+   '.agCard{display:flex;flex-wrap:wrap;align-items:center;gap:5px 8px;padding:8px 9px;border-radius:10px;border:1px solid var(--line);'+
      'background:var(--panel-2);cursor:grab;transition:.15s}'+
    '.agCard:hover{border-color:var(--gold-2)}'+
    '.agCard.dragging{opacity:.45;cursor:grabbing}'+          /* §15 feedback na origem */
    '.agCard.agFeito .agInfo b{opacity:.6}'+  /* concluído: só suaviza; sem risco por cima do texto (fica limpo/legível) */
    '.agCard.agFeito{opacity:.72}'+
    '.agHora{font-family:var(--display);font-size:12px;color:var(--gold-2);font-weight:600;flex:none}'+
-   '.agInfo{display:flex;flex-direction:column;line-height:1.25;flex:1;min-width:0}'+
-   '.agInfo b{font-size:12px;font-weight:600}'+
+   '.agInfo{display:flex;flex-direction:column;line-height:1.25;flex:1 1 auto;min-width:0}'+
+   /* item 5 — o NOME (b) trunca com reticências e NUNCA invade os botões (↔ / lixeira). */
+   '.agInfo b{font-size:12px;font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}'+
    '.agInfo span{font-size:10.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'+
-   '.agAcoes{display:flex;gap:4px;flex:none}'+
+   /* item 5 — botões numa LINHA PRÓPRIA (à direita): o título ganha a largura toda da
+      coluna e nunca encosta em ↔/lixeira, mesmo na grade semanal estreita. */
+   '.agAcoes{display:flex;gap:4px;flex:0 0 100%;justify-content:flex-end}'+
    '.agPer.drop-ok{outline:2px dashed var(--gold-2);outline-offset:2px;background:rgba(91,140,255,.10)}'+  /* §15 destino */
    '.agFora{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding:9px 12px;'+
      'border:1px dashed var(--line);border-radius:10px;font-size:12px;color:var(--muted)}'+

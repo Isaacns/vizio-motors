@@ -276,7 +276,15 @@ function vmLiquidChart(id,pairs){
    etapas (STATUS_FLOW real) e "Avançar →" inline (avança a etapa sem abrir a OS,
    reusando o mesmo fluxo). Chips por etapa + busca. Abrir a OS continua a 1 clique. */
 window._osQuadroFiltro=window._osQuadroFiltro||'all';
-const CAR_SIL='<svg class="car" viewBox="0 0 100 44" xmlns="http://www.w3.org/2000/svg"><path d="M6 32 h5 a6 6 0 0 1 12 0 h30 a6 6 0 0 1 12 0 h9 c3 0 5-2 5-5 v-2 c0-3-2-5-5-5.6 l-13-3 c-4-3-9-5-15-5 h-12 c-4 0-8 1.6-11 4.4 l-7 6.6 c-5 .6-8 2.4-8 6.2 v3 c0 1.4 1 2.6 2.4 2.6 z" fill="rgba(255,255,255,.20)" stroke="rgba(255,255,255,.38)" stroke-width="1"/><circle cx="23" cy="33" r="6" fill="#0a0d11" stroke="rgba(255,255,255,.5)" stroke-width="2"/><circle cx="65" cy="33" r="6" fill="#0a0d11" stroke="rgba(255,255,255,.5)" stroke-width="2"/></svg>';
+/* Card tipográfico do veículo (SEM imagem de carro) — linha aprovada pelo Isaac.
+   Quando o veículo NÃO tem foto, a placa e o modelo viram o protagonista num card
+   editorial: eyebrow, modelo em gradiente do acento, placa estilo Mercosul (tarja "BR")
+   e um "fantasma" da sigla da marca ao fundo. Adapta às duas marcas pelos tokens
+   (--gold-2 = acento: azul Motors / ouro R3). Havendo foto, mostramos a foto real. */
+function brandSigla(){var n=(window.BRAND_NAME||'VM').trim();
+  var m=n.match(/[A-Za-z]?\d+[A-Za-z]?/); if(m&&m[0].length<=3)return m[0].toUpperCase();
+  var w=n.split(/\s+/).filter(Boolean);
+  return ((w.length>=2?(w[0][0]+w[1][0]):n.replace(/\s/g,'').slice(0,2))||'VM').toUpperCase();}
 function plateHue(s){let h=0;s=String(s||'x');for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h%360;}
 function mechAv(nome){nome=(nome||'').trim();
   const ini=nome?nome.split(/\s+/).map(w=>w[0]||'').slice(0,2).join('').toUpperCase():'?';
@@ -284,9 +292,12 @@ function mechAv(nome){nome=(nome||'').trim();
   return {ini,grad:`linear-gradient(135deg,hsl(${h},65%,62%),hsl(${(h+42)%360},68%,68%)`+')'};}
 function osFotoThumb(o,v){
   const url=(o.fotos&&o.fotos[0])||v.foto_url||'';
+  /* Prioridade: FOTO real do veículo (cover, cantos arredondados, sombra). */
   if(url) return `<div class="osphoto"><img src="${esc(url)}" alt="" loading="lazy"><span class="cam" title="Foto do veículo">📷</span></div>`;
-  const H=plateHue(v.placa||o.id);
-  return `<div class="osphoto"><span class="sky" style="background:linear-gradient(150deg,hsl(${H},30%,26%),hsl(${H},42%,10%))"></span><span class="gloss"></span>${CAR_SIL}<span class="cam" title="Sem foto — adicione na OS">📷</span></div>`;
+  /* Sem foto → card tipográfico compacto (placa em gradiente + modelo), fantasma da sigla ao fundo. */
+  return `<div class="osphoto osph-card"><span class="tghost">${esc(brandSigla())}</span>`+
+    `<span class="tp">${esc(v.placa)||'—'}</span>`+
+    `<span class="tm">${esc(v.modelo)||'Veículo'}</span></div>`;
 }
 function osTimeline(idx){return `<div class="ostl">`+STATUS_FLOW.map((s,i)=>{
   const cls=i<idx?'done':(i===idx?'cur':'');
@@ -379,10 +390,13 @@ function injectOSBoardCSS(){ if(document.getElementById('osBoardCSS'))return;
    '.oscard{position:relative;border-radius:18px;overflow:hidden;background:var(--glass);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);border:1px solid var(--line);box-shadow:var(--shadow-card);cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s;animation:vmRiseIn .4s ease-out both}'+
    '.oscard:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:color-mix(in srgb,var(--gold-2) 32%,transparent)}'+
    '.osc-top{display:flex;gap:13px;padding:15px 15px 11px}'+
-   '.osphoto{position:relative;width:90px;height:74px;border-radius:13px;overflow:hidden;flex:none;border:1px solid var(--line);background:#0a0d11}'+
+   '.osphoto{position:relative;width:90px;height:74px;border-radius:13px;overflow:hidden;flex:none;border:1px solid var(--line);background:#0a0d11;box-shadow:0 4px 12px rgba(0,0,0,.35)}'+
    '.osphoto img{width:100%;height:100%;object-fit:cover;display:block}'+
-   '.osphoto .sky{position:absolute;inset:0}.osphoto .gloss{position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.18),transparent 42%)}'+
-   '.osphoto .car{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:72px;height:auto;filter:drop-shadow(0 3px 5px rgba(0,0,0,.4))}'+
+   /* card tipográfico compacto (placeholder sem foto): placa em gradiente + modelo + fantasma da sigla */
+   '.osph-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;padding:6px;background:repeating-linear-gradient(115deg,rgba(255,255,255,.02) 0 1px,transparent 1px 15px),linear-gradient(160deg,#141922,#0a0d12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}'+
+   '.osph-card .tghost{position:absolute;right:-2px;bottom:-8px;font-family:var(--display);font-weight:700;font-size:2.6rem;line-height:1;color:rgba(255,255,255,.05);letter-spacing:-.02em;z-index:0;pointer-events:none}'+
+   '.osph-card .tp{position:relative;z-index:1;font-family:var(--display);font-weight:700;letter-spacing:.05em;font-size:.72rem;background:linear-gradient(120deg,color-mix(in srgb,var(--gold-2) 45%,#fff),var(--gold-2));-webkit-background-clip:text;background-clip:text;color:transparent}'+
+   '.osph-card .tm{position:relative;z-index:1;font-size:.56rem;color:var(--muted);line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}'+
    '.osphoto .cam{position:absolute;top:5px;right:5px;font-size:11px;background:rgba(8,10,13,.6);border-radius:6px;padding:1px 4px;line-height:1.2;backdrop-filter:blur(3px)}'+
    '.osc-idn{flex:1;min-width:0}'+
    '.osc-veh{font-family:var(--display);font-weight:600;font-size:15px;margin:7px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
@@ -415,6 +429,13 @@ function injectOSBoardCSS(){ if(document.getElementById('osBoardCSS'))return;
    '.osfoto{position:relative;width:74px;height:60px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}'+
    '.osfoto img{width:100%;height:100%;object-fit:cover;display:block}'+
    '.osfoto .rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(8,10,13,.7);color:#fff;font-size:10px;cursor:pointer;line-height:1;display:grid;place-items:center}'+
+   /* item 4 — régua de botões por hierarquia: ação primária destacada (linha própria),
+      secundárias agrupadas, ação de perigo separada à direita. Alinhamento consistente. */
+   '.osacts{display:flex;flex-direction:column;gap:10px;margin-top:16px}'+
+   '.osacts>.b,.osacts>.b-wa{width:100%}'+
+   '.osacts-sec{display:flex;align-items:center;gap:8px;flex-wrap:wrap}'+
+   '.osacts-sec .b,.osacts-sec .b-wa{flex:none}'+
+   '.osacts-gap{flex:1 1 auto;min-width:8px}'+
    '@media(max-width:860px){.osdeck{grid-template-columns:1fr}}'+
    '@media(prefers-reduced-motion:reduce){.oscard,.ostl-step .ostl-nd{animation:none;transition:none}}';
   document.head.appendChild(s);
@@ -455,23 +476,29 @@ function openOS(id){injectOSBoardCSS();const o=byId(WORK.os,id);const v=veh(o.ve
        <div class="info-line"><span class="k">Previsão</span><span>${fmtD(o.previsao)}</span></div>
        <div class="info-line"><span class="k">Responsável</span><span>${esc(o.responsavel)||'—'}</span></div>
        <div class="info-line"><span class="k">Orçamento</span><span style="color:${o.aprovado?'var(--ok)':'var(--warn)'}">${o.aprovado?'Aprovado':'Aguardando'}</span></div>
-       <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-         <button class="b b-sm" onclick="toggleAprov('${o.id}')">${o.aprovado?'Marcar pendente':'Aprovar orçamento'}</button>
-         <button class="b b-ghost b-sm" onclick="printOS('${o.id}')">🖨 Imprimir</button>
-         <button class="b b-ghost b-sm" onclick="editOS('${o.id}')">Editar</button>
-         <button class="b b-danger b-sm" onclick="delOS('${o.id}')">Excluir</button>
+       <div class="osacts">
+         <button class="b b-sm" onclick="toggleAprov('${o.id}')">${o.aprovado?'↺ Marcar orçamento pendente':'✓ Aprovar orçamento'}</button>
+         <div class="osacts-sec">
+           <button class="b b-ghost b-sm" onclick="printOS('${o.id}')">🖨 Imprimir</button>
+           <button class="b b-ghost b-sm" onclick="editOS('${o.id}')">✎ Editar</button>
+           <span class="osacts-gap"></span>
+           <button class="b b-danger b-sm" onclick="delOS('${o.id}')">🗑 Excluir</button>
+         </div>
        </div>
      </div>
      <div class="panel">
        <h3>📲 Acompanhamento do cliente</h3>
        <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Link público (sem login, só leitura) — o cliente vê o status e a linha do tempo da própria OS:</div>
        <input readonly value="${link}" onclick="this.select()" style="font-size:11.5px">
-       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-         <button class="b b-sm" onclick="copyLink('${link}')">Copiar link do cliente</button>
-         ${window.waBtn?waBtn(c.tel,`Olá ${(c.nome||'').split(' ')[0]}! Acompanhe em tempo real o serviço do seu ${(v.modelo||'veículo')} (placa ${v.placa}) por este link: ${link}`,'Enviar no WhatsApp'):''}
-         <button class="b b-ghost b-sm" onclick="abrirPortal('${o.token}')">Abrir portal</button></div>
-       ${o.statusIdx>=7?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
-         <div style="font-size:12.5px;color:var(--ok);margin-bottom:8px">✅ Serviço ${o.statusIdx>=8?'pronto para retirada':'finalizado'} — avise o cliente:</div>
+       <div class="osacts">
+         ${window.waBtn?waBtn(c.tel,`Olá ${(c.nome||'').split(' ')[0]}! Acompanhe em tempo real o serviço do seu ${(v.modelo||'veículo')} (placa ${v.placa}) por este link: ${link}`,'💬 Enviar no WhatsApp'):`<button class="b b-sm" onclick="copyLink('${link}')">Copiar link do cliente</button>`}
+         <div class="osacts-sec">
+           <button class="b b-ghost b-sm" onclick="copyLink('${link}')">🔗 Copiar link</button>
+           <button class="b b-ghost b-sm" onclick="abrirPortal('${o.token}')">↗ Abrir portal</button>
+         </div>
+       </div>
+       ${o.statusIdx>=7?`<div style="margin-top:14px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--ok) 10%,transparent);border:1px solid color-mix(in srgb,var(--ok) 30%,transparent)">
+         <div style="font-size:12.5px;color:var(--ok);font-weight:600;margin-bottom:8px">✅ Serviço ${o.statusIdx>=8?'pronto para retirada':'finalizado'} — avise o cliente:</div>
          ${window.waBtn?waBtn(c.tel,msgPronto(o,c,v),'📲 Avisar cliente: pronto'):''}</div>`:''}
      </div>
      <div class="panel"><h3>📷 Fotos do veículo</h3>
@@ -738,7 +765,6 @@ function today(){return new Date().toISOString().slice(0,10);}
    - demo (sem Supabase): implementações abaixo, leem WORK/DADOS;
    - live: supabase-mode.js sobrescreve ambas para a RPC segura get_portal_validado.
    Nada de OS/cliente é montado antes do identificador casar (defesa no servidor). */
-const CAR_SIL_P='<svg class="car" viewBox="0 0 150 96" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 64c0-4 3-6 8-8l10-16c3-5 7-7 13-7h28c6 0 10 2 14 7l11 15c6 2 12 4 16 8v12a3 3 0 0 1-3 3h-9a9 9 0 0 1-18 0H48a9 9 0 0 1-18 0h-9a3 3 0 0 1-3-3z" fill="rgba(43,47,55,.6)" stroke="currentColor" stroke-width="1.5"/><path d="M44 40l7-11c2-3 4-4 8-4h24c4 0 6 1 8 4l7 11z" fill="rgba(0,0,0,.35)" stroke="currentColor" stroke-width="1.2" opacity=".8"/><circle cx="39" cy="64" r="8" fill="#0a0d11" stroke="currentColor" stroke-width="2"/><circle cx="105" cy="64" r="8" fill="#0a0d11" stroke="currentColor" stroke-width="2"/></svg>';
 const _digits=s=>(s||'').replace(/\D/g,'');
 function abrirPortal(token){location.hash='p='+token;renderPortal(token);}
 
@@ -865,26 +891,34 @@ function renderPortalTrack(d,animate){
     if(i<idx)sub='Concluído';
     else if(i===idx)sub=(d.responsavel?'Responsável: '+esc(d.responsavel):'Etapa atual');
     else if(i===N-1)sub='Previsão: '+esc(etaTxt);
-    return `<div class="pstep2" data-cls="${cls}"><div class="pdot">${i<idx?'✓':(i===idx?'●':(i+1))}</div>
+    return `<div class="pstep2" data-cls="${cls}"><div class="pdot">${i<idx?'✓':(i===idx?(pronto?'✓':'●'):(i+1))}</div>
       <div class="plbl"><b>${esc(s)}</b>${sub?`<span>${sub}</span>`:''}</div></div>`;
   }).join('');
-  const photoInner=foto?`<img src="${esc(foto)}" alt="" loading="lazy"><span class="pshade"></span>`:CAR_SIL_P;
+  const cardMeta=(d.cliente_nome||'').trim()||('OS #'+d.numero);
+  const photoInner=foto
+    ? `<img src="${esc(foto)}" alt="" loading="lazy"><span class="pshade"></span><span class="pplate">${esc(d.placa||'—')}</span>`
+    : `<span class="tghost">${esc(brandSigla())}</span>`+
+      `<div class="thd"><div class="teye">Veículo em serviço</div><div class="tmodel">${esc(d.modelo||'Veículo')}</div></div>`+
+      `<div class="tbot"><span class="tplate">${esc(d.placa||'—')}</span><span class="tdiv"></span><span class="tmeta">${esc(cardMeta)}</span></div>`;
   document.getElementById('portal').innerHTML=`<div class="pwrap"><section class="pscreen on">
     <div class="pthead an"><div class="pmini" id="emblemPMini"></div>
       <div class="ptt"><b>${esc(nome)}</b><span>${first?('Olá, '+esc(first)+' — '):''}acompanhe seu serviço</span></div></div>
     <div class="phero card-glass an" style="animation-delay:.05s">
-      <div class="pphoto">${photoInner}<span class="pplate">${esc(d.placa||'—')}</span></div>
+      <div class="pphoto${foto?'':' pcard'}">${photoInner}</div>
       <div class="phbody">
-        <div class="pvname">${esc(d.modelo||'Veículo')}</div>
-        <div class="pvsub">OS #${d.numero}${d.aprovado?' · orçamento aprovado':''}</div>
-        <div class="pstatusnow">
-          <div class="pring"><div class="pu"></div><div class="co"></div></div>
+        ${foto
+          ? `<div class="pvname">${esc(d.modelo||'Veículo')}</div>
+        <div class="pvsub">${d.cliente_nome?esc(d.cliente_nome)+' · ':''}OS #${d.numero}${d.aprovado?' · orçamento aprovado':''}</div>`
+          : `<div class="pvsub" style="margin-top:0">OS #${d.numero}${d.aprovado?' · orçamento aprovado':''}</div>`}
+        <div class="pstatusnow${pronto?' pronto':''}">
+          <div class="pring${pronto?' pronto':''}"><div class="pu"></div><div class="co">${pronto?'✓':''}</div></div>
           <div class="stt"><b>${esc(STATUS_FLOW[idx])}</b><span>${statusSub}</span></div></div>
-        <div class="ptl" id="ptl"><div class="pfill" id="pfill"></div>${steps}</div>
+        <div class="ptl${pronto?' pronto':''}" id="ptl"><div class="pfill" id="pfill"></div>${steps}</div>
         <div class="pinfo">
-          <div class="pbox"><div class="k">Previsão de entrega</div><div class="v eta">${esc(etaTxt)}</div></div>
+          <div class="pbox"><div class="k">Previsão de entrega</div><div class="v eta${pronto?' ok':''}">${esc(etaTxt)}</div></div>
+          <div class="pbox"><div class="k">Mecânico responsável</div><div class="v">${esc(d.responsavel)||'A definir'}</div></div>
           <div class="pbox"><div class="k">Progresso</div><div class="v" id="ppct">${animate?'0%':pct+'%'}</div></div></div>
-        ${d.obs?`<div class="pobs"><div class="k">Observações da oficina</div><p>${esc(d.obs)}</p></div>`:''}
+        ${d.obs?`<div class="pobs"><div class="k">Serviço</div><p>${esc(d.obs)}</p></div>`:''}
         ${cta}
       </div>
     </div>

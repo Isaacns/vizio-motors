@@ -12,7 +12,7 @@
 })();
 /* VERSÃO DO APP — bumpar a CADA deploy. É por este número que o push compara.
    §14.2: nunca `const` — colide com o escopo de script dos outros .js e derruba o arquivo. */
-window.APP_VERSION='1.0.102';
+window.APP_VERSION='1.0.104';
 </script>
 <html lang="pt-BR">
 <head>
@@ -28,7 +28,7 @@ window.APP_VERSION='1.0.102';
 <meta name="theme-color" content="#070809">
 <!-- PWA instalável (§ redesign 1.0.95): manifest + ícones. O service worker (sw.js) é
      network-first no index e NÃO cacheia o HTML — preserva o version-gate (rota 2). -->
-<link rel="manifest" href="manifest.json?v=102">
+<link rel="manifest" href="manifest.json?v=104">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -177,12 +177,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold-2);box-shadow:0 
 /* Botão "Como usar" (guia contextual por tela — padrão Inovar adaptado) */
 .help-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:15px;font-weight:700;cursor:pointer;transition:.18s;display:flex;align-items:center;justify-content:center;flex:none}
 .help-btn:hover{color:var(--gold-2);border-color:var(--gold-2)}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
-.kpi{padding:22px 22px 20px;border-radius:var(--radius,18px);border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);position:relative;overflow:hidden;transition:.22s}
+/* KPIs um pouco mais compactos (classe compartilhada → conserta Início, Financeiro,
+   Dashboard, OS, Serviços etc. de uma vez). Menos padding + número menor, sem perder leitura. */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:12px;margin-bottom:18px}
+.kpi{padding:15px 18px 14px;border-radius:var(--radius,18px);border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);position:relative;overflow:hidden;transition:.22s}
 .kpi:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.11)}
-.kpi .lbl{font-size:10.5px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase}
-.kpi .val{font-family:var(--display);font-weight:300;font-size:33px;letter-spacing:-.5px;margin-top:14px;line-height:1;color:var(--platinum);font-variant-numeric:tabular-nums}
-.kpi .dt{font-size:11.5px;margin-top:12px;color:var(--muted)}
+.kpi .lbl{font-size:10px;color:var(--muted);letter-spacing:1.3px;text-transform:uppercase}
+.kpi .val{font-family:var(--display);font-weight:300;font-size:26px;letter-spacing:-.5px;margin-top:9px;line-height:1;color:var(--platinum);font-variant-numeric:tabular-nums}
+.kpi .dt{font-size:11px;margin-top:8px;color:var(--muted)}
 .kpi .dt.up{color:var(--ok)}.kpi .dt.down{color:var(--bad)}
 .grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
 /* ===== Início — faixa de saudação + resumo do dashboard (gráfico líquido) ===== */
@@ -303,7 +305,18 @@ td.acoes,th.acoes{white-space:nowrap;text-align:right}
 .pphoto{position:relative;height:158px;display:flex;align-items:flex-end;padding:14px 16px;background:radial-gradient(60% 90% at 70% 20%,color-mix(in srgb,var(--gold-2) 14%,transparent),transparent 60%),linear-gradient(180deg,var(--panel-2),var(--ink))}
 .pphoto>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .pphoto .pshade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.5))}
-.pphoto .car{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:150px;height:auto;opacity:.8;color:var(--gold-2)}
+/* card tipográfico do veículo (sem foto): eyebrow + modelo em gradiente + placa Mercosul + fantasma da sigla */
+.pphoto.pcard{flex-direction:column;justify-content:space-between;align-items:stretch;overflow:hidden;padding:18px 20px;background:repeating-linear-gradient(115deg,rgba(255,255,255,.014) 0 1px,transparent 1px 26px),radial-gradient(120% 130% at 88% 12%,color-mix(in srgb,var(--gold-2) 12%,transparent),transparent 55%),linear-gradient(180deg,var(--panel-2),var(--ink))}
+.pcard::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 120%,rgba(0,0,0,.5),transparent 60%);pointer-events:none}
+.pcard .tghost{position:absolute;right:-4px;bottom:-26px;font-family:var(--display);font-weight:700;font-size:6.6rem;line-height:1;color:rgba(255,255,255,.03);letter-spacing:-.02em;user-select:none;z-index:0}
+.pcard .thd,.pcard .tbot{position:relative;z-index:2}
+.pcard .teye{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);font-weight:600}
+.pcard .tmodel{font-family:var(--display);font-weight:600;font-size:1.7rem;line-height:1.05;margin-top:2px;background:linear-gradient(120deg,color-mix(in srgb,var(--gold-2) 45%,#fff),var(--gold-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.pcard .tbot{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.tplate{font-family:var(--display);font-weight:700;letter-spacing:.1em;font-size:1rem;padding:7px 13px 7px 24px;border-radius:9px;background:rgba(0,0,0,.5);border:1px solid color-mix(in srgb,var(--gold-2) 50%,transparent);position:relative;color:var(--txt)}
+.tplate::before{content:"BR";position:absolute;left:-1px;top:-1px;bottom:-1px;width:16px;border-radius:9px 0 0 9px;background:linear-gradient(180deg,var(--gold-2),color-mix(in srgb,var(--gold-2) 55%,#000));color:#0b0d10;font-size:.5rem;font-weight:700;display:grid;place-items:center;letter-spacing:0}
+.tdiv{width:30px;height:2px;border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--gold-2) 45%,#fff),var(--gold-2))}
+.tmeta{font-size:.82rem;color:var(--muted)}
 .pplate{font-family:var(--display);font-weight:700;letter-spacing:.08em;font-size:16px;padding:6px 12px;border-radius:9px;background:rgba(0,0,0,.55);border:1px solid color-mix(in srgb,var(--gold-2) 40%,transparent);position:relative;z-index:1;color:var(--txt)}
 .phbody{padding:18px}
 .pvname{font-family:var(--display);font-weight:600;font-size:22px}
@@ -311,7 +324,7 @@ td.acoes,th.acoes{white-space:nowrap;text-align:right}
 .pstatusnow{display:flex;align-items:center;gap:12px;margin:16px 0 6px;padding:14px;border-radius:14px;background:color-mix(in srgb,var(--gold-2) 8%,transparent);border:1px solid color-mix(in srgb,var(--gold-2) 22%,transparent)}
 .pring{width:46px;height:46px;flex:none;position:relative}
 .pring .pu{position:absolute;inset:0;border-radius:50%;border:2px solid var(--gold-2);animation:orbi 2s ease-out infinite}
-.pring .co{position:absolute;inset:8px;border-radius:50%;background:linear-gradient(160deg,var(--gold-1),var(--gold-2) 55%,var(--gold-4))}
+.pring .co{position:absolute;inset:8px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);background:linear-gradient(160deg,var(--gold-1),var(--gold-2) 55%,var(--gold-4))}
 .pstatusnow .stt b{font-family:var(--display);letter-spacing:.03em;font-size:17px;text-transform:uppercase;color:var(--gold-2)}
 .pstatusnow .stt span{display:block;color:var(--muted);font-size:12.5px}
 .ptl{margin:20px 4px 4px;position:relative}
@@ -327,7 +340,7 @@ td.acoes,th.acoes{white-space:nowrap;text-align:right}
 .pstep2:not(.done):not(.cur) .plbl b{color:var(--muted)}
 .plbl span{font-size:12px;color:var(--muted)}
 .pstep2.cur .plbl b{color:var(--gold-2)}
-.pinfo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.pinfo{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:10px}
 .pinfo .pbox{background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:14px;padding:14px}
 .pinfo .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
 .pinfo .v{font-family:var(--display);font-weight:600;font-size:17px;margin-top:5px}
@@ -339,7 +352,17 @@ td.acoes,th.acoes{white-space:nowrap;text-align:right}
 .pcta a{flex:1;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-weight:600;font-size:14px}
 .pcta .wa{background:linear-gradient(180deg,#25D366,#12A150);color:#fff}
 .pcta .call{background:rgba(255,255,255,.05);color:var(--txt);border:1px solid var(--line)}
-@media(prefers-reduced-motion:reduce){#portal .an,.pring .pu{animation:none!important}.pstep2{transition:none!important}.ptl .pfill{transition:none!important}}
+/* Estado PRONTO PARA RETIRADA — indicador VERDE (sucesso) + celebração sutil. */
+.pinfo .v.ok{color:var(--ok)}
+.pstatusnow.pronto{background:color-mix(in srgb,var(--ok) 12%,transparent);border-color:color-mix(in srgb,var(--ok) 34%,transparent)}
+.pstatusnow.pronto .stt b{color:var(--ok)}
+.pring.pronto .pu{border-color:var(--ok)}
+.pring.pronto .co{background:linear-gradient(160deg,#9ff0cd,var(--ok) 55%,#149f6f);color:#08130d;font-weight:800;font-size:20px;box-shadow:0 6px 16px rgba(0,0,0,.4);animation:pcelebra 2.4s ease-in-out infinite}
+.ptl.pronto .pfill{background:linear-gradient(180deg,#9ff0cd,var(--ok))}
+.ptl.pronto .pstep2.cur .pdot{background:linear-gradient(160deg,#9ff0cd,var(--ok) 55%,#149f6f);border-color:transparent;color:#08130d;box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 18%,transparent);animation:pcelebra 2.4s ease-in-out infinite}
+.ptl.pronto .pstep2.cur .plbl b{color:var(--ok)}
+@keyframes pcelebra{0%,100%{transform:scale(1)}30%{transform:scale(1.12)}62%{transform:scale(.98)}}
+@media(prefers-reduced-motion:reduce){#portal .an,.pring .pu,.pring .co,.ptl.pronto .pstep2.cur .pdot{animation:none!important}.pstep2{transition:none!important}.ptl .pfill{transition:none!important}}
 @media(max-width:860px){
   .layout{grid-template-columns:1fr;padding:14px;gap:14px}
   .side{position:fixed;left:14px;top:14px;bottom:14px;height:auto;width:236px;transform:translateX(-118%);transition:transform .25s;z-index:40}
@@ -470,29 +493,29 @@ footer b{color:var(--gold-4)}
 <script src="app-charts-vivo.js?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="esc.js?v=102"></script>
-<script src="config.js?v=102"></script>
-<script src="dados.js?v=102"></script>
-<script src="app.js?v=102"></script>
-<script src="financeiro.js?v=102"></script>
-<script src="crm.js?v=102"></script>
-<script src="dashboard.js?v=102"></script>
-<script src="nfe.js?v=102"></script>
-<script src="corporativo.js?v=102"></script>
-<script src="bemestar-vm.js?v=102"></script>
-<script src="alavancagem-vm.js?v=102"></script>
-<script src="agenda-vm.js?v=102"></script>
-<script src="estoque-pred.js?v=102"></script>
-<script src="configuracoes.js?v=102"></script>
-<script src="servicos.js?v=102"></script>
-<script src="relatorio.js?v=102"></script>
-<script src="torque.js?v=102"></script>
-<script src="rbac.js?v=102"></script>
-<script src="theme.js?v=102"></script>
-<script src="supabase-mode.js?v=102"></script>
-<script src="motion-vm.js?v=102"></script>
-<script src="app-ajuda-vm.js?v=102"></script>
-<script src="version-gate.js?v=102"></script>
-<script src="pwa-vm.js?v=102"></script>
+<script src="esc.js?v=104"></script>
+<script src="config.js?v=104"></script>
+<script src="dados.js?v=104"></script>
+<script src="app.js?v=104"></script>
+<script src="financeiro.js?v=104"></script>
+<script src="crm.js?v=104"></script>
+<script src="dashboard.js?v=104"></script>
+<script src="nfe.js?v=104"></script>
+<script src="corporativo.js?v=104"></script>
+<script src="bemestar-vm.js?v=104"></script>
+<script src="alavancagem-vm.js?v=104"></script>
+<script src="agenda-vm.js?v=104"></script>
+<script src="estoque-pred.js?v=104"></script>
+<script src="configuracoes.js?v=104"></script>
+<script src="servicos.js?v=104"></script>
+<script src="relatorio.js?v=104"></script>
+<script src="torque.js?v=104"></script>
+<script src="rbac.js?v=104"></script>
+<script src="theme.js?v=104"></script>
+<script src="supabase-mode.js?v=104"></script>
+<script src="motion-vm.js?v=104"></script>
+<script src="app-ajuda-vm.js?v=104"></script>
+<script src="version-gate.js?v=104"></script>
+<script src="pwa-vm.js?v=104"></script>
 </body>
 </html>
