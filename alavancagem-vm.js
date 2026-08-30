@@ -12,7 +12,7 @@ function alavCombos(){ try{return JSON.parse(localStorage.getItem(ALAV_CKEY)||"[
 function alavSaveCombos(l){ try{localStorage.setItem(ALAV_CKEY,JSON.stringify(l));}catch(e){} }
 
 function abrirAlavancagem(){
-  document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+  setNavActive('[data-perm="alavancagem"]');
   document.getElementById('pageTitle').textContent="Alavancagem";
   document.getElementById('side').classList.remove('open');
   document.getElementById('q').value='';

@@ -43,7 +43,7 @@ function gerarRecebiveis(){
 
 /* abre o módulo sem depender do mapa de rotas do app.js */
 function abrirFin(){
-  document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+  setNavActive('[data-perm="financeiro"]');
   document.getElementById('pageTitle').textContent="Financeiro";
   document.getElementById('side').classList.remove('open');
   document.getElementById('q').value='';

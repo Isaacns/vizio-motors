@@ -28,7 +28,7 @@ function mailLink(email,assunto,corpo){ return `mailto:${email||""}?subject=${en
 function crmList(){ if(!WORK.campanhas)WORK.campanhas=[]; return WORK.campanhas; }
 
 function abrirCRM(){
-  document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+  setNavActive('[data-perm="crm"]');
   document.getElementById('pageTitle').textContent="CRM & Recuperação";
   document.getElementById('side').classList.remove('open');
   document.getElementById('q').value='';

@@ -189,7 +189,7 @@ window.rbacAplicarNav=function(){
 
 var _tab="perfis", _sel="admin";
 function abrirRBAC(){
-  document.querySelectorAll('.nav a').forEach(function(x){x.classList.remove('active');});
+  setNavActive('[data-perm="usuarios"]');
   document.getElementById('pageTitle').textContent="Usuários & Acessos";
   document.getElementById('side').classList.remove('open');
   var q=document.getElementById('q'); if(q)q.value='';

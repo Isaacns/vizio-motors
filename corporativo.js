@@ -25,7 +25,7 @@ function metaList(){ if(!WORK.metas)WORK.metas=[
 ]; return WORK.metas; }
 
 function abrirPonto(){
-  document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+  setNavActive('[data-perm="ponto"]');
   document.getElementById('pageTitle').textContent="Ponto & Equipe";
   document.getElementById('side').classList.remove('open');
   document.getElementById('q').value='';
@@ -238,10 +238,38 @@ function viewProd(){
     (o.itens||[]).forEach(i=>{if(i.tipo==='servico')prod[m].tempo+=(svc(i.refId).tempoMin||0)*i.qtd;});});
   const rank=Object.entries(prod).sort((a,b)=>b[1].receita-a[1].receita);
   return `<div class="panel"><h3>🏅 Produtividade por mecânico</h3>
-    <table class="tbl"><thead><tr><th>Mecânico</th><th>OS</th><th>Receita</th><th>Tempo produtivo</th><th>Receita/OS</th></tr></thead>
-    <tbody>${rank.map(([m,d])=>`<tr><td><b>${esc(m)}</b></td><td>${d.os}</td><td style="color:var(--gold-2)">${money(d.receita)}</td><td>${(d.tempo/60).toFixed(1)}h</td><td>${money(d.receita/d.os)}</td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted)">Sem dados.</td></tr>'}</tbody></table>
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px">Clique em um mecânico para ver de onde vêm os números (as OS sob responsabilidade dele).</div>
+    <div style="overflow:auto"><table class="tbl"><thead><tr><th>Mecânico</th><th>OS</th><th>Receita</th><th>Tempo produtivo</th><th>Receita/OS</th></tr></thead>
+    <tbody>${rank.map(([m,d])=>`<tr onclick="prodDrill('${(''+m).replace(/'/g,"\\'")}')" title="Ver as OS de ${esc(m)}"><td><b>${esc(m)}</b></td><td>${d.os}</td><td style="color:var(--gold-2)">${money(d.receita)}</td><td>${(d.tempo/60).toFixed(1)}h</td><td>${money(d.receita/d.os)}</td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted)">Sem dados.</td></tr>'}</tbody></table></div>
   </div>`;
 }
+
+/* Drill-down do mecânico (read-only): abre a FONTE dos números "N OS · R$ X · Yh".
+   Filtra as OS pelo primeiro nome do responsável (mesma chave usada no agrupamento acima),
+   e detalha cada OS (nº, veículo/cliente, status, horas produtivas, valor). Dados reais da org. */
+function prodDrill(m){
+  const firstName=o=>(o.responsavel||'—').split(' ')[0];
+  const list=WORK.os.filter(o=>firstName(o)===m);
+  const full=(list.find(o=>o.responsavel)||{}).responsavel||m;
+  const tempoOS=o=>{let t=0;(o.itens||[]).forEach(i=>{if(i.tipo==='servico')t+=(svc(i.refId).tempoMin||0)*i.qtd;});return t;};
+  let receita=0,tempo=0; list.forEach(o=>{receita+=osTotal(o);tempo+=tempoOS(o);});
+  const kpis=[['OS responsáveis',list.length],['Receita',money(receita)],
+    ['Horas produtivas',(tempo/60).toFixed(1)+'h'],['Receita/OS',list.length?money(receita/list.length):'—']];
+  const osRow=o=>{const v=veh(o.veiculoId),c=cli(o.clienteId);
+    return `<tr><td>#${o.numero}</td>
+      <td>${v?`<span class="plate">${esc(v.placa)}</span> <span style="color:var(--muted)">${esc(v.modelo||'')}</span><br>`:''}<span style="color:var(--muted);font-size:12px">${esc(c?c.nome:'—')}</span></td>
+      <td><span class="badge s${o.statusIdx}">${STATUS_FLOW[o.statusIdx]}</span></td>
+      <td style="text-align:right">${(tempoOS(o)/60).toFixed(1)}h</td>
+      <td style="text-align:right;color:var(--gold-2)">${money(osTotal(o))}</td></tr>`;};
+  const rows=list.map(osRow).join('')||'<tr><td colspan="5" style="color:var(--muted)">Sem OS sob responsabilidade deste mecânico.</td></tr>';
+  const html=`<div class="kpis" style="margin-bottom:12px">${kpis.map(k=>`<div class="kpi"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div></div>`).join('')}</div>
+    <div style="max-height:46vh;overflow:auto"><table class="tbl"><thead>
+      <tr><th>OS</th><th>Veículo / Cliente</th><th>Status</th><th style="text-align:right">Horas</th><th style="text-align:right">Valor</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+  modal('Produtividade · '+esc(full),'De onde vêm os números: as OS sob responsabilidade deste mecânico.',html,()=>closeModal());
+  const b=document.getElementById('mSave'); if(b)b.textContent='Fechar';
+}
+window.prodDrill=prodDrill;
 
 /* ---------- BEM-ESTAR ---------- */
 function viewBem(){

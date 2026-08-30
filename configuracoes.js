@@ -9,6 +9,7 @@
    inteiro. (Bug real, 19/07/2026: quebrou o módulo Configurações por completo.) */
 const APP_VERSION = window.APP_VERSION || "0.6.0";
 const CHANGELOG = [
+  ["1.0.106","Mais telas agora respondem ao clique: no Motor Torque, os três indicadores do topo (Receita em jogo, Ações prioritárias e Insights ativos) abrem o detalhamento de onde vem cada número. Em Ponto & Equipe → Produtividade, clicar num mecânico mostra as OS pelas quais ele é responsável (com veículo, cliente, status, horas e valor). E o menu lateral passou a destacar o módulo aberto em TODAS as telas — antes só as primeiras marcavam."],
   ["1.0.105","Telas de Serviços, Ordem de Serviço, Financeiro e Dashboard reorganizadas em ABAS: as seções que antes ficavam empilhadas (uma embaixo da outra) agora ficam em abas, com o mesmo conteúdo e as mesmas ações — só mais fácil de navegar. Os gráficos são desenhados ao abrir a aba deles, então aparecem sempre no tamanho certo. No celular, a barra de abas rola de lado."],
   ["1.0.104","Veículos sem foto agora aparecem num cartão tipográfico elegante — a placa (estilo Mercosul) e o modelo em destaque viram o protagonista, com as cores da sua oficina. Vale no Quadro de Veículos e no Portal do Cliente; quando há foto do veículo, ela continua em destaque. Módulo Bem-estar & Pausas alinhado ao padrão Inovar: mais mensagens de incentivo e as animações de “Feito”/“Adiar” com cor."],
   ["1.0.103","Polimento visual premium: nova ilustração de carro e “vitrine de garagem” para veículos sem foto (com a FOTO real do veículo em destaque quando houver). Portal do cliente enriquecido — mostra modelo, nome do cliente, mecânico responsável, previsão e serviço — e o status “Pronto para retirada” agora fica VERDE com a linha do tempo animada. Botões da Ordem de Serviço reorganizados por prioridade (ação principal em destaque, excluir separado). Agenda: o nome do serviço nunca mais encosta nos botões do cartão. Caixas de indicadores (KPIs) um pouco mais compactas em todas as telas."],
@@ -53,7 +54,7 @@ const PERFIS_INFO = [
 ];
 
 function abrirConfig(){
-  document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+  setNavActive('[data-perm="config"]:not([data-super])');
   document.getElementById('pageTitle').textContent="Configurações";
   document.getElementById('side').classList.remove('open');
   document.getElementById('q').value='';

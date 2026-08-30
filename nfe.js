@@ -13,7 +13,7 @@ function nfList(){ if(!WORK.notas)WORK.notas=[]; return WORK.notas; }
 function fiscalCfg(){ if(!WORK.fiscal)WORK.fiscal={regime:"MEI",cnpj:"",im:"",lc116:"14.01",municipio:""}; return WORK.fiscal; }
 
 function abrirNFe(){
-  document.querySelectorAll('.nav a').forEach(function(x){x.classList.remove('active');});
+  setNavActive('[data-perm="nfe"]');
   document.getElementById('pageTitle').textContent="Nota Fiscal (NFS-e)";
   document.getElementById('side').classList.remove('open');
   var q=document.getElementById('q'); if(q)q.value='';

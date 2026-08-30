@@ -151,7 +151,7 @@ window.vmRefreshCharts=vmRefreshCharts;
 function abrirMarca(){
   /* Host dedicado: identidade travada — nem abre a tela de marca. */
   if(window.__brandLocked){ if(typeof toast==='function')toast('Identidade fixa neste domínio.'); return; }
-  document.querySelectorAll('.nav a').forEach(function(x){x.classList.remove('active');});
+  setNavActive('[data-super]');
   document.getElementById('pageTitle').textContent="Identidade da oficina";
   document.getElementById('side').classList.remove('open');
   document.getElementById('q').value='';

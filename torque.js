@@ -111,17 +111,59 @@ function renderTorque(){
        '<div style="font-family:var(--display);font-size:19px;margin-bottom:4px">Motor Torque <span class="torque-badge" style="color:'+col+'">'+label+'</span></div>'+
        '<div style="color:var(--muted);font-size:13px;margin-bottom:14px">Inteligência que lê sua operação e mostra onde agir primeiro — priorizado por impacto financeiro.</div>'+
        '<div class="kpis" style="margin:0">'+
-         '<div class="kpi"><div class="lbl">Receita em jogo</div><div class="val">'+_tqMoney(emJogo)+'</div></div>'+
-         '<div class="kpi"><div class="lbl">Ações prioritárias</div><div class="val">'+prioridade+'</div></div>'+
-         '<div class="kpi"><div class="lbl">Insights ativos</div><div class="val">'+ins.length+'</div></div>'+
+         '<div class="kpi" onclick="torqueDrill(\'receita\')" title="Ver o que compõe este valor"><div class="lbl">Receita em jogo</div><div class="val">'+_tqMoney(emJogo)+'</div></div>'+
+         '<div class="kpi" onclick="torqueDrill(\'acoes\')" title="Ver as ações priorizadas"><div class="lbl">Ações prioritárias</div><div class="val">'+prioridade+'</div></div>'+
+         '<div class="kpi" onclick="torqueDrill(\'insights\')" title="Ver os insights ativos"><div class="lbl">Insights ativos</div><div class="val">'+ins.length+'</div></div>'+
        '</div></div>'+
    '</div>'+
    '<div class="panel"><div class="head"><h3>⚙️ Recomendações priorizadas</h3><div class="sp"></div>'+
      '<button class="b b-ghost b-sm" onclick="relTorque_pdf()">📄 Relatório</button></div>'+cards+'</div>';
 }
 
+/* Drill-down dos 3 indicadores do topo (padrão dashDrill): abre um modal com a FONTE do número.
+   'receita' → recomendações que somam o valor recuperável; 'acoes' → ações priorizadas (urg>=2);
+   'insights' → todos os insights ativos. Cada linha traz o CTA que leva ao módulo de origem. */
+function torqueDrill(tipo){
+  var esch=(typeof esc==='function')?esc:function(s){return s==null?'':(''+s);};
+  var ins=torqueInsights().sort(function(a,b){return (b.urg-a.urg)||(b.imp-a.imp);});
+  var titulo, sub, list;
+  if(tipo==='receita'){
+    list=ins.filter(function(i){return (i.imp||0)>0;});
+    var tot=list.reduce(function(s,i){return s+(i.imp||0);},0);
+    titulo='Receita em jogo · '+_tqMoney(tot);
+    sub='Recomendações que somam o valor recuperável. Clique em uma para abrir a fonte no módulo.';
+  } else if(tipo==='acoes'){
+    list=ins.filter(function(i){return i.urg>=2;});
+    titulo='Ações prioritárias · '+list.length;
+    sub='Recomendações de urgência alta e média, priorizadas por impacto financeiro.';
+  } else {
+    list=ins;
+    titulo='Insights ativos · '+ins.length;
+    sub='Tudo o que o Motor Torque está lendo na sua operação agora.';
+  }
+  var prioLbl=function(u){return u>=3?'Alta':(u===2?'Média':'Baixa');};
+  /* Cada linha é clicável: fecha o modal e abre a FONTE no módulo de origem (i.act). */
+  var rows=list.length?list.map(function(i){
+    var uc=i.urg>=3?'var(--bad)':(i.urg===2?'var(--warn)':'var(--gold-2)');
+    var act=(i.act||'').replace(/"/g,'&quot;');
+    return '<tr onclick="closeModal();'+act+'" title="'+esch(i.cta)+'">'+
+      '<td><span class="badge" style="background:'+uc+'22;color:'+uc+'">'+prioLbl(i.urg)+'</span></td>'+
+      '<td style="white-space:nowrap">'+i.ic+' '+esch(i.cat)+'</td>'+
+      '<td><b>'+esch(i.titulo)+'</b><br><span style="color:var(--muted);font-size:12px">'+esch(i.desc)+'</span></td>'+
+      '<td style="text-align:right;color:var(--gold-2);white-space:nowrap">'+(i.imp>0?_tqMoney(i.imp):'—')+'</td>'+
+    '</tr>';
+  }).join(''):'<tr><td colspan="4" style="color:var(--muted)">Nenhum item no momento.</td></tr>';
+  var html='<div style="max-height:56vh;overflow:auto"><table class="tbl"><thead>'+
+    '<tr><th>Prioridade</th><th>Categoria</th><th>Recomendação</th><th style="text-align:right">Impacto</th></tr>'+
+    '</thead><tbody>'+rows+'</tbody></table></div>'+
+    '<div style="font-size:11.5px;color:var(--muted);margin-top:8px">Clique numa linha para abrir a fonte no módulo correspondente.</div>';
+  modal(titulo,sub,html,function(){closeModal();});
+  var b=document.getElementById('mSave'); if(b)b.textContent='Fechar';
+}
+window.torqueDrill=torqueDrill;
+
 function abrirTorque(){
-  document.querySelectorAll('.nav a').forEach(function(x){x.classList.remove('active');});
+  setNavActive('[data-perm="torque"]');
   document.getElementById('pageTitle').textContent='Motor Torque · Inteligência';
   document.getElementById('side').classList.remove('open');
   var q=document.getElementById('q'); if(q)q.value='';

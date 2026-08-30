@@ -46,7 +46,7 @@ function relEstoque_pdf(){
 window.relEstoque_pdf=relEstoque_pdf;
 
 function abrirEstoquePred(){
-  document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+  setNavActive('[data-perm="estoque"]');
   document.getElementById('pageTitle').textContent="Estoque Inteligente";
   document.getElementById('side').classList.remove('open');
   document.getElementById('q').value='';

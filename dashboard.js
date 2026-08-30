@@ -11,7 +11,7 @@ function dashDestroy(){ Object.keys(_dashCharts).forEach(k=>_dashCharts[k].forEa
 const PALETTE=['#5b8cff','#7fa3ff','#a9c1ff','#6ee2c0','#e6b566','#b7a6ff','#7fbfd6','#8894a6'];
 
 function abrirDash(){
-  document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+  setNavActive('[data-perm="dashboard"]');
   document.getElementById('pageTitle').textContent="Dashboard Executivo";
   document.getElementById('side').classList.remove('open');
   document.getElementById('q').value='';

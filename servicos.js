@@ -46,8 +46,7 @@ window.tarefaDelegar=function(id,nome){
 
 /* ---------- render ---------- */
 function abrirServicos(){
-  document.querySelectorAll('.nav a').forEach(function(x){x.classList.remove('active');});
-  var link=document.querySelector('.nav a[data-perm="servicos"]'); if(link)link.classList.add('active');
+  setNavActive('[data-perm="servicos"]');
   document.getElementById('pageTitle').textContent="Serviços";
   document.getElementById('side').classList.remove('open');
   var q=document.getElementById('q'); if(q)q.value='';

@@ -115,13 +115,29 @@ function entrar(e){e.preventDefault();
   go('home');
 }
 function sair(){location.hash='';location.reload();}
+/* ===== destaque central do menu lateral =====
+   Bug sistêmico: os itens abertos por onclick="abrir*()" limpavam o .active de todos e não
+   marcavam a si mesmos → nenhum ficava destacado. setNavActive centraliza: limpa TODOS e marca
+   só o item certo. Aceita uma CHAVE data-m ('home','os','agenda','clientes') OU um SELETOR CSS
+   relativo a '.nav a' (que começa com '[', '.' ou '#'). Chamado por go() e por cada abrir*().
+   Só mexe na classe .active — não toca em style.display (rbacAplicarNav segue intacto). */
+function setNavActive(key){
+  document.querySelectorAll('.nav a').forEach(function(x){x.classList.remove('active');});
+  if(!key) return;
+  var c=key.charAt(0);
+  var sel=(c==='['||c==='.'||c==='#') ? ('.nav a'+key) : ('.nav a[data-m="'+key+'"]');
+  var el=document.querySelector(sel);
+  if(el) el.classList.add('active');
+}
+window.setNavActive=setNavActive;
 document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>{
-  if(a.dataset.m){document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));a.classList.add('active');
+  if(a.dataset.m){setNavActive(a.dataset.m);
     go(a.dataset.m,a.dataset.t);document.getElementById('side').classList.remove('open');}
 }));
 const TITLES={home:"Início",os:"Ordens de Serviço",agenda:"Agenda",clientes:"Clientes & Veículos",estoque:"Estoque Inteligente"};
 function go(m,t){CUR=m;document.getElementById('q').value='';
   document.getElementById('pageTitle').textContent=TITLES[m]||t||"";
+  if(document.querySelector('.nav a[data-m="'+m+'"]')) setNavActive(m);
   ({home:renderHome,os:renderOS,agenda:renderAgenda,clientes:renderClientes,estoque:renderEstoque,stub:()=>renderStub(t)}[m]||renderHome)();
 }
 function onSearch(){const q=document.getElementById('q').value;
@@ -131,7 +147,7 @@ function onSearch(){const q=document.getElementById('q').value;
   /* Início (e demais telas sem busca própria): busca GLOBAL e leva ao resultado. */
   vmBuscaGlobal(q);}
 /* marca o item de menu ativo ao navegar por código (a busca não passa pelo click do nav) */
-function _navAtivo(m){document.querySelectorAll('.nav a').forEach(x=>x.classList.toggle('active',x.dataset.m===m));}
+function _navAtivo(m){setNavActive(m);}
 /* Busca global a partir da Início: casa cliente (nome/tel/email), veículo (placa/modelo)
    e OS (número), e navega para a tela mais adequada JÁ FILTRADA pelo termo. */
 function vmBuscaGlobal(q){

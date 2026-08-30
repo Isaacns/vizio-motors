@@ -104,7 +104,7 @@ function renderBemEstar(){
     '</div>';
 }
 function abrirBemEstar(){
-  document.querySelectorAll('.nav a').forEach(function(x){x.classList.remove('active');});
+  setNavActive('[data-perm="bemestar"]');
   document.getElementById('pageTitle').textContent="Bem-estar & Pausas";
   document.getElementById('side').classList.remove('open');
   document.getElementById('q').value='';
