@@ -186,11 +186,12 @@ function renderHome(){
     ['Estoque crítico',critico.length,0,critico.length?'down':'up','itens abaixo do mínimo'],
     ['Ticket médio',ticket,1,'up','▲ por OS aprovada'],
   ];
+  const aguardAprov=WORK.os.filter(o=>o.statusIdx===2).length;
   const alertas=[
     ['📦', critico.length?`<b>${critico.length} peça(s)</b> abaixo do mínimo: ${critico.map(p=>esc(p.nome)).join(', ')} — sugerir compra.`:'Estoque saudável — nenhuma peça abaixo do mínimo.'],
-    ['🔔','<b>17 clientes</b> com troca de óleo vencida — campanha de recuperação pronta para disparo.'],
-    ['⭐','<b>João Pereira</b> está há 8 meses sem revisão e tem histórico de aceitar preventiva.'],
-    ['📉','Margem do serviço <b>“Revisão 40k”</b> caiu <b>18%</b> — custo de peça subiu no fornecedor atual.'],
+    ['🔔', aguardAprov?`<b>${aguardAprov} orçamento(s)</b> aguardando aprovação — faça o follow-up para não perder o serviço.`:'Nenhum orçamento parado aguardando aprovação.'],
+    ['⭐', prontas?`<b>${prontas} veículo(s)</b> prontos para retirada — avise o cliente pelo portal ou WhatsApp.`:`Base de <b>${WORK.clientes.length} cliente(s)</b> cadastrados — campanha de recuperação de revisão pronta para disparo.`],
+    ['📈', `<b>${WORK.os.length} OS</b> no período — acompanhe margem e custo de peças no Financeiro e no Estoque.`],
   ];
   /* Resumo do Dashboard Executivo embutido na Início — reaproveita dashData() (não duplica lógica) */
   const D=(typeof dashData==='function')?dashData():null;
@@ -653,7 +654,7 @@ function printOS(id){const o=byId(WORK.os,id),c=cli(o.clienteId),v=veh(o.veiculo
    ${chk?`<div class="box"><b>Checklist de entrada:</b><br>${chk}</div>`:''}
    ${o.obs?`<div class="box"><b>Observações:</b> ${esc(o.obs)}</div>`:''}
    <div class="sign"><div>Assinatura do cliente</div><div>Responsável técnico</div></div>
-   <div style="text-align:center;margin-top:24px;color:#999;font-size:11px">Emitido por Vizio Motors · ${fmtFull(today())}</div>
+   <div style="text-align:center;margin-top:24px;color:#999;font-size:11px">Emitido por ${esc(nome)} · ${fmtFull(today())}</div>
    <script>window.onload=function(){window.print()}<\/script></body></html>`);
   w.document.close();}
 
